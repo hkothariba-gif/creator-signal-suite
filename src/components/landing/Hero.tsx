@@ -3,7 +3,11 @@ import { motion } from "framer-motion";
 import { WordStagger } from "./words";
 import { YouTubeIcon, RedditIcon, XIcon } from "./icons";
 
-const platforms = [YouTubeIcon, RedditIcon, XIcon];
+const platforms = [
+  { Icon: YouTubeIcon, glow: "rgba(255,0,0,0.55)", bg: "rgba(255,0,0,0.12)", border: "rgba(255,0,0,0.4)" },
+  { Icon: RedditIcon, glow: "rgba(255,69,0,0.55)", bg: "rgba(255,69,0,0.12)", border: "rgba(255,69,0,0.4)" },
+  { Icon: (p: { size?: number }) => <XIcon size={p.size} bg="none" className="[&_path]:fill-white" />, glow: "rgba(255,255,255,0.45)", bg: "rgba(255,255,255,0.08)", border: "rgba(255,255,255,0.3)" },
+];
 
 export function Hero() {
   return (

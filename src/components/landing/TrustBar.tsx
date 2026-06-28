@@ -9,8 +9,8 @@ const badges = [
 
 export function TrustBar() {
   return (
-    <section className="bg-white/[0.02] border-y border-white/[0.06] py-8">
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
+    <section className="bg-[#111827] border-y border-white/[0.06] py-10">
+      <div className="max-w-[1200px] mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
         <div className="text-brand-muted text-sm">The only platform built natively for</div>
         <div className="flex flex-wrap items-center justify-center gap-3">
           {badges.map((b, i) => (

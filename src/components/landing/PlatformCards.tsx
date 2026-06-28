@@ -150,34 +150,34 @@ const cards = [
 
 export function PlatformCards() {
   return (
-    <section id="platforms" className="bg-brand-navy py-28 md:py-32">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="platforms" className="bg-brand-navy py-16 md:py-[100px]">
+      <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center">
           <div className="text-brand-green text-xs font-bold uppercase tracking-[0.15em]">
             Three Platforms. One Intelligence Layer.
           </div>
           <WordStagger
             text="Built for the platforms where real conversations happen"
-            className="mt-4 mx-auto max-w-[820px] text-white font-display font-extrabold text-4xl md:text-5xl tracking-[-0.04em] leading-[1.05]"
+            className="mt-4 mx-auto max-w-[820px] text-white font-display font-extrabold text-4xl md:text-[52px] tracking-[-0.04em] leading-[1.05]"
           />
         </div>
 
-        <div className="mt-20 space-y-20">
-          {cards.map((c, i) => (
+        <div className="mt-16 md:mt-20 divide-y divide-white/10">
+          {cards.map((c) => (
             <FadeUp key={c.title} delay={0.05}>
               <div
-                className={`grid grid-cols-1 lg:grid-cols-2 gap-10 items-center ${
-                  c.side === "right" ? "lg:[&>*:first-child]:order-2" : ""
+                className={`grid grid-cols-1 md:grid-cols-[45fr_55fr] gap-10 md:gap-14 items-center py-14 md:py-20 md:min-h-[500px] ${
+                  c.side === "right" ? "md:[&>*:first-child]:order-2" : ""
                 }`}
               >
                 <div>
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: `${c.color}20` }}>
                     <c.Icon size={36} />
                   </div>
-                  <h3 className="mt-5 text-white font-display font-extrabold text-3xl md:text-4xl tracking-[-0.03em]">
+                  <h3 className="mt-5 text-white font-display font-extrabold text-3xl md:text-[44px] tracking-[-0.03em] leading-[1.05]">
                     {c.title}
                   </h3>
-                  <p className="mt-4 text-brand-muted text-lg leading-[1.65] max-w-xl">{c.desc}</p>
+                  <p className="mt-5 text-brand-muted text-lg md:text-[19px] leading-[1.65] max-w-xl">{c.desc}</p>
                   <Pills items={c.tags} color={c.color === "#FFFFFF" ? "#94A3B8" : c.color} />
                 </div>
                 <c.Mock />

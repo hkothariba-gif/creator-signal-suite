@@ -66,7 +66,7 @@ export function Counter({
   prefix = "",
   suffix = "",
   decimals = 0,
-  duration = 1600,
+  duration = 2000,
 }: {
   to: number;
   prefix?: string;

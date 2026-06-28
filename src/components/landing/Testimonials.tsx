@@ -26,8 +26,8 @@ const items = [
 
 export function Testimonials() {
   return (
-    <section className="bg-brand-off-white py-28 md:py-32">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="bg-brand-off-white py-16 md:py-[100px]">
+      <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto">
           <WordStagger
             text="Growth teams are done guessing"

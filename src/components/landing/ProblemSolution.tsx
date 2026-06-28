@@ -19,7 +19,7 @@ const newWay = [
 
 export function ProblemSolution() {
   return (
-    <section id="features" className="bg-brand-navy py-28 md:py-32">
+    <section id="features" className="bg-brand-navy py-16 md:py-[100px]">
       <div className="max-w-[1100px] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         <FadeUp from="left">
           <div className="h-full rounded-3xl p-8 border bg-[rgba(239,68,68,0.04)] border-[rgba(239,68,68,0.3)]">

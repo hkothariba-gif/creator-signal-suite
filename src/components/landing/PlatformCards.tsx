@@ -174,7 +174,7 @@ export function PlatformCards() {
           />
         </div>
 
-        <div className="mt-16 md:mt-20 divide-y" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        <div className="mt-16 md:mt-20 divide-y divide-white/[0.06]">
           {cards.map((c) => (
             <FadeUp key={c.title} delay={0.05}>
               <div

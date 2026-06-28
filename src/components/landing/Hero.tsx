@@ -22,24 +22,53 @@ export function Hero() {
   return (
     <section
       className="noise-overlay relative min-h-screen w-full overflow-hidden pt-28 pb-20 flex items-center"
-      style={{
-        background:
-          "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,217,126,0.18) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 85% 100%, rgba(124,58,237,0.10) 0%, transparent 60%), #05080F",
-      }}
+      style={{ background: "#05080F", position: "relative" }}
     >
-      {/* Violet accent — bottom-right */}
+      {/* Blob 1 — green, bottom-left */}
       <div
-        className="absolute pointer-events-none"
         style={{
-          width: 300,
-          height: 300,
-          bottom: -50,
-          right: -50,
-          background: "radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%)",
+          position: "absolute",
+          width: 700,
+          height: 700,
+          left: -150,
+          bottom: -200,
+          background: "radial-gradient(circle, rgba(0,217,126,0.55) 0%, rgba(0,217,126,0.0) 70%)",
+          filter: "blur(80px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      {/* Blob 2 — violet, top-right */}
+      <div
+        style={{
+          position: "absolute",
+          width: 600,
+          height: 600,
+          right: -100,
+          top: -100,
+          background: "radial-gradient(circle, rgba(124,58,237,0.45) 0%, rgba(124,58,237,0.0) 70%)",
+          filter: "blur(80px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      {/* Blob 3 — green secondary, center-top */}
+      <div
+        style={{
+          position: "absolute",
+          width: 400,
+          height: 400,
+          left: "50%",
+          top: 0,
+          transform: "translateX(-50%)",
+          background: "radial-gradient(circle, rgba(0,217,126,0.25) 0%, transparent 70%)",
+          filter: "blur(60px)",
+          pointerEvents: "none",
+          zIndex: 0,
         }}
       />
 
-      <div className="relative max-w-[900px] mx-auto px-6 text-center w-full">
+      <div className="relative max-w-[900px] mx-auto px-6 text-center w-full" style={{ zIndex: 1 }}>
         {/* Platform icons row */}
         <div className="flex items-center justify-center gap-4 mb-6">
           {platforms.map((p, i) => (

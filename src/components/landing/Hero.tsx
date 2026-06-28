@@ -178,11 +178,11 @@ export function Hero() {
           <div
             className="p-6 md:p-8 text-left rounded-2xl"
             style={{
-              background: "rgba(19,29,46,0.80)",
-              border: "1px solid rgba(255,255,255,0.07)",
+              background: "rgba(19,29,46,0.7)",
+              border: "1px solid rgba(255,255,255,0.1)",
               boxShadow:
-                "0 0 0 1px rgba(255,255,255,0.04) inset, 0 32px 64px rgba(0,0,0,0.4)",
-              backdropFilter: "blur(20px)",
+                "0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(0,217,126,0.06)",
+              backdropFilter: "blur(16px)",
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0 md:divide-x divide-white/[0.07]">

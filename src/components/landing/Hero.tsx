@@ -6,15 +6,15 @@ import { YouTubeIcon, RedditIcon, XIcon } from "./icons";
 const platforms = [
   {
     Icon: YouTubeIcon,
-    shadow: "0 0 0 1px rgba(255,255,255,0.08), 0 0 24px 4px rgba(255,0,0,0.20)",
+    shadow: "0 0 0 1px rgba(255,0,0,0.4), 0 0 20px rgba(255,0,0,0.35), 0 0 40px rgba(255,0,0,0.15)",
   },
   {
     Icon: RedditIcon,
-    shadow: "0 0 0 1px rgba(255,255,255,0.08), 0 0 24px 4px rgba(255,69,0,0.20)",
+    shadow: "0 0 0 1px rgba(255,69,0,0.4), 0 0 20px rgba(255,69,0,0.35), 0 0 40px rgba(255,69,0,0.15)",
   },
   {
     Icon: (p: { size?: number }) => <XIcon size={p.size} bg="none" className="[&_path]:fill-white" />,
-    shadow: "0 0 0 1px rgba(255,255,255,0.12), 0 0 24px 4px rgba(255,255,255,0.08)",
+    shadow: "0 0 0 1px rgba(255,255,255,0.2), 0 0 20px rgba(255,255,255,0.15), 0 0 40px rgba(255,255,255,0.08)",
   },
 ];
 

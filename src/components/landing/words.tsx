@@ -5,17 +5,20 @@ import { useInView } from "@/hooks/use-in-view";
 export function WordStagger({
   text,
   className,
+  style,
   as: Tag = "h2",
 }: {
   text: string;
   className?: string;
+  style?: React.CSSProperties;
   as?: "h1" | "h2" | "h3";
 }) {
   const { ref, inView } = useInView({ threshold: 0.2 });
   const words = text.split(" ");
   const MotionTag = motion[Tag as "h2"];
   return (
-    <MotionTag ref={ref as never} className={className}>
+    <MotionTag ref={ref as never} className={className} style={style}>
+
       {words.map((w, i) => (
         <span key={i} style={{ display: "inline-block", overflow: "hidden", paddingBottom: "0.08em" }}>
           <motion.span

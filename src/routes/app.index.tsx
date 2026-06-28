@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell, Card, StatCard } from "@/components/app/AppShell";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Search, Mail, DollarSign } from "lucide-react";
+import { Plus, Search, Mail, DollarSign, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
   component: HomePage,
@@ -24,11 +25,32 @@ const topCreators = [
 
 function HomePage() {
   const { user } = useAuth();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const firstName = (user?.email ?? "there").split("@")[0].split(/[._-]/)[0];
   const greeting = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+  const showSetup = user?.role === "user" && user?.onboarded === false && !bannerDismissed;
 
   return (
     <AppShell title="Home">
+      {showSetup && (
+        <div className="mb-6 flex items-center gap-3 px-4 py-3 rounded-xl border border-[#00D97E]/30 bg-[#00D97E]/10 text-sm">
+          <span className="text-[#F0F4FF]">✨ Finish setting up your account</span>
+          <Link
+            to="/onboarding"
+            className="ml-auto px-3 h-8 inline-flex items-center rounded-lg bg-[#00D97E] text-[#05080F] font-bold text-xs hover:bg-[#00c472]"
+          >
+            Continue Setup →
+          </Link>
+          <button
+            onClick={() => setBannerDismissed(true)}
+            className="text-[#8892A4] hover:text-white"
+            aria-label="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="mb-8">
         <h2 className="text-2xl font-bold">Good morning, {greeting}</h2>
         <p className="text-[#8892A4] mt-1">Here's what's happening across your campaigns</p>

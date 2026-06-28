@@ -87,13 +87,12 @@ export function Pricing() {
                 <a
                   href="#cta"
                   className={`mt-8 inline-flex items-center justify-center rounded-full font-semibold px-5 py-3 transition-all hover:scale-[1.02] ${
-                    t.popular
-                      ? "bg-brand-green hover:bg-brand-green-dark text-white"
-                      : "border border-white/30 text-white hover:bg-white/5"
+                    t.popular ? "btn-primary-cta" : "btn-secondary-cta"
                   }`}
                 >
                   {t.cta}
                 </a>
+
               </div>
             </FadeUp>
           ))}

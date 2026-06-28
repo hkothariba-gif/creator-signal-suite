@@ -12,7 +12,6 @@ function AppLayout() {
   useEffect(() => {
     if (loading) return;
     if (!user) navigate({ to: "/login" });
-    else if (user.role === "user" && !user.onboarded) navigate({ to: "/onboarding" });
   }, [user, loading, navigate]);
   if (!user) return null;
   return <Outlet />;

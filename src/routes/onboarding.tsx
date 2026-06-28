@@ -218,7 +218,11 @@ function OnboardingPage() {
 
         {step < 6 && (
           <div className="mt-12 flex justify-center">
-            <button onClick={next} className="h-12 px-8 rounded-lg bg-[#00D97E] hover:bg-[#00c472] text-[#05080F] font-bold">
+            <button
+              onClick={next}
+              disabled={step === 1 && !category.trim()}
+              className="h-12 px-8 rounded-lg bg-[#00D97E] hover:bg-[#00c472] text-[#05080F] font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+            >
               Continue →
             </button>
           </div>

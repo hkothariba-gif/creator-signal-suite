@@ -9,7 +9,14 @@ const stats = [
 
 export function StatsBar() {
   return (
-    <section className="stats-bar-bg noise-overlay text-white relative">
+    <section
+      className="noise-overlay text-white relative"
+      style={{
+        background: "linear-gradient(135deg, #00D97E 0%, #00b368 40%, #059669 70%, #047857 100%)",
+        borderTop: "1px solid rgba(255,255,255,0.15)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 -1px 30px rgba(0,217,126,0.3)",
+      }}
+    >
       <div className="max-w-[1200px] mx-auto px-6 py-16 md:py-[100px] grid grid-cols-2 md:grid-cols-4 gap-y-10">
         {stats.map((s, i) => (
           <div

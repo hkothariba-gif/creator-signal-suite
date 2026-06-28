@@ -19,7 +19,11 @@ function Pills({ items, color }: { items: string[]; color: string }) {
 
 function YouTubeMock() {
   return (
-    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+    <div className="rounded-2xl p-6" style={{
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
+      }}>
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-[#FF0000]/20 flex items-center justify-center">
           <YouTubeIcon size={24} />
@@ -55,7 +59,11 @@ function YouTubeMock() {
 
 function RedditMock() {
   return (
-    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+    <div className="rounded-2xl p-6" style={{
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
+      }}>
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-[#FF4500]/20 flex items-center justify-center">
           <RedditIcon size={24} />
@@ -87,7 +95,11 @@ function RedditMock() {
 
 function XMock() {
   return (
-    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+    <div className="rounded-2xl p-6" style={{
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
+      }}>
       <div className="flex items-center gap-3">
         <XIcon size={36} bg="white" />
         <div>
@@ -162,7 +174,7 @@ export function PlatformCards() {
           />
         </div>
 
-        <div className="mt-16 md:mt-20 divide-y divide-white/10">
+        <div className="mt-16 md:mt-20 divide-y divide-white/[0.06]">
           {cards.map((c) => (
             <FadeUp key={c.title} delay={0.05}>
               <div

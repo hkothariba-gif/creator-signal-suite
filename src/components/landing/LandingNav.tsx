@@ -47,12 +47,21 @@ export function LandingNav() {
           ))}
         </div>
 
-        <a
-          href="#cta"
-          className="hidden md:inline-flex items-center rounded-full bg-brand-green hover:bg-brand-green-dark text-white text-sm font-semibold px-5 py-2.5 transition-all hover:scale-[1.02]"
-        >
-          Get Early Access
-        </a>
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            to="/login"
+            className="text-sm text-slate-200 hover:text-white font-medium px-3 py-2 transition-colors"
+          >
+            Sign in
+          </Link>
+          <a
+            href="#cta"
+            className="inline-flex items-center rounded-full bg-brand-green hover:bg-brand-green-dark text-white text-sm font-semibold px-5 py-2.5 transition-all hover:scale-[1.02]"
+          >
+            Get Early Access
+          </a>
+        </div>
+
 
         <button className="md:hidden text-white p-2" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
           {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -71,13 +80,21 @@ export function LandingNav() {
               {l.label}
             </a>
           ))}
+          <Link
+            to="/login"
+            onClick={() => setOpen(false)}
+            className="text-white text-xl font-medium"
+          >
+            Sign in
+          </Link>
           <a
             href="#cta"
             onClick={() => setOpen(false)}
-            className="rounded-full bg-brand-green text-white font-semibold px-8 py-3 mt-4"
+            className="rounded-full bg-brand-green text-white font-semibold px-8 py-3 mt-2"
           >
             Get Early Access
           </a>
+
         </div>
       )}
     </header>

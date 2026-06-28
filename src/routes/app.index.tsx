@@ -25,7 +25,22 @@ const topCreators = [
 
 function HomePage() {
   const { user } = useAuth();
-  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem("ar_banner_dismissed") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (bannerDismissed) {
+      try {
+        localStorage.setItem("ar_banner_dismissed", "true");
+      } catch { /* noop */ }
+    }
+  }, [bannerDismissed]);
+
   const firstName = (user?.email ?? "there").split("@")[0].split(/[._-]/)[0];
   const greeting = firstName.charAt(0).toUpperCase() + firstName.slice(1);
   const showSetup = user?.role === "user" && user?.onboarded === false && !bannerDismissed;

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useInView } from "@/hooks/use-in-view";
 
@@ -100,6 +101,3 @@ export function Counter({
     </span>
   );
 }
-
-// re-exports for the file above
-import { useEffect, useState } from "react";

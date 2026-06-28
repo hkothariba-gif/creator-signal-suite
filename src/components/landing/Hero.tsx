@@ -57,7 +57,7 @@ export function Hero() {
         <WordStagger
           as="h1"
           text="Find, Onboard and Scale with Creators That Actually Align with Your Audience"
-          className="text-white font-display font-extrabold text-[44px] md:text-[64px] lg:text-[72px] leading-[1.05] tracking-[-0.04em]"
+          className="text-white font-display font-extrabold text-[44px] md:text-[64px] lg:text-[72px] leading-[1.04] tracking-[-0.04em]"
         />
 
         <motion.p

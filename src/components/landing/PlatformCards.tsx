@@ -19,7 +19,7 @@ function Pills({ items, color }: { items: string[]; color: string }) {
 
 function YouTubeMock() {
   return (
-    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+    <div className="rounded-2xl p-6">
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-[#FF0000]/20 flex items-center justify-center">
           <YouTubeIcon size={24} />
@@ -55,7 +55,7 @@ function YouTubeMock() {
 
 function RedditMock() {
   return (
-    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+    <div className="rounded-2xl p-6">
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-[#FF4500]/20 flex items-center justify-center">
           <RedditIcon size={24} />
@@ -87,7 +87,7 @@ function RedditMock() {
 
 function XMock() {
   return (
-    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+    <div className="rounded-2xl p-6">
       <div className="flex items-center gap-3">
         <XIcon size={36} bg="white" />
         <div>

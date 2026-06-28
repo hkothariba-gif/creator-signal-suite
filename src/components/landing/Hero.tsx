@@ -30,15 +30,17 @@ export function Hero() {
 
       <div className="relative max-w-[900px] mx-auto px-6 text-center w-full">
         {/* Platform icons row */}
-        <div className="flex items-center justify-center gap-2 mb-4">
-          {platforms.map((Icon, i) => (
+        <div className="flex items-center justify-center gap-4 mb-6">
+          {platforms.map((p, i) => (
             <motion.div
               key={i}
-              initial={{ scale: 0, opacity: 0 }}
+              initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 15, delay: i * 0.15 }}
+              transition={{ type: "spring", stiffness: 180, damping: 14, delay: i * 0.2 }}
+              className="w-[52px] h-[52px] rounded-full flex items-center justify-center border"
+              style={{ background: p.bg, borderColor: p.border, boxShadow: `0 0 32px ${p.glow}, inset 0 0 12px rgba(255,255,255,0.04)` }}
             >
-              <Icon size={28} />
+              <p.Icon size={26} />
             </motion.div>
           ))}
         </div>

@@ -1,104 +1,186 @@
-import { Play } from "lucide-react";
 import { WordStagger, FadeUp } from "./words";
+import { YouTubeIcon, RedditIcon, XIcon } from "./icons";
 
-function YouTubeIcon({ className }: { className?: string }) {
+function Pills({ items, color }: { items: string[]; color: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2C0 8 0 12 0 12s0 4 .5 5.8a3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 16 24 12 24 12s0-4-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z" />
-    </svg>
+    <div className="mt-5 flex flex-wrap gap-2">
+      {items.map((t) => (
+        <span
+          key={t}
+          className="text-[11px] font-semibold uppercase tracking-[0.1em] px-3 py-1.5 rounded-full border"
+          style={{ color, borderColor: `${color}40`, background: `${color}10` }}
+        >
+          {t}
+        </span>
+      ))}
+    </div>
   );
 }
-function RedditIcon({ className }: { className?: string }) {
+
+function YouTubeMock() {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <circle cx="12" cy="12" r="11" />
-      <circle cx="8.5" cy="12.5" r="1.4" fill="#fff" />
-      <circle cx="15.5" cy="12.5" r="1.4" fill="#fff" />
-      <path d="M8.5 15.5c1 1 2.2 1.5 3.5 1.5s2.5-.5 3.5-1.5" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-      <circle cx="19" cy="8" r="1.6" fill="#fff" />
-      <line x1="19" y1="8" x2="13" y2="6.2" stroke="#fff" strokeWidth="1" />
-      <circle cx="13" cy="6" r="0.8" fill="#fff" />
-    </svg>
+    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-[#FF0000]/20 flex items-center justify-center">
+          <YouTubeIcon size={24} />
+        </div>
+        <div>
+          <div className="text-white font-bold">TechWithMarcus</div>
+          <div className="text-brand-muted text-xs">340K subscribers · 6.2% engagement</div>
+        </div>
+      </div>
+      <div className="mt-5">
+        <div className="flex justify-between text-[10px] uppercase tracking-wider text-brand-muted mb-1.5">
+          <span>Brand Fit</span>
+          <span className="text-brand-green font-bold">94%</span>
+        </div>
+        <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+          <div className="h-full bg-brand-green" style={{ width: "94%" }} />
+        </div>
+      </div>
+      <div className="mt-5 space-y-2">
+        {["The best home server setup for 2026", "Why I switched my whole stack", "Live: building a dev rig"].map((t) => (
+          <div key={t} className="flex items-center gap-3 text-sm text-slate-300">
+            <div className="w-14 h-9 rounded bg-white/10" />
+            <span className="truncate">{t}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 inline-block text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-amber/15 text-brand-amber">
+        CPM RANGE: $14 – $32
+      </div>
+    </div>
   );
 }
-function XIcon({ className }: { className?: string }) {
+
+function RedditMock() {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M18.244 2H21.5l-7.5 8.57L23 22h-6.84l-5.36-7.01L4.5 22H1.24l8.04-9.19L1 2h7.02l4.84 6.4L18.244 2Zm-1.2 18h1.86L7.05 4H5.08L17.044 20Z" />
-    </svg>
+    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-[#FF4500]/20 flex items-center justify-center">
+          <RedditIcon size={24} />
+        </div>
+        <div>
+          <div className="text-white font-bold">r/homelab</div>
+          <div className="text-brand-muted text-xs">847K members · 12K online</div>
+        </div>
+      </div>
+      <div className="mt-5 space-y-3">
+        {[
+          { title: "Which platform actually helps you find creators?", flag: "Buyer journey" },
+          { title: "Anyone tried AspenReach? Honest review inside", flag: "Brand mention" },
+        ].map((p) => (
+          <div key={p.title} className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-3">
+            <div className="text-sm text-slate-200 leading-snug">{p.title}</div>
+            <span className="mt-2 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#FF4500]/15 text-[#FF4500]">
+              Why Flagged · {p.flag}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 inline-block text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-green/15 text-brand-green">
+        COMMUNITY FIT: 89%
+      </div>
+    </div>
+  );
+}
+
+function XMock() {
+  return (
+    <div className="rounded-2xl bg-[#0a1124] border border-white/10 p-6">
+      <div className="flex items-center gap-3">
+        <XIcon size={36} bg="white" />
+        <div>
+          <div className="text-white font-bold">@buildinpublic_sara</div>
+          <div className="text-brand-muted text-xs">128K followers · 4.8% eng</div>
+        </div>
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+        {[
+          ["91", "Quality"],
+          ["4.8%", "Eng"],
+          ["12", "Mentions"],
+        ].map(([v, l]) => (
+          <div key={l} className="rounded-lg bg-white/[0.04] p-3">
+            <div className="text-white font-bold text-lg">{v}</div>
+            <div className="text-[10px] text-brand-muted uppercase tracking-wider">{l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 space-y-2">
+        {["Been using this for 3 weeks now and wow...", "Hot take: most influencer tools are dead."].map((t) => (
+          <div key={t} className="text-sm text-slate-300 italic">
+            "{t}"
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 const cards = [
   {
-    Icon: YouTubeIcon,
+    side: "left" as const,
     color: "#FF0000",
+    Icon: YouTubeIcon,
     title: "YouTube Creator Matching",
-    stats: "2B+ monthly users · Avg 8 min watch time · 3x purchase intent",
-    body: "Match to YouTube creators based on subscriber count, topic clusters, CPM ranges, and audience demographics. See engagement rate, estimated reach, and rate cards — all in one card.",
-    tags: ["Subscriber tiers", "CPM ranges", "Engagement rate", "Demographic fit"],
+    desc: "Match to creators based on subscriber count, topic clusters, CPM ranges, and audience demographics. See engagement rate, estimated reach, and rate cards — all before you reach out.",
+    tags: ["Subscriber Tiers", "CPM Ranges", "Engagement Rate", "Demographic Fit"],
+    Mock: YouTubeMock,
   },
   {
-    Icon: RedditIcon,
+    side: "right" as const,
     color: "#FF4500",
+    Icon: RedditIcon,
     title: "Reddit Community Intelligence",
-    stats: "97M+ DAU · 2x trust vs other platforms · Purchase-intent signals",
-    body: "AspenReach scans subreddits for people already discussing your product category. 'Why Flagged' snippets show you the exact posts and comments that match your buyer journey — before you reach out.",
-    tags: ["Subreddit mapping", "Sentiment signals", "Why Flagged snippets", "Community fit score"],
+    desc: "AspenReach scans subreddits for people already discussing your product category. 'Why Flagged' snippets show you the exact posts that match your buyer journey.",
+    tags: ["Subreddit Mapping", "Sentiment Signals", "Why Flagged Snippets", "Community Fit Score"],
+    Mock: RedditMock,
   },
   {
-    Icon: XIcon,
-    color: "#0F172A",
+    side: "left" as const,
+    color: "#FFFFFF",
+    Icon: (props: { size?: number }) => <XIcon size={props.size} bg="white" />,
     title: "X Conversation Mapping",
-    stats: "49% higher creator engagement · Real-time signals · Niche authority",
-    body: "Find niche X voices whose followers match your ICP. AspenReach surfaces engagement rate, follower quality score, and recent brand mentions — so you know who's already in your orbit.",
-    tags: ["Follower quality", "ICP match", "Brand mention tracking", "Niche authority"],
+    desc: "Find niche X voices whose followers match your ICP. Surface engagement rate, follower quality score, and recent brand mentions.",
+    tags: ["Follower Quality", "ICP Match", "Brand Mention Tracking", "Niche Authority"],
+    Mock: XMock,
   },
 ];
 
 export function PlatformCards() {
   return (
-    <section id="features" className="bg-brand-gray-soft py-24">
+    <section id="platforms" className="bg-brand-navy py-28 md:py-32">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="max-w-3xl">
-          <div className="text-[11px] font-bold tracking-[0.15em] uppercase text-brand-green">
-            Platform Intelligence
+        <div className="text-center">
+          <div className="text-brand-green text-xs font-bold uppercase tracking-[0.15em]">
+            Three Platforms. One Intelligence Layer.
           </div>
           <WordStagger
-            text="Three platforms. One intelligence layer."
-            className="mt-4 font-display font-extrabold text-4xl lg:text-5xl tracking-[-0.04em] leading-[1.05] text-brand-navy"
+            text="Built for the platforms where real conversations happen"
+            className="mt-4 mx-auto max-w-[820px] text-white font-display font-extrabold text-4xl md:text-5xl tracking-[-0.04em] leading-[1.05]"
           />
         </div>
 
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-20 space-y-20">
           {cards.map((c, i) => (
-            <FadeUp key={c.title} delay={i * 0.1}>
-              <div className="group h-full rounded-2xl bg-white border border-slate-200/80 p-7 hover:-translate-y-1 hover:shadow-[0_20px_60px_-20px_rgba(15,23,42,0.18)] transition-all duration-300">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ background: `${c.color}15`, color: c.color }}
-                >
-                  <c.Icon className="w-6 h-6" />
+            <FadeUp key={c.title} delay={0.05}>
+              <div
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-10 items-center ${
+                  c.side === "right" ? "lg:[&>*:first-child]:order-2" : ""
+                }`}
+              >
+                <div>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: `${c.color}20` }}>
+                    <c.Icon size={36} />
+                  </div>
+                  <h3 className="mt-5 text-white font-display font-extrabold text-3xl md:text-4xl tracking-[-0.03em]">
+                    {c.title}
+                  </h3>
+                  <p className="mt-4 text-brand-muted text-lg leading-[1.65] max-w-xl">{c.desc}</p>
+                  <Pills items={c.tags} color={c.color === "#FFFFFF" ? "#94A3B8" : c.color} />
                 </div>
-                <h3 className="mt-5 font-display font-bold text-xl tracking-tight text-brand-navy">
-                  {c.title}
-                </h3>
-                <div className="mt-2 text-xs font-semibold text-brand-text-muted">
-                  {c.stats}
-                </div>
-                <p className="mt-4 text-brand-text-muted leading-relaxed text-sm">
-                  {c.body}
-                </p>
-                <div className="mt-5 flex flex-wrap gap-1.5">
-                  {c.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
+                <c.Mock />
               </div>
             </FadeUp>
           ))}
@@ -107,5 +189,3 @@ export function PlatformCards() {
     </section>
   );
 }
-
-export { YouTubeIcon, RedditIcon, XIcon, Play };

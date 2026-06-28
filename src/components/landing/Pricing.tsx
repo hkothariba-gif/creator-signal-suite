@@ -5,12 +5,7 @@ const tiers = [
   {
     name: "Starter",
     price: 99,
-    features: [
-      "Up to 50 creator searches/mo",
-      "1 active campaign",
-      "YouTube discovery",
-      "Email outreach templates",
-    ],
+    features: ["50 creator searches/mo", "1 active campaign", "YouTube discovery", "Email outreach templates"],
     cta: "Get Started",
     popular: false,
   },
@@ -23,7 +18,7 @@ const tiers = [
       "YouTube + Reddit + X",
       "AI outreach sequences",
       "Affiliate & payout tracking",
-      "Hotlist CRM (kanban)",
+      "Hotlist CRM kanban",
     ],
     cta: "Start Free Trial",
     popular: true,
@@ -45,26 +40,24 @@ const tiers = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-brand-gray-soft py-24">
+    <section id="pricing" className="bg-brand-navy py-28 md:py-32">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto">
           <WordStagger
             text="Simple pricing. Serious capability."
-            className="font-display font-extrabold text-4xl lg:text-5xl tracking-[-0.04em] leading-[1.05] text-brand-navy"
+            className="font-display font-extrabold text-4xl md:text-5xl tracking-[-0.04em] leading-[1.05] text-white"
           />
-          <p className="mt-4 text-brand-text-muted text-lg">
-            Choose a plan that scales with your campaigns.
-          </p>
+          <p className="mt-4 text-brand-muted text-lg">No setup fees. No contracts. Cancel anytime.</p>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
           {tiers.map((t, i) => (
             <FadeUp key={t.name} delay={i * 0.1}>
               <div
-                className={`relative h-full rounded-2xl p-8 flex flex-col bg-white transition-transform ${
+                className={`relative h-full rounded-[20px] p-8 flex flex-col transition-all ${
                   t.popular
-                    ? "border-2 border-brand-green shadow-[0_30px_80px_-30px_rgba(16,185,129,0.45)] md:scale-[1.04]"
-                    : "border border-slate-200"
+                    ? "md:scale-[1.04] bg-[rgba(16,185,129,0.1)] border-2 border-brand-green shadow-[0_0_40px_rgba(16,185,129,0.2)]"
+                    : "bg-white/[0.04] border border-white/10"
                 }`}
               >
                 {t.popular && (
@@ -72,19 +65,15 @@ export function Pricing() {
                     Most Popular
                   </span>
                 )}
-                <div className="font-display font-bold text-xl text-brand-navy tracking-tight">
-                  {t.name}
-                </div>
+                <div className="font-display font-bold text-xl text-white tracking-tight">{t.name}</div>
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className="font-display font-extrabold text-5xl text-brand-navy tracking-[-0.03em]">
-                    ${t.price}
-                  </span>
-                  <span className="text-brand-text-muted text-sm">/mo</span>
+                  <span className="font-display font-extrabold text-5xl text-white tracking-[-0.03em]">${t.price}</span>
+                  <span className="text-brand-muted text-sm">/mo</span>
                 </div>
 
                 <ul className="mt-6 space-y-3 flex-1">
                   {t.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-slate-700">
+                    <li key={f} className="flex items-start gap-2 text-sm text-slate-200">
                       <Check className="w-4 h-4 text-brand-green mt-0.5 shrink-0" />
                       <span>{f}</span>
                     </li>
@@ -93,10 +82,10 @@ export function Pricing() {
 
                 <a
                   href="#cta"
-                  className={`mt-8 inline-flex items-center justify-center rounded-full font-semibold px-5 py-3 transition-colors ${
+                  className={`mt-8 inline-flex items-center justify-center rounded-full font-semibold px-5 py-3 transition-all hover:scale-[1.02] ${
                     t.popular
                       ? "bg-brand-green hover:bg-brand-green-dark text-white"
-                      : "bg-brand-navy hover:bg-slate-800 text-white"
+                      : "border border-white/30 text-white hover:bg-white/5"
                   }`}
                 >
                   {t.cta}

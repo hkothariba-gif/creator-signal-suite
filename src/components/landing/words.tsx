@@ -11,21 +11,18 @@ export function WordStagger({
   className?: string;
   as?: "h1" | "h2" | "h3";
 }) {
-  const { ref, inView } = useInView({ threshold: 0.3 });
+  const { ref, inView } = useInView({ threshold: 0.2 });
   const words = text.split(" ");
   const MotionTag = motion[Tag as "h2"];
   return (
     <MotionTag ref={ref as never} className={className}>
       {words.map((w, i) => (
-        <span
-          key={i}
-          style={{ display: "inline-block", overflow: "hidden", paddingBottom: "0.05em" }}
-        >
+        <span key={i} style={{ display: "inline-block", overflow: "hidden", paddingBottom: "0.08em" }}>
           <motion.span
             style={{ display: "inline-block", willChange: "transform" }}
-            initial={{ opacity: 0, y: 30 }}
-            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.7, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+            transition={{ duration: 0.7, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
           >
             {w}
             {i < words.length - 1 ? "\u00A0" : ""}
@@ -40,19 +37,24 @@ export function FadeUp({
   children,
   delay = 0,
   className,
+  from = "bottom",
 }: {
   children: React.ReactNode;
   delay?: number;
   className?: string;
+  from?: "bottom" | "left" | "right";
 }) {
-  const { ref, inView } = useInView({ threshold: 0.2 });
+  const { ref, inView } = useInView({ threshold: 0.15 });
+  const initial =
+    from === "left" ? { opacity: 0, x: -40 } : from === "right" ? { opacity: 0, x: 40 } : { opacity: 0, y: 24 };
+  const animate = inView ? { opacity: 1, x: 0, y: 0 } : initial;
   return (
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, y: 24 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      initial={initial}
+      animate={animate}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
@@ -64,7 +66,7 @@ export function Counter({
   prefix = "",
   suffix = "",
   decimals = 0,
-  duration = 1800,
+  duration = 1600,
 }: {
   to: number;
   prefix?: string;
@@ -89,10 +91,7 @@ export function Counter({
     return () => cancelAnimationFrame(raf);
   }, [inView, to, duration]);
 
-  const formatted =
-    decimals > 0
-      ? value.toFixed(decimals)
-      : Math.round(value).toLocaleString("en-US");
+  const formatted = decimals > 0 ? value.toFixed(decimals) : Math.round(value).toLocaleString("en-US");
   return (
     <span ref={ref as never}>
       {prefix}

@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
+import { TrustBar } from "@/components/landing/TrustBar";
+import { ProblemSolution } from "@/components/landing/ProblemSolution";
 import { StatsBar } from "@/components/landing/StatsBar";
 import { HeatMapSection } from "@/components/landing/HeatMapSection";
 import { PlatformCards } from "@/components/landing/PlatformCards";
-import { HotlistPreview } from "@/components/landing/HotlistPreview";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { Pricing } from "@/components/landing/Pricing";
 import { FinalCTA } from "@/components/landing/FinalCTA";
@@ -17,13 +18,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AspenReach maps brand-fit, reach, and audience intent across YouTube, Reddit, and X so growth teams find creators who actually convert.",
+          "AspenReach maps brand-fit, reach, and buyer intent across YouTube, Reddit, and X — so growth teams find creators who actually convert.",
       },
       { property: "og:title", content: "AspenReach — Creator Intelligence Platform" },
       {
         property: "og:description",
-        content:
-          "Stop guessing. See which creators are already talking about what you sell — and which ones convert.",
+        content: "Stop paying for reach. Start paying for relevance.",
       },
     ],
   }),
@@ -32,14 +32,15 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   return (
-    <div className="font-display antialiased bg-white text-brand-navy">
+    <div className="font-display antialiased bg-brand-navy text-white">
       <LandingNav />
       <main>
         <Hero />
+        <TrustBar />
+        <ProblemSolution />
         <StatsBar />
         <HeatMapSection />
         <PlatformCards />
-        <HotlistPreview />
         <Testimonials />
         <Pricing />
         <FinalCTA />

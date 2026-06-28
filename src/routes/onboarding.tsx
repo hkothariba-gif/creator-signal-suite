@@ -44,6 +44,7 @@ function OnboardingPage() {
       onboarded: true,
       brand: { category, age, gender, income, notes, platforms },
     });
+    if (typeof window !== "undefined") localStorage.removeItem("ar_onboarding_step");
     navigate({ to: "/app" });
   };
 

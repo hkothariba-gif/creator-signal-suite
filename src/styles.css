@@ -9,45 +9,44 @@
   --color-brand-green-dark: #059669;
   --color-brand-navy: #0F172A;
   --color-brand-amber: #F59E0B;
-  --color-brand-gray-soft: #F8FAFC;
-  --color-brand-text-muted: #64748B;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-muted: #94A3B8;
+  --color-brand-off-white: #F9FAFB;
+  --color-yt-red: #FF0000;
+  --color-reddit-orange: #FF4500;
+  --color-x-black: #000000;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 html { scroll-behavior: smooth; }
+body { font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif; }
 
-@keyframes mesh-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+@keyframes blob-drift-1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -20px); }
 }
-.mesh-bg {
-  background:
-    radial-gradient(60% 50% at 20% 30%, rgba(16,185,129,0.25), transparent 60%),
-    radial-gradient(50% 40% at 80% 70%, rgba(5,150,105,0.20), transparent 60%),
-    radial-gradient(40% 30% at 50% 100%, rgba(16,185,129,0.18), transparent 60%);
-  animation: mesh-pulse 8s ease-in-out infinite;
+@keyframes blob-drift-2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-25px, 25px); }
 }
-.glass {
-  background: rgba(15, 23, 42, 0.55);
+@keyframes blob-drift-3 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, 30px); }
+}
+.blob-1 { animation: blob-drift-1 14s ease-in-out infinite; }
+.blob-2 { animation: blob-drift-2 18s ease-in-out infinite; }
+.blob-3 { animation: blob-drift-3 12s ease-in-out infinite; }
+
+.glass-dark {
+  background: rgba(255,255,255,0.04);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.12);
-}
-.glass-light {
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(15,23,42,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 @keyframes amber-pulse {
-  0%, 100% { opacity: 0.7; filter: drop-shadow(0 0 4px rgba(245,158,11,0.4)); }
-  50% { opacity: 1; filter: drop-shadow(0 0 10px rgba(245,158,11,0.9)); }
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 .amber-line { animation: amber-pulse 2.4s ease-in-out infinite; }
-@keyframes dot-pop {
-  from { opacity: 0; transform: scale(0); }
-  to { opacity: 1; transform: scale(1); }
-}
-.dot-pop { transform-origin: center; transform-box: fill-box; animation: dot-pop 0.5s ease-out forwards; opacity: 0; }
-.green-glow { filter: drop-shadow(0 0 6px rgba(16,185,129,0.7)); }
 
 /*
  * Design system definition.

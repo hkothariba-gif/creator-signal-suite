@@ -4,14 +4,29 @@ import { WordStagger } from "./words";
 import { YouTubeIcon, RedditIcon, XIcon } from "./icons";
 
 const platforms = [
-  { Icon: YouTubeIcon, glow: "rgba(255,0,0,0.25)" },
-  { Icon: RedditIcon, glow: "rgba(255,69,0,0.25)" },
-  { Icon: (p: { size?: number }) => <XIcon size={p.size} bg="none" className="[&_path]:fill-white" />, glow: "rgba(255,255,255,0.15)" },
+  {
+    Icon: YouTubeIcon,
+    shadow: "0 0 0 1px rgba(255,255,255,0.08), 0 0 24px 4px rgba(255,0,0,0.20)",
+  },
+  {
+    Icon: RedditIcon,
+    shadow: "0 0 0 1px rgba(255,255,255,0.08), 0 0 24px 4px rgba(255,69,0,0.20)",
+  },
+  {
+    Icon: (p: { size?: number }) => <XIcon size={p.size} bg="none" className="[&_path]:fill-white" />,
+    shadow: "0 0 0 1px rgba(255,255,255,0.12), 0 0 24px 4px rgba(255,255,255,0.08)",
+  },
 ];
 
 export function Hero() {
   return (
-    <section className="hero-bg noise-overlay relative min-h-screen w-full overflow-hidden pt-28 pb-20 flex items-center">
+    <section
+      className="noise-overlay relative min-h-screen w-full overflow-hidden pt-28 pb-20 flex items-center"
+      style={{
+        background:
+          "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,217,126,0.18) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 85% 100%, rgba(124,58,237,0.10) 0%, transparent 60%), #05080F",
+      }}
+    >
       {/* Violet accent — bottom-right */}
       <div
         className="absolute pointer-events-none"
@@ -36,7 +51,7 @@ export function Hero() {
               className="w-[52px] h-[52px] rounded-full flex items-center justify-center"
               style={{
                 background: "#131D2E",
-                boxShadow: `0 0 0 1px rgba(255,255,255,0.1), 0 0 20px 0 ${p.glow}`,
+                boxShadow: p.shadow,
               }}
             >
               <p.Icon size={26} />
@@ -131,7 +146,16 @@ export function Hero() {
           transition={{ duration: 0.9, delay: 1.2 }}
           className="mt-16 max-w-[1100px] mx-auto"
         >
-          <div className="card-elevated p-6 md:p-8 text-left shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
+          <div
+            className="p-6 md:p-8 text-left rounded-2xl"
+            style={{
+              background: "rgba(19,29,46,0.80)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              boxShadow:
+                "0 0 0 1px rgba(255,255,255,0.04) inset, 0 32px 64px rgba(0,0,0,0.4)",
+              backdropFilter: "blur(20px)",
+            }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0 md:divide-x divide-white/[0.07]">
               {/* YouTube */}
               <div className="px-0 md:px-6 first:pl-0 last:pr-0">

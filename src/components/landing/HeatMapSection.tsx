@@ -6,37 +6,53 @@ import { YouTubeIcon, RedditIcon, XIcon } from "./icons";
 
 type Tab = "heat" | "grid" | "hotlist";
 
-const dots = [
-  // [x%, y%, color]
-  ...Array.from({ length: 7 }).map((_, i) => ({
-    x: 65 + Math.random() * 30,
-    y: 15 + Math.random() * 30,
-    c: "#10B981",
-  })),
-  ...Array.from({ length: 7 }).map((_, i) => ({
-    x: 30 + Math.random() * 40,
-    y: 35 + Math.random() * 30,
-    c: "#F59E0B",
-  })),
-  ...Array.from({ length: 6 }).map((_, i) => ({
-    x: 8 + Math.random() * 50,
-    y: 60 + Math.random() * 30,
-    c: "#64748B",
-  })),
+type Creator = {
+  x: number;
+  y: number;
+  name: string;
+  platform: string;
+  color: string;
+  r: number;
+  subs?: string;
+};
+
+const creators: Creator[] = [
+  { x: 85, y: 92, name: "TechWithMarcus", platform: "YouTube", color: "#10B981", r: 10, subs: "340K subs" },
+  { x: 72, y: 88, name: "HomeLabPro", platform: "YouTube", color: "#10B981", r: 9, subs: "210K subs" },
+  { x: 60, y: 94, name: "r/homelab", platform: "Reddit", color: "#10B981", r: 11, subs: "847K members" },
+  { x: 90, y: 78, name: "BuildingWithSara", platform: "X", color: "#10B981", r: 8, subs: "128K followers" },
+  { x: 45, y: 85, name: "r/selfhosted", platform: "Reddit", color: "#10B981", r: 9, subs: "412K members" },
+  { x: 78, y: 65, name: "TechTalkDaily", platform: "YouTube", color: "#F59E0B", r: 8, subs: "190K subs" },
+  { x: 55, y: 70, name: "@devops_dan", platform: "X", color: "#F59E0B", r: 7, subs: "62K followers" },
+  { x: 30, y: 80, name: "r/sysadmin", platform: "Reddit", color: "#F59E0B", r: 8, subs: "920K members" },
+  { x: 65, y: 55, name: "CloudNative", platform: "YouTube", color: "#F59E0B", r: 7, subs: "145K subs" },
+  { x: 20, y: 60, name: "@cloudpunk", platform: "X", color: "#64748B", r: 6, subs: "38K followers" },
+  { x: 40, y: 40, name: "GenericTech", platform: "YouTube", color: "#64748B", r: 6, subs: "88K subs" },
+  { x: 15, y: 72, name: "r/linux", platform: "Reddit", color: "#64748B", r: 7, subs: "1.2M members" },
+  { x: 88, y: 50, name: "BigTechReview", platform: "YouTube", color: "#64748B", r: 7, subs: "510K subs" },
+  { x: 25, y: 35, name: "@random_tech", platform: "X", color: "#64748B", r: 5, subs: "22K followers" },
+  { x: 70, y: 30, name: "MassMarketYT", platform: "YouTube", color: "#64748B", r: 8, subs: "1.8M subs" },
+  { x: 50, y: 90, name: "r/homeautomation", platform: "Reddit", color: "#10B981", r: 9, subs: "380K members" },
+  { x: 82, y: 82, name: "NicheTechPro", platform: "YouTube", color: "#10B981", r: 8, subs: "165K subs" },
+  { x: 38, y: 75, name: "@buildinpublic", platform: "X", color: "#F59E0B", r: 7, subs: "78K followers" },
+  { x: 62, y: 48, name: "r/programming", platform: "Reddit", color: "#64748B", r: 7, subs: "5.8M members" },
+  { x: 92, y: 70, name: "TopTierReach", platform: "YouTube", color: "#F59E0B", r: 9, subs: "720K subs" },
 ];
+
+const bestMatchCount = creators.filter((c) => c.x >= 75 && c.y >= 75).length;
 
 export function HeatMapSection() {
   const [tab, setTab] = useState<Tab>("heat");
   return (
-    <section id="how" className="bg-brand-off-white py-28 md:py-32">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="how" className="bg-brand-off-white py-16 md:py-[100px]">
+      <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center">
           <div className="text-brand-green text-xs font-bold uppercase tracking-[0.15em]">
             Creator Discovery Engine
           </div>
           <WordStagger
             text="See exactly which creators fit — before you spend a dollar"
-            className="mt-4 mx-auto max-w-[760px] font-display font-extrabold text-4xl md:text-5xl lg:text-[56px] tracking-[-0.04em] leading-[1.05] text-brand-navy"
+            className="mt-4 mx-auto max-w-[820px] font-display font-extrabold text-4xl md:text-[52px] tracking-[-0.04em] leading-[1.05] text-brand-navy"
           />
         </div>
 
@@ -82,7 +98,7 @@ function HeatMapView() {
     { Icon: MousePointer2, t: "Hover any dot for name, platform, fit score, subs, CPM range" },
   ];
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[45fr_55fr] gap-10 items-center">
+    <div className="grid grid-cols-1 md:grid-cols-[45fr_55fr] gap-10 items-center">
       <div className="space-y-5">
         {bullets.map((b, i) => (
           <FadeUp key={i} delay={i * 0.1}>
@@ -97,104 +113,123 @@ function HeatMapView() {
       </div>
 
       <FadeUp delay={0.2}>
-        <div className="rounded-3xl p-6 bg-brand-navy shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)]">
-          <div className="flex items-center justify-between text-xs text-brand-muted mb-4">
-            <span className="uppercase tracking-[0.15em]">Creator Heat Map</span>
-            <span className="uppercase tracking-[0.15em]">↑ Brand Fit / Reach →</span>
-          </div>
-          <ScatterSVG />
-        </div>
+        <ScatterPlot />
       </FadeUp>
     </div>
   );
 }
 
-function ScatterSVG() {
-  const W = 560,
-    H = 380;
+function ScatterPlot() {
+  const W = 560;
+  const H = 380;
+  const padL = 44;
+  const padR = 20;
+  const padT = 36;
+  const padB = 36;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const px = (x: number) => padL + (x / 100) * plotW;
+  const py = (y: number) => padT + (1 - y / 100) * plotH;
+
+  const zoneX = px(75);
+  const zoneY = py(100);
+  const zoneW = px(100) - px(75);
+  const zoneH = py(75) - py(100);
+  const capY = py(72);
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
-      {/* grid */}
-      {Array.from({ length: 5 }).map((_, i) => (
-        <line
-          key={`h${i}`}
-          x1={0}
-          x2={W}
-          y1={(H / 5) * (i + 1)}
-          y2={(H / 5) * (i + 1)}
-          stroke="rgba(255,255,255,0.06)"
-        />
-      ))}
-      {Array.from({ length: 6 }).map((_, i) => (
-        <line
-          key={`v${i}`}
-          y1={0}
-          y2={H}
-          x1={(W / 6) * (i + 1)}
-          x2={(W / 6) * (i + 1)}
-          stroke="rgba(255,255,255,0.06)"
-        />
-      ))}
-
-      {/* best match zone */}
-      <rect
-        x={W * 0.62}
-        y={0}
-        width={W * 0.38}
-        height={H * 0.42}
-        fill="rgba(16,185,129,0.15)"
-        rx={12}
-      />
-      <text x={W * 0.64} y={24} fill="#10B981" fontSize="11" fontWeight="700" letterSpacing="1.5">
-        BEST MATCH ZONE
-      </text>
-
-      {/* budget cap dashed line */}
-      <line
-        x1={0}
-        x2={W}
-        y1={H * 0.55}
-        y2={H * 0.55}
-        stroke="#F59E0B"
-        strokeWidth="1.5"
-        strokeDasharray="6 6"
-        className="amber-line"
-      />
-      <text x={12} y={H * 0.55 - 6} fill="#F59E0B" fontSize="10" fontWeight="700" letterSpacing="1.5">
-        BUDGET CAP
-      </text>
-      <circle cx={W - 16} cy={H * 0.55} r="6" fill="#F59E0B" />
-
-      {/* dots */}
-      {dots.map((d, i) => (
-        <motion.circle
-          key={i}
-          cx={(d.x / 100) * W}
-          cy={(d.y / 100) * H}
-          r={d.c === "#10B981" ? 7 : 5}
-          fill={d.c}
-          opacity={d.c === "#64748B" ? 0.4 : 0.9}
-          initial={{ scale: 0, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: d.c === "#64748B" ? 0.4 : 0.9 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.05, duration: 0.4 }}
-          style={{ transformOrigin: `${(d.x / 100) * W}px ${(d.y / 100) * H}px` }}
-        />
-      ))}
-
-      {/* highlighted */}
-      <circle cx={W * 0.78} cy={H * 0.18} r="9" fill="#10B981" stroke="#fff" strokeWidth="2" />
-      <g transform={`translate(${W * 0.5}, ${H * 0.05})`}>
-        <rect width="220" height="58" rx="10" fill="rgba(255,255,255,0.96)" />
-        <text x="12" y="22" fontSize="12" fontWeight="700" fill="#0F172A">
-          TechWithMarcus · YouTube
+    <div className="rounded-2xl p-6 bg-[#1E293B] shadow-[0_30px_80px_-20px_rgba(15,23,42,0.45)]">
+      <style>{`
+        @keyframes dotPop { 0% { r: 0; opacity: 0; } 70% { opacity: 1; } 100% { opacity: 1; } }
+        .scatter-dot { animation: dotPop 0.55s cubic-bezier(0.34,1.56,0.64,1) both; transform-origin: center; transition: filter 0.2s, transform 0.2s; cursor: pointer; }
+        .scatter-dot:hover { filter: brightness(1.2) drop-shadow(0 0 8px currentColor); }
+        @keyframes dashPulse { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+        .budget-cap { animation: dashPulse 2.4s ease-in-out infinite; }
+      `}</style>
+      <div className="flex items-center justify-between text-[11px] text-brand-muted mb-3 uppercase tracking-[0.15em]">
+        <span>Creator Heat Map</span>
+        <span>↑ Brand Fit / Reach →</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+        {/* grid lines */}
+        {[25, 50, 75].map((v) => (
+          <g key={`g-${v}`}>
+            <line x1={padL} x2={W - padR} y1={py(v)} y2={py(v)} stroke="rgba(255,255,255,0.06)" />
+            <line y1={padT} y2={H - padB} x1={px(v)} x2={px(v)} stroke="rgba(255,255,255,0.06)" />
+          </g>
+        ))}
+        {/* axes */}
+        <line x1={padL} x2={W - padR} y1={H - padB} y2={H - padB} stroke="rgba(255,255,255,0.15)" />
+        <line x1={padL} x2={padL} y1={padT} y2={H - padB} stroke="rgba(255,255,255,0.15)" />
+        <text x={W - padR} y={H - 10} fill="#94A3B8" fontSize="11" textAnchor="end" fontWeight="600">
+          Reach →
         </text>
-        <text x="12" y="40" fontSize="11" fill="#475569">
-          94% fit · 340K subs · $900 CPM
+        <text x={padL} y={padT - 14} fill="#94A3B8" fontSize="11" fontWeight="600">
+          ↑ Brand Fit
         </text>
-        <line x1="12" y1="48" x2="208" y2="48" stroke="#E2E8F0" />
-      </g>
-    </svg>
+
+        {/* best match zone */}
+        <rect
+          x={zoneX}
+          y={zoneY}
+          width={zoneW}
+          height={zoneH}
+          fill="rgba(16,185,129,0.10)"
+          stroke="#10B981"
+          strokeWidth="1.5"
+          strokeDasharray="5 4"
+          rx={10}
+        />
+        <text x={zoneX + 10} y={zoneY + 18} fill="#10B981" fontSize="11" fontWeight="700" letterSpacing="1.2">
+          BEST MATCH ZONE
+        </text>
+
+        {/* budget cap dashed */}
+        <line
+          x1={padL}
+          x2={W - padR}
+          y1={capY}
+          y2={capY}
+          stroke="#F59E0B"
+          strokeWidth="1.5"
+          strokeDasharray="6 6"
+          className="budget-cap"
+        />
+        <text x={padL + 8} y={capY - 6} fill="#F59E0B" fontSize="10" fontWeight="700" letterSpacing="1.4">
+          BUDGET CAP ⬍
+        </text>
+        <circle cx={W - padR} cy={capY} r="5" fill="#F59E0B" />
+
+        {/* dots */}
+        {creators.map((c, i) => (
+          <circle
+            key={c.name}
+            cx={px(c.x)}
+            cy={py(c.y)}
+            r={c.r}
+            fill={c.color}
+            stroke="#ffffff"
+            strokeWidth="2"
+            className="scatter-dot"
+            style={{ color: c.color, animationDelay: `${i * 80}ms` }}
+          >
+            <title>{`${c.name} · ${c.platform} · ${c.y}% brand fit · ${c.subs}`}</title>
+          </circle>
+        ))}
+      </svg>
+
+      <div className="mt-4 flex items-center justify-between flex-wrap gap-3">
+        <span className="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full bg-brand-green/15 text-brand-green border border-brand-green/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-brand-green" />
+          Showing {bestMatchCount} creators in Best Match Zone
+        </span>
+        <div className="flex items-center gap-4 text-[11px] text-brand-muted">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-brand-green" />High fit</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-brand-amber" />Mid</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-500" />Low</span>
+        </div>
+      </div>
+    </div>
   );
 }
 

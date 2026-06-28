@@ -1,29 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { LandingNav } from "@/components/landing/LandingNav";
+import { Hero } from "@/components/landing/Hero";
+import { StatsBar } from "@/components/landing/StatsBar";
+import { HeatMapSection } from "@/components/landing/HeatMapSection";
+import { PlatformCards } from "@/components/landing/PlatformCards";
+import { HotlistPreview } from "@/components/landing/HotlistPreview";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { Pricing } from "@/components/landing/Pricing";
+import { FinalCTA } from "@/components/landing/FinalCTA";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "AspenReach — Creator Intelligence for YouTube, Reddit & X" },
+      {
+        name: "description",
+        content:
+          "AspenReach maps brand-fit, reach, and audience intent across YouTube, Reddit, and X so growth teams find creators who actually convert.",
+      },
+      { property: "og:title", content: "AspenReach — Creator Intelligence Platform" },
+      {
+        property: "og:description",
+        content:
+          "Stop guessing. See which creators are already talking about what you sell — and which ones convert.",
+      },
     ],
   }),
-  component: Index,
+  component: Landing,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Landing() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="font-display antialiased bg-white text-brand-navy">
+      <LandingNav />
+      <main>
+        <Hero />
+        <StatsBar />
+        <HeatMapSection />
+        <PlatformCards />
+        <HotlistPreview />
+        <Testimonials />
+        <Pricing />
+        <FinalCTA />
+      </main>
+      <LandingFooter />
     </div>
   );
 }

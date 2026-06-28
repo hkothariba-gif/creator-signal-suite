@@ -6,7 +6,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import type { ReactNode } from "react";
 
-const NAV = [
+const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/app", label: "Home", icon: Home, exact: true },
   { to: "/app/campaigns", label: "Campaigns", icon: Megaphone },
   { to: "/app/discovery", label: "Discovery", icon: Search },
@@ -15,7 +15,8 @@ const NAV = [
   { to: "/app/affiliate", label: "Affiliate", icon: DollarSign },
   { to: "/app/community", label: "Community", icon: Radio },
   { to: "/app/expansion", label: "Expansion", icon: TrendingUp },
-] as const;
+];
+
 
 export function Wordmark() {
   return (

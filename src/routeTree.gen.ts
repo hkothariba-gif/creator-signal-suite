@@ -9,38 +9,216 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppOutreachRouteImport } from './routes/app.outreach'
+import { Route as AppHotlistRouteImport } from './routes/app.hotlist'
+import { Route as AppExpansionRouteImport } from './routes/app.expansion'
+import { Route as AppDiscoveryRouteImport } from './routes/app.discovery'
+import { Route as AppCommunityRouteImport } from './routes/app.community'
+import { Route as AppCampaignsRouteImport } from './routes/app.campaigns'
+import { Route as AppAffiliateRouteImport } from './routes/app.affiliate'
 
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOutreachRoute = AppOutreachRouteImport.update({
+  id: '/outreach',
+  path: '/outreach',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHotlistRoute = AppHotlistRouteImport.update({
+  id: '/hotlist',
+  path: '/hotlist',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExpansionRoute = AppExpansionRouteImport.update({
+  id: '/expansion',
+  path: '/expansion',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDiscoveryRoute = AppDiscoveryRouteImport.update({
+  id: '/discovery',
+  path: '/discovery',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCommunityRoute = AppCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCampaignsRoute = AppCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAffiliateRoute = AppAffiliateRouteImport.update({
+  id: '/affiliate',
+  path: '/affiliate',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/app/affiliate': typeof AppAffiliateRoute
+  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/community': typeof AppCommunityRoute
+  '/app/discovery': typeof AppDiscoveryRoute
+  '/app/expansion': typeof AppExpansionRoute
+  '/app/hotlist': typeof AppHotlistRoute
+  '/app/outreach': typeof AppOutreachRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/app/affiliate': typeof AppAffiliateRoute
+  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/community': typeof AppCommunityRoute
+  '/app/discovery': typeof AppDiscoveryRoute
+  '/app/expansion': typeof AppExpansionRoute
+  '/app/hotlist': typeof AppHotlistRoute
+  '/app/outreach': typeof AppOutreachRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/app/affiliate': typeof AppAffiliateRoute
+  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/community': typeof AppCommunityRoute
+  '/app/discovery': typeof AppDiscoveryRoute
+  '/app/expansion': typeof AppExpansionRoute
+  '/app/hotlist': typeof AppHotlistRoute
+  '/app/outreach': typeof AppOutreachRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/login'
+    | '/onboarding'
+    | '/app/affiliate'
+    | '/app/campaigns'
+    | '/app/community'
+    | '/app/discovery'
+    | '/app/expansion'
+    | '/app/hotlist'
+    | '/app/outreach'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/onboarding'
+    | '/app/affiliate'
+    | '/app/campaigns'
+    | '/app/community'
+    | '/app/discovery'
+    | '/app/expansion'
+    | '/app/hotlist'
+    | '/app/outreach'
+    | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/login'
+    | '/onboarding'
+    | '/app/affiliate'
+    | '/app/campaigns'
+    | '/app/community'
+    | '/app/discovery'
+    | '/app/expansion'
+    | '/app/hotlist'
+    | '/app/outreach'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +226,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/outreach': {
+      id: '/app/outreach'
+      path: '/outreach'
+      fullPath: '/app/outreach'
+      preLoaderRoute: typeof AppOutreachRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/hotlist': {
+      id: '/app/hotlist'
+      path: '/hotlist'
+      fullPath: '/app/hotlist'
+      preLoaderRoute: typeof AppHotlistRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/expansion': {
+      id: '/app/expansion'
+      path: '/expansion'
+      fullPath: '/app/expansion'
+      preLoaderRoute: typeof AppExpansionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/discovery': {
+      id: '/app/discovery'
+      path: '/discovery'
+      fullPath: '/app/discovery'
+      preLoaderRoute: typeof AppDiscoveryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/community': {
+      id: '/app/community'
+      path: '/community'
+      fullPath: '/app/community'
+      preLoaderRoute: typeof AppCommunityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/campaigns': {
+      id: '/app/campaigns'
+      path: '/campaigns'
+      fullPath: '/app/campaigns'
+      preLoaderRoute: typeof AppCampaignsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/affiliate': {
+      id: '/app/affiliate'
+      path: '/affiliate'
+      fullPath: '/app/affiliate'
+      preLoaderRoute: typeof AppAffiliateRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppAffiliateRoute: typeof AppAffiliateRoute
+  AppCampaignsRoute: typeof AppCampaignsRoute
+  AppCommunityRoute: typeof AppCommunityRoute
+  AppDiscoveryRoute: typeof AppDiscoveryRoute
+  AppExpansionRoute: typeof AppExpansionRoute
+  AppHotlistRoute: typeof AppHotlistRoute
+  AppOutreachRoute: typeof AppOutreachRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAffiliateRoute: AppAffiliateRoute,
+  AppCampaignsRoute: AppCampaignsRoute,
+  AppCommunityRoute: AppCommunityRoute,
+  AppDiscoveryRoute: AppDiscoveryRoute,
+  AppExpansionRoute: AppExpansionRoute,
+  AppHotlistRoute: AppHotlistRoute,
+  AppOutreachRoute: AppOutreachRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

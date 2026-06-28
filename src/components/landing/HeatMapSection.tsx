@@ -138,7 +138,7 @@ function ScatterPlot() {
   const capY = py(72);
 
   return (
-    <div className="rounded-2xl p-6 bg-[#1E293B] shadow-[0_30px_80px_-20px_rgba(15,23,42,0.45)]">
+    <div className="rounded-2xl p-6 card-elevated shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
       <style>{`
         @keyframes dotPop { 0% { r: 0; opacity: 0; } 70% { opacity: 1; } 100% { opacity: 1; } }
         .scatter-dot { animation: dotPop 0.55s cubic-bezier(0.34,1.56,0.64,1) both; transform-origin: center; transition: filter 0.2s, transform 0.2s; cursor: pointer; }

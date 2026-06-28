@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell, Card, StatCard } from "@/components/app/AppShell";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, Search, Mail, DollarSign, X } from "lucide-react";

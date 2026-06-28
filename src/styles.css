@@ -549,3 +549,440 @@ main .text-\[36px\] {
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
 }
+
+/* ============================================================
+   LINKEDIN PLATFORM STYLES
+   ============================================================ */
+
+/* LinkedIn color variable */
+/* --color-linkedin: #0A66C2 — add to @theme block if needed */
+
+.discovery-platform-icon.linkedin {
+  background: rgba(10, 102, 194, 0.12);
+  border: 1px solid rgba(10, 102, 194, 0.3);
+  box-shadow: 0 0 20px rgba(10, 102, 194, 0.12);
+}
+
+/* LinkedIn badge/tag */
+.platform-badge.linkedin {
+  background: rgba(10, 102, 194, 0.15);
+  border: 1px solid rgba(10, 102, 194, 0.35);
+  color: #5ba4f5;
+}
+
+/* ============================================================
+   PLATFORM TRUST BAR — 4 platforms incl. LinkedIn
+   ============================================================ */
+.platform-trust-bar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 20px 24px;
+  background: rgba(12, 18, 34, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+}
+
+.platform-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.platform-trust-item.yt {
+  color: #ff0000;
+}
+.platform-trust-item.rd {
+  color: #ff4500;
+}
+.platform-trust-item.x {
+  color: #e7e9ea;
+}
+.platform-trust-item.li {
+  color: #5ba4f5;
+}
+
+/* ============================================================
+   OUTREACH CASCADE VISUALIZATION
+   ============================================================ */
+.outreach-cascade-wrapper {
+  background: rgba(12, 18, 34, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.outreach-cascade-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(0, 217, 126, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.outreach-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  position: relative;
+}
+
+.outreach-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 48px;
+  width: 2px;
+  height: calc(100% - 10px);
+  background: linear-gradient(180deg, rgba(0, 217, 126, 0.3) 0%, rgba(0, 217, 126, 0.05) 100%);
+}
+
+.outreach-step-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0, 217, 126, 0.3);
+  background: rgba(0, 217, 126, 0.08);
+  color: #00d97e;
+  z-index: 1;
+}
+
+.outreach-step-dot.active {
+  background: rgba(0, 217, 126, 0.2);
+  border-color: #00d97e;
+  box-shadow: 0 0 12px rgba(0, 217, 126, 0.3);
+}
+
+.outreach-step-dot.pending {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #8892a4;
+}
+
+.outreach-step-body {
+  flex: 1;
+  padding-top: 6px;
+}
+
+.outreach-step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f0f4ff;
+  margin-bottom: 3px;
+}
+
+.outreach-step-sub {
+  font-size: 12px;
+  color: #8892a4;
+  line-height: 1.4;
+}
+
+.outreach-step-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  align-self: flex-start;
+  margin-top: 6px;
+}
+
+.outreach-step-status.sent {
+  background: rgba(0, 217, 126, 0.12);
+  color: #00d97e;
+  border: 1px solid rgba(0, 217, 126, 0.25);
+}
+
+.outreach-step-status.waiting {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.outreach-step-status.queued {
+  background: rgba(255, 255, 255, 0.05);
+  color: #8892a4;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   PLATFORM MONETIZATION VISUALIZATION CARDS
+   ============================================================ */
+.monetization-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .monetization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mono-card {
+  background: rgba(12, 18, 34, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mono-card:hover {
+  transform: translateY(-2px);
+}
+
+.mono-card.yt {
+  border-top: 2px solid rgba(255, 0, 0, 0.5);
+}
+.mono-card.yt::before {
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255, 0, 0, 0.07) 0%, transparent 70%);
+}
+.mono-card.rd {
+  border-top: 2px solid rgba(255, 69, 0, 0.5);
+}
+.mono-card.rd::before {
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255, 69, 0, 0.07) 0%, transparent 70%);
+}
+.mono-card.x {
+  border-top: 2px solid rgba(231, 233, 234, 0.3);
+}
+.mono-card.x::before {
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(231, 233, 234, 0.04) 0%, transparent 70%);
+}
+.mono-card.li {
+  border-top: 2px solid rgba(10, 102, 194, 0.5);
+}
+.mono-card.li::before {
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(10, 102, 194, 0.08) 0%, transparent 70%);
+}
+
+.mono-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mono-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.mono-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.mono-card.yt .mono-card-icon {
+  background: rgba(255, 0, 0, 0.12);
+}
+.mono-card.rd .mono-card-icon {
+  background: rgba(255, 69, 0, 0.12);
+}
+.mono-card.x .mono-card-icon {
+  background: rgba(255, 255, 255, 0.06);
+}
+.mono-card.li .mono-card-icon {
+  background: rgba(10, 102, 194, 0.12);
+}
+
+.mono-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0f4ff;
+}
+
+.mono-card-subtitle {
+  font-size: 11px;
+  color: #8892a4;
+  margin-top: 1px;
+}
+
+.mono-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mono-flow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #8892a4;
+}
+
+.mono-flow-step-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 10px;
+  font-weight: 700;
+  color: #f0f4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mono-flow-arrow {
+  margin-left: 8px;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 10px;
+}
+
+.mono-cta {
+  margin-top: 14px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.mono-card.yt .mono-cta {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 0, 0, 0.25);
+}
+.mono-card.rd .mono-cta {
+  background: rgba(255, 69, 0, 0.15);
+  color: #ff6b35;
+  border: 1px solid rgba(255, 69, 0, 0.25);
+}
+.mono-card.x .mono-cta {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e7e9ea;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mono-card.li .mono-cta {
+  background: rgba(10, 102, 194, 0.15);
+  color: #5ba4f5;
+  border: 1px solid rgba(10, 102, 194, 0.25);
+}
+
+.mono-cta:hover {
+  opacity: 0.8;
+}
+
+/* ============================================================
+   DICEBEAR CREATOR AVATAR STYLES
+   ============================================================ */
+.creator-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 18, 34, 0.8);
+  flex-shrink: 0;
+}
+
+.creator-avatar-img.sm {
+  width: 32px;
+  height: 32px;
+}
+
+.creator-avatar-img.lg {
+  width: 52px;
+  height: 52px;
+  border-width: 2.5px;
+}
+
+.creator-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.creator-avatar-stack .creator-avatar-img {
+  margin-left: -10px;
+  border: 2px solid #0c1222;
+}
+
+.creator-avatar-stack .creator-avatar-img:first-child {
+  margin-left: 0;
+}
+
+/* ============================================================
+   REDDIT INTELLIGENCE / AD LAUNCHER STYLES
+   ============================================================ */
+.reddit-intel-card {
+  background: rgba(255, 69, 0, 0.04);
+  border: 1px solid rgba(255, 69, 0, 0.15);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.reddit-subreddit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.reddit-subreddit-row:last-child {
+  border-bottom: none;
+}
+
+.reddit-subreddit-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff6b35;
+}
+
+.reddit-subreddit-meta {
+  font-size: 11px;
+  color: #8892a4;
+  margin-top: 2px;
+}
+
+.reddit-launch-btn {
+  padding: 5px 12px;
+  background: rgba(255, 69, 0, 0.12);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ff6b35;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.reddit-launch-btn:hover {
+  background: rgba(255, 69, 0, 0.2);
+  border-color: rgba(255, 69, 0, 0.5);
+}

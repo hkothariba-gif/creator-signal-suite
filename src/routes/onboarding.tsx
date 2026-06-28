@@ -17,7 +17,14 @@ const CATEGORIES = [
 function OnboardingPage() {
   const { user, update } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    if (typeof window === "undefined") return 1;
+    const saved = parseInt(localStorage.getItem("ar_onboarding_step") ?? "1", 10);
+    return Number.isFinite(saved) && saved >= 1 && saved <= 6 ? saved : 1;
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("ar_onboarding_step", String(step));
+  }, [step]);
   const [category, setCategory] = useState("");
   const [age, setAge] = useState("25-34");
   const [gender, setGender] = useState("Any");

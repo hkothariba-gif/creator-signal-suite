@@ -9,7 +9,10 @@ export function FinalCTA() {
     <section
       id="cta"
       className="noise-overlay relative text-white overflow-hidden min-h-screen flex items-center py-28"
-      style={{ background: "#05080F" }}
+      style={{
+        background:
+          "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,217,126,0.18) 0%, transparent 70%), #05080F",
+      }}
     >
       <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"

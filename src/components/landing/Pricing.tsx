@@ -40,7 +40,7 @@ const tiers = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-brand-navy py-16 md:py-[100px]">
+    <section id="pricing" className="py-16 md:py-[100px]" style={{ background: "#05080F" }}>
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto">
           <WordStagger

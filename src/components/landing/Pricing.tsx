@@ -40,7 +40,7 @@ const tiers = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-brand-navy py-16 md:py-[100px]">
+    <section id="pricing" className="py-16 md:py-[100px]" style={{ background: "#05080F" }}>
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto">
           <WordStagger
@@ -54,17 +54,21 @@ export function Pricing() {
           {tiers.map((t, i) => (
             <FadeUp key={t.name} delay={i * 0.1}>
               <div
-                className={`relative h-full rounded-[20px] p-8 flex flex-col transition-all ${
+                className={`relative h-full p-8 flex flex-col transition-all ${
                   t.popular
-                    ? "md:scale-[1.04] bg-[rgba(16,185,129,0.1)] border-2 border-brand-green shadow-[0_0_40px_rgba(16,185,129,0.2)]"
-                    : "bg-white/[0.04] border border-white/10"
+                    ? "md:scale-[1.04] gradient-border-popular shadow-[0_0_40px_rgba(0,217,126,0.18)]"
+                    : "card-elevated"
                 }`}
               >
                 {t.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-green text-white text-[10px] font-bold tracking-[0.15em] uppercase px-3 py-1 rounded-full">
+                  <span
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold tracking-[0.15em] uppercase px-3 py-1 rounded-full z-10"
+                    style={{ background: "#00D97E", color: "#020A06" }}
+                  >
                     Most Popular
                   </span>
                 )}
+
                 <div className="font-display font-bold text-xl text-white tracking-tight">{t.name}</div>
                 <div className="mt-3 flex items-baseline gap-1">
                   <span className="font-display font-extrabold text-5xl text-white tracking-[-0.03em]">${t.price}</span>
@@ -83,13 +87,12 @@ export function Pricing() {
                 <a
                   href="#cta"
                   className={`mt-8 inline-flex items-center justify-center rounded-full font-semibold px-5 py-3 transition-all hover:scale-[1.02] ${
-                    t.popular
-                      ? "bg-brand-green hover:bg-brand-green-dark text-white"
-                      : "border border-white/30 text-white hover:bg-white/5"
+                    t.popular ? "btn-primary-cta" : "btn-secondary-cta"
                   }`}
                 >
                   {t.cta}
                 </a>
+
               </div>
             </FadeUp>
           ))}

@@ -17,25 +17,25 @@ type Creator = {
 };
 
 const creators: Creator[] = [
-  { x: 85, y: 92, name: "TechWithMarcus", platform: "YouTube", color: "#10B981", r: 10, subs: "340K subs" },
-  { x: 72, y: 88, name: "HomeLabPro", platform: "YouTube", color: "#10B981", r: 9, subs: "210K subs" },
-  { x: 60, y: 94, name: "r/homelab", platform: "Reddit", color: "#10B981", r: 11, subs: "847K members" },
-  { x: 90, y: 78, name: "BuildingWithSara", platform: "X", color: "#10B981", r: 8, subs: "128K followers" },
-  { x: 45, y: 85, name: "r/selfhosted", platform: "Reddit", color: "#10B981", r: 9, subs: "412K members" },
+  { x: 85, y: 92, name: "TechWithMarcus", platform: "YouTube", color: "#00D97E", r: 10, subs: "340K subs" },
+  { x: 72, y: 88, name: "HomeLabPro", platform: "YouTube", color: "#00D97E", r: 9, subs: "210K subs" },
+  { x: 60, y: 94, name: "r/homelab", platform: "Reddit", color: "#00D97E", r: 11, subs: "847K members" },
+  { x: 90, y: 78, name: "BuildingWithSara", platform: "X", color: "#00D97E", r: 8, subs: "128K followers" },
+  { x: 45, y: 85, name: "r/selfhosted", platform: "Reddit", color: "#00D97E", r: 9, subs: "412K members" },
   { x: 78, y: 65, name: "TechTalkDaily", platform: "YouTube", color: "#F59E0B", r: 8, subs: "190K subs" },
   { x: 55, y: 70, name: "@devops_dan", platform: "X", color: "#F59E0B", r: 7, subs: "62K followers" },
   { x: 30, y: 80, name: "r/sysadmin", platform: "Reddit", color: "#F59E0B", r: 8, subs: "920K members" },
   { x: 65, y: 55, name: "CloudNative", platform: "YouTube", color: "#F59E0B", r: 7, subs: "145K subs" },
-  { x: 20, y: 60, name: "@cloudpunk", platform: "X", color: "#64748B", r: 6, subs: "38K followers" },
-  { x: 40, y: 40, name: "GenericTech", platform: "YouTube", color: "#64748B", r: 6, subs: "88K subs" },
-  { x: 15, y: 72, name: "r/linux", platform: "Reddit", color: "#64748B", r: 7, subs: "1.2M members" },
-  { x: 88, y: 50, name: "BigTechReview", platform: "YouTube", color: "#64748B", r: 7, subs: "510K subs" },
-  { x: 25, y: 35, name: "@random_tech", platform: "X", color: "#64748B", r: 5, subs: "22K followers" },
-  { x: 70, y: 30, name: "MassMarketYT", platform: "YouTube", color: "#64748B", r: 8, subs: "1.8M subs" },
-  { x: 50, y: 90, name: "r/homeautomation", platform: "Reddit", color: "#10B981", r: 9, subs: "380K members" },
-  { x: 82, y: 82, name: "NicheTechPro", platform: "YouTube", color: "#10B981", r: 8, subs: "165K subs" },
+  { x: 20, y: 60, name: "@cloudpunk", platform: "X", color: "#4A5568", r: 6, subs: "38K followers" },
+  { x: 40, y: 40, name: "GenericTech", platform: "YouTube", color: "#4A5568", r: 6, subs: "88K subs" },
+  { x: 15, y: 72, name: "r/linux", platform: "Reddit", color: "#4A5568", r: 7, subs: "1.2M members" },
+  { x: 88, y: 50, name: "BigTechReview", platform: "YouTube", color: "#4A5568", r: 7, subs: "510K subs" },
+  { x: 25, y: 35, name: "@random_tech", platform: "X", color: "#4A5568", r: 5, subs: "22K followers" },
+  { x: 70, y: 30, name: "MassMarketYT", platform: "YouTube", color: "#4A5568", r: 8, subs: "1.8M subs" },
+  { x: 50, y: 90, name: "r/homeautomation", platform: "Reddit", color: "#00D97E", r: 9, subs: "380K members" },
+  { x: 82, y: 82, name: "NicheTechPro", platform: "YouTube", color: "#00D97E", r: 8, subs: "165K subs" },
   { x: 38, y: 75, name: "@buildinpublic", platform: "X", color: "#F59E0B", r: 7, subs: "78K followers" },
-  { x: 62, y: 48, name: "r/programming", platform: "Reddit", color: "#64748B", r: 7, subs: "5.8M members" },
+  { x: 62, y: 48, name: "r/programming", platform: "Reddit", color: "#4A5568", r: 7, subs: "5.8M members" },
   { x: 92, y: 70, name: "TopTierReach", platform: "YouTube", color: "#F59E0B", r: 9, subs: "720K subs" },
 ];
 
@@ -138,7 +138,7 @@ function ScatterPlot() {
   const capY = py(72);
 
   return (
-    <div className="rounded-2xl p-6 bg-[#1E293B] shadow-[0_30px_80px_-20px_rgba(15,23,42,0.45)]">
+    <div className="rounded-2xl p-6 card-elevated shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]">
       <style>{`
         @keyframes dotPop { 0% { r: 0; opacity: 0; } 70% { opacity: 1; } 100% { opacity: 1; } }
         .scatter-dot { animation: dotPop 0.55s cubic-bezier(0.34,1.56,0.64,1) both; transform-origin: center; transition: filter 0.2s, transform 0.2s; cursor: pointer; }
@@ -174,13 +174,13 @@ function ScatterPlot() {
           y={zoneY}
           width={zoneW}
           height={zoneH}
-          fill="rgba(16,185,129,0.10)"
-          stroke="#10B981"
+          fill="rgba(0,217,126,0.10)"
+          stroke="#00D97E"
           strokeWidth="1.5"
           strokeDasharray="5 4"
           rx={10}
         />
-        <text x={zoneX + 10} y={zoneY + 18} fill="#10B981" fontSize="11" fontWeight="700" letterSpacing="1.2">
+        <text x={zoneX + 10} y={zoneY + 18} fill="#00D97E" fontSize="11" fontWeight="700" letterSpacing="1.2">
           BEST MATCH ZONE
         </text>
 

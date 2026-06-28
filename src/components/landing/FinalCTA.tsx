@@ -8,15 +8,17 @@ export function FinalCTA() {
   return (
     <section
       id="cta"
-      className="relative bg-brand-navy text-white overflow-hidden min-h-screen flex items-center py-28"
+      className="noise-overlay relative text-white overflow-hidden min-h-screen flex items-center py-28"
+      style={{ background: "#05080F" }}
     >
       <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(16,185,129,0.15), transparent 70%)",
+          background: "radial-gradient(circle, rgba(0,217,126,0.15), transparent 70%)",
           filter: "blur(40px)",
         }}
       />
+
       <div className="relative max-w-3xl mx-auto px-6 text-center w-full">
         <WordStagger
           text="Find, Onboard and Scale with Creators That Actually Align"

@@ -196,6 +196,14 @@ const cards = [
     desc: "Find niche X voices whose followers match your ICP. Surface engagement rate, follower quality score, and recent brand mentions.",
     tags: ["Follower Quality", "ICP Match", "Brand Mention Tracking", "Niche Authority"],
     Mock: XMock,
+  {
+    side: "right" as const,
+    color: "#0A66C2",
+    Icon: LinkedInIcon,
+    title: "LinkedIn B2B Authority Mapping",
+    desc: "Surface thought leaders whose followers match your buyer committee. Track pipeline-influencing posts, ICP match, and engagement quality from decision-makers — not vanity reach.",
+    tags: ["ICP Audience Match", "Decision-Maker Reach", "Pipeline Influence", "Thought-Leader Score"],
+    Mock: LinkedInMock,
   },
 ];
 

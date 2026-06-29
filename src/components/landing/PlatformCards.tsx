@@ -230,7 +230,7 @@ export function PlatformCards() {
           {cards.map((c) => (
             <FadeUp key={c.title} delay={0.05}>
               <div
-                className={`grid grid-cols-1 md:grid-cols-[45fr_55fr] gap-10 md:gap-14 items-center py-14 md:py-20 md:min-h-[500px] ${
+                className={`platform-strategy-block ${c.cls} grid grid-cols-1 md:grid-cols-[45fr_55fr] gap-10 md:gap-14 items-center py-14 md:py-20 md:min-h-[500px] ${
                   c.side === "right" ? "md:[&>*:first-child]:order-2" : ""
                 }`}
               >

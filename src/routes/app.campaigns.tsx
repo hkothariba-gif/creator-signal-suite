@@ -100,6 +100,7 @@ function CampaignsPage() {
       </div>
 
       {drawer && <CampaignDrawer onClose={() => setDrawer(false)} />}
+      {intel && <CampaignIntelligence campaignId={intel.id} campaignName={intel.name} onClose={() => setIntel(null)} />}
     </AppShell>
   );
 }

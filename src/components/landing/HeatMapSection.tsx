@@ -57,7 +57,7 @@ export function HeatMapSection() {
           />
         </div>
 
-        <div className="mt-10 flex items-center justify-center gap-8 border-b border-slate-200">
+        <div className="mt-10 flex items-center justify-center gap-8" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           {([
             ["heat", "Heat Map View"],
             ["grid", "Grid View"],
@@ -67,7 +67,7 @@ export function HeatMapSection() {
               key={id}
               onClick={() => setTab(id)}
               className={`relative pb-3 text-sm font-semibold transition-colors ${
-                tab === id ? "text-brand-navy" : "text-brand-text-muted hover:text-slate-700"
+                tab === id ? "text-white" : "text-[#8892A4] hover:text-white"
               }`}
             >
               {label}

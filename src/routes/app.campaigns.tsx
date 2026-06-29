@@ -9,15 +9,16 @@ export const Route = createFileRoute("/app/campaigns")({
 });
 
 type Status = "Active" | "Draft" | "Completed";
-type Platform = "YouTube" | "Reddit" | "X" | "All";
+type Platform = "YouTube" | "Reddit" | "X" | "LinkedIn" | "All";
 
 const CAMPAIGNS: { name: string; platforms: Platform[]; status: Status; done: number; total: number; budget: string }[] = [
   { name: "Summer Tech Drop", platforms: ["YouTube", "Reddit"], status: "Active", done: 14, total: 20, budget: "$8,400" },
   { name: "Home Lab Awareness", platforms: ["Reddit"], status: "Active", done: 8, total: 12, budget: "$3,200" },
-  { name: "SaaS Tool Launch", platforms: ["YouTube", "X"], status: "Active", done: 6, total: 15, budget: "$12,000" },
+  { name: "SaaS Tool Launch", platforms: ["YouTube", "X", "LinkedIn"], status: "Active", done: 6, total: 15, budget: "$12,000" },
   { name: "Q4 Holiday Push", platforms: ["All"], status: "Draft", done: 0, total: 0, budget: "Budget TBD" },
   { name: "Spring Fitness", platforms: ["YouTube"], status: "Completed", done: 20, total: 20, budget: "$6,000" },
   { name: "Crypto Community", platforms: ["Reddit", "X"], status: "Completed", done: 18, total: 18, budget: "$4,500" },
+  { name: "B2B Thought Leadership", platforms: ["LinkedIn"], status: "Active", done: 4, total: 10, budget: "$7,500" },
 ];
 
 const TABS: { key: "Active" | "Draft" | "Completed" | "All"; label: string }[] = [
@@ -27,8 +28,8 @@ const TABS: { key: "Active" | "Draft" | "Completed" | "All"; label: string }[] =
   { key: "All", label: "All" },
 ];
 
-const platColor = (p: Platform) => p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : "#7C3AED";
-const platText = (p: Platform) => p === "X" ? "#fff" : "#fff";
+const platColor = (p: Platform) => p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : p === "LinkedIn" ? "#0A66C2" : "#7C3AED";
+const platText = (_p: Platform) => "#fff";
 
 function CampaignsPage() {
   const [tab, setTab] = useState<"Active" | "Draft" | "Completed" | "All">("Active");

@@ -17,6 +17,13 @@ const CATEGORIES = [
 function OnboardingPage() {
   const { user, update } = useAuth();
   const navigate = useNavigate();
+  const [intent] = useState(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem("ar_intent");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
   const [step, setStep] = useState(() => {
     if (typeof window === "undefined") return 1;
     const saved = parseInt(localStorage.getItem("ar_onboarding_step") ?? "1", 10);
@@ -35,6 +42,21 @@ function OnboardingPage() {
   const [teamModal, setTeamModal] = useState(false);
 
   useEffect(() => { if (!user) navigate({ to: "/login" }); }, [user, navigate]);
+
+  useEffect(() => {
+    if (!intent) return;
+    if (intent.productDesc) {
+      setCategory(intent.productDesc);
+      const matched = CATEGORIES.find((c) =>
+        intent.productDesc.toLowerCase().includes(c.split(" /")[0].toLowerCase())
+      );
+      if (matched) setCategory(matched);
+    }
+    if (intent.influencerType) {
+      setNotes((n) => (n ? n : `Target creators: ${intent.influencerType}`));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const next = () => setStep((s) => Math.min(6, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));

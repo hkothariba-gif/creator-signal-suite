@@ -192,6 +192,7 @@ const cards = [
   },
   {
     side: "left" as const,
+    cls: "x",
     color: "#FFFFFF",
     Icon: (props: { size?: number }) => <XIcon size={props.size} bg="white" />,
     title: "X Conversation Mapping",
@@ -201,6 +202,7 @@ const cards = [
   },
   {
     side: "right" as const,
+    cls: "li",
     color: "#0A66C2",
     Icon: LinkedInIcon,
     title: "LinkedIn B2B Authority Mapping",

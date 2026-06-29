@@ -1,4 +1,4 @@
-import { YouTubeIcon, RedditIcon, XIcon } from "@/components/landing/icons";
+import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
 
 export function PlatformTrustBar() {
   return (
@@ -6,23 +6,28 @@ export function PlatformTrustBar() {
       <span className="text-xs font-semibold uppercase tracking-wider text-[#8892A4]">
         Connected Platforms
       </span>
-      <div className="flex items-center gap-2 text-sm font-semibold text-[#F0F4FF]">
+      <div className="platform-trust-item yt">
         <YouTubeIcon size={18} />
         YouTube
         <span className="w-1.5 h-1.5 rounded-full bg-[#00D97E]" />
       </div>
-      <div className="flex items-center gap-2 text-sm font-semibold text-[#F0F4FF]">
+      <div className="platform-trust-item rd">
         <RedditIcon size={18} />
         Reddit
         <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
       </div>
-      <div className="flex items-center gap-2 text-sm font-semibold text-[#F0F4FF]">
+      <div className="platform-trust-item x">
         <XIcon size={16} bg="black" />
         X / Twitter
         <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
       </div>
+      <div className="platform-trust-item li">
+        <LinkedInIcon size={18} />
+        LinkedIn
+        <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
+      </div>
       <span className="ml-auto text-xs text-[#8892A4]">
-        Reddit + X signals loading • YouTube connected via API
+        Reddit · X · LinkedIn signals loading • YouTube connected via API
       </span>
     </div>
   );

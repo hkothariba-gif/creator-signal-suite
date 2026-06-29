@@ -26,33 +26,34 @@ const items = [
 
 export function Testimonials() {
   return (
-    <section className="bg-brand-off-white py-16 md:py-[100px]">
+    <section className="py-16 md:py-[100px]" style={{ background: "#05080F" }}>
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto">
           <WordStagger
             text="Growth teams are done guessing"
-            className="font-display font-extrabold text-4xl md:text-5xl tracking-[-0.04em] leading-[1.05] text-brand-navy"
+            className="font-display font-extrabold text-4xl md:text-5xl tracking-[-0.04em] leading-[1.05]"
+            style={{ color: "#F0F4FF" }}
           />
-          <p className="mt-4 text-brand-text-muted text-lg">
-            Real results from real campaigns on YouTube, Reddit, and X
+          <p className="mt-4 text-lg" style={{ color: "#8892A4" }}>
+            Real results across YouTube, Reddit, X & LinkedIn.
           </p>
         </div>
 
         <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
           {items.map((t, i) => (
             <FadeUp key={t.role} delay={i * 0.1}>
-              <div className="h-full rounded-3xl p-8 bg-white border border-black/[0.06] shadow-lg">
+              <div className="h-full rounded-3xl p-8" style={{ background: "rgba(12,18,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="flex gap-0.5 mb-4">
                   {Array.from({ length: 5 }).map((_, k) => (
                     <Star key={k} className="w-4 h-4 fill-brand-amber text-brand-amber" />
                   ))}
                 </div>
-                <p className="text-brand-navy text-lg leading-relaxed font-medium tracking-tight">"{t.quote}"</p>
+                <p className="text-lg leading-relaxed font-medium tracking-tight" style={{ color: "#F0F4FF" }}>"{t.quote}"</p>
                 <div className="mt-6 flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold text-brand-text-muted">{t.role}</div>
+                  <div className="text-sm font-semibold" style={{ color: "#8892A4" }}>{t.role}</div>
                   <span
                     className="text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full"
-                    style={{ background: `${t.color}18`, color: t.color }}
+                    style={{ background: `${t.color}28`, color: t.color }}
                   >
                     {t.tag}
                   </span>

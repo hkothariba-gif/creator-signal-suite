@@ -119,11 +119,15 @@ export function Hero() {
           Stop guessing. Start converting. Creator intelligence across YouTube, Reddit, X & LinkedIn.
         </motion.p>
 
+        <div className="mt-9">
+          <PromptBar />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 1.05 }}
-          className="mt-9 flex flex-wrap items-center justify-center gap-3"
+          className="mt-2 flex flex-wrap items-center justify-center gap-3"
         >
           <a
             href="#cta"

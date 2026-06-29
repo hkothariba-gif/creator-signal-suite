@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { Plus, X } from "lucide-react";
+import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
 
 export const Route = createFileRoute("/app/campaigns")({
   component: CampaignsPage,

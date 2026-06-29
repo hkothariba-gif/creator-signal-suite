@@ -113,9 +113,9 @@ function HeatMapView() {
         ))}
       </div>
 
-      <FadeUp delay={0.2}>
+      <div>
         <ScatterPlot />
-      </FadeUp>
+      </div>
     </div>
   );
 }

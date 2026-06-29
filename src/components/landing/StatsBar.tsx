@@ -1,10 +1,8 @@
-import { Counter } from "./words";
-
 const stats = [
-  { value: 6.2, suffix: "x", decimals: 1, label: "Average ROI vs Meta Paid Ads" },
-  { value: 97, suffix: "M+", decimals: 0, label: "Reddit Daily Active Users with Purchase Intent" },
-  { value: 3, suffix: "x", decimals: 0, label: "YouTube Purchase Intent vs Display Ads" },
-  { value: 49, suffix: "%", decimals: 0, label: "Higher Engagement on X Creator Posts" },
+  { display: "5.4x", label: "Average ROI vs Meta Paid Ads" },
+  { display: "85M+", label: "Reddit Daily Active Users with Purchase Intent" },
+  { display: "3x", label: "YouTube Purchase Intent vs Display Ads" },
+  { display: "43%", label: "Higher Engagement on X Creator Posts" },
 ];
 
 export function StatsBar() {
@@ -27,7 +25,7 @@ export function StatsBar() {
             <div
               className="stat-number-glow font-display font-extrabold text-5xl md:text-[72px] lg:text-[80px] leading-none tracking-[-0.04em]"
             >
-              <Counter to={s.value} suffix={s.suffix} decimals={s.decimals} duration={2000} />
+              {s.display}
             </div>
             <div className="mt-4 text-white/85 text-sm md:text-base leading-snug max-w-[240px]">{s.label}</div>
           </div>

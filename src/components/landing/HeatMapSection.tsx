@@ -107,7 +107,7 @@ function HeatMapView() {
               <span className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center shrink-0">
                 <b.Icon className="w-5 h-5 text-brand-green" />
               </span>
-              <p className="text-brand-navy text-lg leading-relaxed">{b.t}</p>
+              <p className="text-lg leading-relaxed" style={{ color: "#F0F4FF" }}>{b.t}</p>
             </div>
           </FadeUp>
         ))}

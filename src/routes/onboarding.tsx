@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { YouTubeIcon, RedditIcon, XIcon } from "@/components/landing/icons";
+import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,

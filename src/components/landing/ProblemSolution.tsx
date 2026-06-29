@@ -1,81 +1,35 @@
-import { Check, X as XMark } from "lucide-react";
-import { FadeUp } from "./words";
-
-const oldWay = [
-  "Manually searching creator databases with outdated follower counts",
-  "No idea if a creator's audience actually matches your ICP",
-  "Spending weeks on outreach with 3% reply rates",
-  "Paying for reach that doesn't convert",
-  "Spreadsheets, DMs, and guesswork",
-];
-
-const newWay = [
-  "Live data from YouTube, Reddit, and X — not stale lists",
-  "Brand-Fit Score shows audience alignment before you reach out",
-  "AI outreach sequences with 40%+ reply rates",
-  "Only pay for creators whose audience matches your buyer",
-  "One dashboard: discover → onboard → track → pay",
+const steps = [
+  { num: "1", label: "YouTube Channel Email", sub: "Extracted from creator About tab via YouTube Data API", status: "sent", statusText: "Sent 2d ago", active: true },
+  { num: "2", label: "Personal Website Form", sub: "Scraped from linked website in channel bio", status: "waiting", statusText: "Awaiting reply", active: true },
+  { num: "3", label: "X / Twitter DM", sub: "Matched profile via handle found in YouTube bio", status: "queued", statusText: "Queued in 48h", active: false },
+  { num: "4", label: "Discord Community", sub: "Server invite found in YouTube description", status: "queued", statusText: "Queued in 5d", active: false },
+  { num: "5", label: "LinkedIn Message", sub: "Professional profile matched by name + niche", status: "queued", statusText: "Queued in 7d", active: false },
+  { num: "6", label: "Talent Management Agency", sub: "Flagged as managed talent — agency form auto-filled", status: "queued", statusText: "Queued in 10d", active: false },
 ];
 
 export function ProblemSolution() {
   return (
-    <section id="features" className="py-16 md:py-[100px]" style={{ background: "#F4F6F9" }}>
-      <div className="max-w-[1100px] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FadeUp from="left">
-          <div
-            className="h-full rounded-2xl p-8 bg-white relative overflow-hidden"
-            style={{ border: "1px solid #FECACA" }}
-          >
-            <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: "#EF4444" }} />
-            <div className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: "#EF4444" }}>
-              Without AspenReach
-            </div>
-            <h3 className="mt-3 font-display font-extrabold text-3xl tracking-[-0.03em]" style={{ color: "#0F172A" }}>
-              The old way
-            </h3>
-            <ul className="mt-6 space-y-4">
-              {oldWay.map((t) => (
-                <li key={t} className="flex items-start gap-3 text-[15px] leading-[1.55]" style={{ color: "#0F172A" }}>
-                  <span
-                    className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: "rgba(239,68,68,0.12)" }}
-                  >
-                    <XMark className="w-3 h-3" style={{ color: "#EF4444" }} />
-                  </span>
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </FadeUp>
+    <section style={{ background: "#05080F", padding: "80px 0" }}>
+      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
+        <p style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.12em", color: "#00D97E", marginBottom: "12px", textTransform: "uppercase" }}>HOW WE REACH CREATORS</p>
+        <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, color: "#F0F4FF", marginBottom: "12px", letterSpacing: "-0.02em" }}>Every channel. One platform.</h2>
+        <p style={{ fontSize: "16px", color: "#8892A4", maxWidth: "500px", margin: "0 auto 48px", lineHeight: "1.5" }}>AspenReach tries every available contact method — in sequence — until your creator replies.</p>
 
-        <FadeUp from="right">
-          <div
-            className="h-full rounded-2xl p-8 bg-white relative overflow-hidden"
-            style={{ border: "1px solid #BBF7D0" }}
-          >
-            <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: "#00D97E" }} />
-            <div className="text-xs font-bold uppercase tracking-[0.15em]" style={{ color: "#00D97E" }}>
-              With AspenReach
+        <div className="outreach-cascade-wrapper" style={{ maxWidth: "700px", margin: "0 auto", textAlign: "left" }}>
+          {steps.map((step, i) => (
+            <div key={i} className="outreach-step">
+              <div className={`outreach-step-dot ${step.active ? "active" : "pending"}`}>{step.num}</div>
+              <div className="outreach-step-body">
+                <div className="outreach-step-label">{step.label}</div>
+                <div className="outreach-step-sub">{step.sub}</div>
+                <span className={`outreach-step-status ${step.status}`}>{step.statusText}</span>
+              </div>
             </div>
-            <h3 className="mt-3 font-display font-extrabold text-3xl tracking-[-0.03em]" style={{ color: "#0F172A" }}>
-              The AspenReach way
-            </h3>
-            <ul className="mt-6 space-y-4">
-              {newWay.map((t) => (
-                <li key={t} className="flex items-start gap-3 text-[15px] leading-[1.55]" style={{ color: "#0F172A" }}>
-                  <span
-                    className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: "rgba(0,217,126,0.12)" }}
-                  >
-                    <Check className="w-3 h-3" style={{ color: "#00D97E" }} />
-                  </span>
-                  {t}
-                </li>
-              ))}
-            </ul>
+          ))}
+          <div style={{ marginTop: "24px", padding: "14px 18px", background: "rgba(0,217,126,0.05)", border: "1px solid rgba(0,217,126,0.15)", borderRadius: "10px", fontSize: "13px", color: "#00D97E", fontWeight: 500 }}>
+            ✦ AspenReach achieves 73% reply rate when 3+ channels are attempted within 14 days
           </div>
-        </FadeUp>
+        </div>
       </div>
     </section>
   );

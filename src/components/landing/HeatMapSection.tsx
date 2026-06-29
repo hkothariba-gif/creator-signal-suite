@@ -44,7 +44,7 @@ const bestMatchCount = creators.filter((c) => c.x >= 75 && c.y >= 75).length;
 export function HeatMapSection() {
   const [tab, setTab] = useState<Tab>("heat");
   return (
-    <section id="how" className="bg-brand-off-white py-16 md:py-[100px]">
+    <section id="how" className="py-16 md:py-[100px]" style={{ background: "#05080F" }}>
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center">
           <div className="text-brand-green text-xs font-bold uppercase tracking-[0.15em]">
@@ -52,11 +52,12 @@ export function HeatMapSection() {
           </div>
           <WordStagger
             text="See exactly which creators fit — before you spend a dollar"
-            className="mt-4 mx-auto max-w-[820px] font-display font-extrabold text-4xl md:text-[52px] tracking-[-0.04em] leading-[1.05] text-brand-navy"
+            className="mt-4 mx-auto max-w-[820px] font-display font-extrabold text-4xl md:text-[52px] tracking-[-0.04em] leading-[1.05]"
+            style={{ color: "#F0F4FF" }}
           />
         </div>
 
-        <div className="mt-10 flex items-center justify-center gap-8 border-b border-slate-200">
+        <div className="mt-10 flex items-center justify-center gap-8" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           {([
             ["heat", "Heat Map View"],
             ["grid", "Grid View"],
@@ -66,7 +67,7 @@ export function HeatMapSection() {
               key={id}
               onClick={() => setTab(id)}
               className={`relative pb-3 text-sm font-semibold transition-colors ${
-                tab === id ? "text-brand-navy" : "text-brand-text-muted hover:text-slate-700"
+                tab === id ? "text-white" : "text-[#8892A4] hover:text-white"
               }`}
             >
               {label}
@@ -106,7 +107,7 @@ function HeatMapView() {
               <span className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center shrink-0">
                 <b.Icon className="w-5 h-5 text-brand-green" />
               </span>
-              <p className="text-brand-navy text-lg leading-relaxed">{b.t}</p>
+              <p className="text-lg leading-relaxed" style={{ color: "#F0F4FF" }}>{b.t}</p>
             </div>
           </FadeUp>
         ))}
@@ -243,19 +244,19 @@ function GridView() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
       {cards.map((c, i) => (
         <FadeUp key={i} delay={i * 0.08}>
-          <div className="rounded-2xl p-6 bg-white border border-slate-200 shadow-sm h-full">
+          <div className="rounded-2xl p-6 h-full" style={{ background: "rgba(12,18,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <c.Icon size={32} />
             <div className="mt-3 font-bold text-sm" style={{ color: c.color }}>
               {c.label}
             </div>
-            <div className="mt-2 text-brand-navy font-semibold">{c.name}</div>
-            <div className="text-brand-text-muted text-xs mt-0.5">{c.meta}</div>
+            <div className="mt-2 font-semibold" style={{ color: "#F0F4FF" }}>{c.name}</div>
+            <div className="text-xs mt-0.5" style={{ color: "#8892A4" }}>{c.meta}</div>
             <div className="mt-5">
-              <div className="flex justify-between text-[10px] uppercase tracking-wider text-brand-text-muted mb-1">
+              <div className="flex justify-between text-[10px] uppercase tracking-wider mb-1" style={{ color: "#8892A4" }}>
                 <span>Brand Fit</span>
                 <span className="text-brand-green font-bold">{c.fit}%</span>
               </div>
-              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
                 <div className="h-full bg-brand-green" style={{ width: `${c.fit}%` }} />
               </div>
             </div>
@@ -278,13 +279,13 @@ function HotlistView() {
     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
       {cols.map((col, i) => (
         <FadeUp key={col.name} delay={i * 0.06}>
-          <div className="rounded-xl bg-white border border-slate-200 p-3 h-full">
-            <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-brand-text-muted mb-3">
+          <div className="rounded-xl p-3 h-full" style={{ background: "rgba(12,18,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="text-[10px] uppercase font-bold tracking-[0.15em] mb-3" style={{ color: "#8892A4" }}>
               {col.name}
             </div>
             <div className="space-y-2">
               {col.cards.map((c) => (
-                <div key={c} className="rounded-lg bg-brand-off-white border border-slate-100 p-3 text-sm font-semibold text-brand-navy">
+                <div key={c} className="rounded-lg p-3 text-sm font-semibold" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: "#F0F4FF" }}>
                   {c}
                 </div>
               ))}

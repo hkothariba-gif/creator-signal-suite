@@ -133,6 +133,7 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
                 ["youtube", "YouTube", "#FF0000"],
                 ["reddit", "Reddit", "#FF4500"],
                 ["x", "X / Twitter", "#1A1A1A"],
+                ["linkedin", "LinkedIn", "#0A66C2"],
               ] as const).map(([k, l, c]) => (
                 <label key={k} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#131D2E] border border-white/10 cursor-pointer">
                   <input type="checkbox" checked={(plats as any)[k]} onChange={(e) => setPlats((p) => ({ ...p, [k]: e.target.checked }))} />

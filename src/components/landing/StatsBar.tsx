@@ -1,10 +1,8 @@
-import { Counter } from "./words";
-
 const stats = [
-  { value: 6.2, suffix: "x", decimals: 1, label: "Average ROI vs Meta Paid Ads" },
-  { value: 97, suffix: "M+", decimals: 0, label: "Reddit Daily Active Users with Purchase Intent" },
-  { value: 3, suffix: "x", decimals: 0, label: "YouTube Purchase Intent vs Display Ads" },
-  { value: 49, suffix: "%", decimals: 0, label: "Higher Engagement on X Creator Posts" },
+  { display: "5.4x", label: "Average ROI vs Meta Paid Ads" },
+  { display: "85M+", label: "Reddit Daily Active Users with Purchase Intent" },
+  { display: "3x", label: "YouTube Purchase Intent vs Display Ads" },
+  { display: "43%", label: "Higher Engagement on X Creator Posts" },
 ];
 
 export function StatsBar() {

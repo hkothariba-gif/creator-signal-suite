@@ -91,7 +91,7 @@ function CampaignsPage() {
                 <div className="md:col-span-3 flex items-center justify-end gap-3">
                   <StatusBadge s={c.status} />
                   <span className="text-sm text-[#8892A4]">{c.budget}</span>
-                  <a href="#" className="text-sm text-[#00D97E] hover:underline">Open →</a>
+                  <button onClick={() => setIntel({ id: c.campaignId, name: c.name })} className="text-sm text-[#00D97E] hover:underline">Open →</button>
                 </div>
               </div>
             </Card>

@@ -1,5 +1,44 @@
 import { WordStagger, FadeUp } from "./words";
-import { YouTubeIcon, RedditIcon, XIcon } from "./icons";
+import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "./icons";
+
+function LinkedInMock() {
+  return (
+    <div className="rounded-2xl p-6" style={{
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
+      }}>
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-[#0A66C2]/20 flex items-center justify-center">
+          <LinkedInIcon size={26} />
+        </div>
+        <div>
+          <div className="text-white font-bold">Priya Raman</div>
+          <div className="text-brand-muted text-xs">VP Growth · 64K followers · 7.1% eng</div>
+        </div>
+      </div>
+      <div className="mt-5 rounded-lg bg-white/[0.04] border border-white/[0.06] p-3">
+        <div className="text-sm text-slate-200 leading-snug">
+          "Spent 3 months evaluating creator platforms. Here's what actually moved pipeline for our B2B funnel…"
+        </div>
+        <div className="mt-2 flex items-center gap-3 text-[11px] text-brand-muted">
+          <span>👍 1.2K</span><span>💬 184</span><span>🔁 96</span>
+        </div>
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-2 text-center">
+        {[["82%", "ICP Match"], ["B2B SaaS", "Audience"]].map(([v, l]) => (
+          <div key={l} className="rounded-lg bg-white/[0.04] p-3">
+            <div className="text-white font-bold text-sm">{v}</div>
+            <div className="text-[10px] text-brand-muted uppercase tracking-wider">{l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 inline-block text-[11px] font-bold px-2.5 py-1 rounded-md bg-[#0A66C2]/15 text-[#4A9EFF]">
+        PIPELINE INFLUENCE: HIGH
+      </div>
+    </div>
+  );
+}
 
 function Pills({ items, color }: { items: string[]; color: string }) {
   return (
@@ -157,6 +196,15 @@ const cards = [
     desc: "Find niche X voices whose followers match your ICP. Surface engagement rate, follower quality score, and recent brand mentions.",
     tags: ["Follower Quality", "ICP Match", "Brand Mention Tracking", "Niche Authority"],
     Mock: XMock,
+  },
+  {
+    side: "right" as const,
+    color: "#0A66C2",
+    Icon: LinkedInIcon,
+    title: "LinkedIn B2B Authority Mapping",
+    desc: "Surface thought leaders whose followers match your buyer committee. Track pipeline-influencing posts, ICP match, and engagement quality from decision-makers — not vanity reach.",
+    tags: ["ICP Audience Match", "Decision-Maker Reach", "Pipeline Influence", "Thought-Leader Score"],
+    Mock: LinkedInMock,
   },
 ];
 

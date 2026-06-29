@@ -92,6 +92,12 @@ function OnboardingPage() {
         <div key={step} className="animate-[fadeIn_0.3s_ease]">
           {step === 1 && (
             <>
+              {intent && (
+                <div style={{ background: "rgba(0,217,126,0.06)", border: "1px solid rgba(0,217,126,0.15)", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#00D97E" }}>
+                  ✓ We pre-filled your answers based on what you entered on the homepage
+                  <button onClick={() => { localStorage.removeItem("ar_intent"); window.location.reload(); }} style={{ marginLeft: 12, background: "none", border: "none", color: "#8892A4", fontSize: 12, cursor: "pointer" }}>Clear</button>
+                </div>
+              )}
               <h2 className="text-[32px] font-extrabold tracking-tight">What does your brand sell?</h2>
               <p className="mt-2 text-[#8892A4]">This helps us match you to creators whose audiences actually buy your category.</p>
               <input

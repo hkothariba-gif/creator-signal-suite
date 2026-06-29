@@ -2,6 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
+import { YouTubeIcon, XIcon } from "@/components/landing/icons";
+
+const CASCADE = [
+  { state: "active", label: "YouTube Channel Email", sub: "Extracted from creator's About tab via YouTube Data API", status: "sent", statusLabel: "Sent 2d ago" },
+  { state: "active", label: "Personal Website Contact Form", sub: "Scraped from channel's linked website — aspenreach.com/outreach-demo", status: "waiting", statusLabel: "Awaiting reply" },
+  { state: "pending", label: "X / Twitter DM", sub: "Matched profile via handle found in YouTube bio — @mkbhd", status: "queued", statusLabel: "Queued in 48h" },
+  { state: "pending", label: "Discord Community", sub: "Server invite link found in YouTube description pinned post", status: "queued", statusLabel: "Queued in 5d" },
+  { state: "pending", label: "LinkedIn Message", sub: "Professional profile matched by name + niche — Marques Brownlee", status: "queued", statusLabel: "Queued in 7d" },
+  { state: "pending", label: "Talent Management Agency", sub: "Flagged as managed talent (2.3M subs) — agency outreach form auto-filled", status: "queued", statusLabel: "Queued in 10d" },
+] as const;
 
 export const Route = createFileRoute("/app/outreach")({
   component: OutreachPage,

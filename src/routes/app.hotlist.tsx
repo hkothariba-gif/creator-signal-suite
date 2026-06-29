@@ -85,10 +85,17 @@ function HotlistPage() {
                 const fb = fitBadge(c.fit);
                 return (
                   <div key={c.name} className="bg-[#131D2E] border border-white/[0.07] rounded-lg p-3.5 cursor-grab">
-                    <div className="flex items-start gap-2">
-                      <GripVertical className="w-3.5 h-3.5 text-[#4B5563] mt-0.5" />
+                    <div className="flex items-start gap-2.5">
+                      <img
+                        className="creator-avatar-img"
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.name)}&backgroundColor=0C1222&radius=50`}
+                        alt={c.name}
+                      />
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-sm truncate">{c.name}</div>
+                        <div className="flex items-center gap-1.5">
+                          <GripVertical className="w-3.5 h-3.5 text-[#4B5563]" />
+                          <div className="font-bold text-sm truncate">{c.name}</div>
+                        </div>
                         <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: pb.bg, color: pb.color }}>
                           {c.platform}
                         </span>

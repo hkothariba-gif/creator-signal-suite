@@ -196,6 +196,7 @@ const cards = [
     desc: "Find niche X voices whose followers match your ICP. Surface engagement rate, follower quality score, and recent brand mentions.",
     tags: ["Follower Quality", "ICP Match", "Brand Mention Tracking", "Niche Authority"],
     Mock: XMock,
+  },
   {
     side: "right" as const,
     color: "#0A66C2",

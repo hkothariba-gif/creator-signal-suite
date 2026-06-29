@@ -39,7 +39,7 @@ function Landing() {
       <LandingNav />
       <main>
         <Hero />
-        <WorkflowTabs />
+        <PlatformRevenueTabs />
         <TrustBar />
         <ProblemSolution />
         <LinkedInRevenue />

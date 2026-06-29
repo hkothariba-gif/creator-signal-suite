@@ -84,6 +84,11 @@ function HomePage() {
           <ul className="space-y-3">
             {activity.map((a, i) => (
               <li key={i} className="flex items-center gap-3 text-sm py-2 border-b border-white/[0.04] last:border-0">
+                <img
+                  className="creator-avatar-img sm"
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=0C1222&radius=50`}
+                  alt={a.name}
+                />
                 <span className="w-2 h-2 rounded-full" style={{ background: a.color }} />
                 <span className="font-semibold text-[#F0F4FF]">{a.name}</span>
                 <span className="text-[#8892A4]">— {a.action}</span>

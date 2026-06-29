@@ -1,7 +1,7 @@
 import { ArrowRight, Play, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { WordStagger } from "./words";
-import { YouTubeIcon, RedditIcon, XIcon } from "./icons";
+import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "./icons";
 
 const platforms = [
   {
@@ -15,6 +15,10 @@ const platforms = [
   {
     Icon: (p: { size?: number }) => <XIcon size={p.size} bg="none" className="[&_path]:fill-white" />,
     shadow: "0 0 0 1px rgba(255,255,255,0.2), 0 0 20px rgba(255,255,255,0.15), 0 0 40px rgba(255,255,255,0.08)",
+  },
+  {
+    Icon: LinkedInIcon,
+    shadow: "0 0 0 1px rgba(10,102,194,0.45), 0 0 20px rgba(10,102,194,0.4), 0 0 40px rgba(10,102,194,0.18)",
   },
 ];
 

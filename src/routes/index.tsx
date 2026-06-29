@@ -39,10 +39,13 @@ function Landing() {
       <LandingNav />
       <main>
         <Hero />
+        <WorkflowTabs />
         <TrustBar />
         <ProblemSolution />
         <LinkedInRevenue />
         <StatsBar />
+        <LogoWall />
+        <ProofTestimonials />
         <HeatMapSection />
         <PlatformCards />
         <Testimonials />

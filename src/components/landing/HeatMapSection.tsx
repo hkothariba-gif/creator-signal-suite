@@ -244,19 +244,19 @@ function GridView() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
       {cards.map((c, i) => (
         <FadeUp key={i} delay={i * 0.08}>
-          <div className="rounded-2xl p-6 bg-white border border-slate-200 shadow-sm h-full">
+          <div className="rounded-2xl p-6 h-full" style={{ background: "rgba(12,18,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <c.Icon size={32} />
             <div className="mt-3 font-bold text-sm" style={{ color: c.color }}>
               {c.label}
             </div>
-            <div className="mt-2 text-brand-navy font-semibold">{c.name}</div>
-            <div className="text-brand-text-muted text-xs mt-0.5">{c.meta}</div>
+            <div className="mt-2 font-semibold" style={{ color: "#F0F4FF" }}>{c.name}</div>
+            <div className="text-xs mt-0.5" style={{ color: "#8892A4" }}>{c.meta}</div>
             <div className="mt-5">
-              <div className="flex justify-between text-[10px] uppercase tracking-wider text-brand-text-muted mb-1">
+              <div className="flex justify-between text-[10px] uppercase tracking-wider mb-1" style={{ color: "#8892A4" }}>
                 <span>Brand Fit</span>
                 <span className="text-brand-green font-bold">{c.fit}%</span>
               </div>
-              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
                 <div className="h-full bg-brand-green" style={{ width: `${c.fit}%` }} />
               </div>
             </div>

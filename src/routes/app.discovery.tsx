@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
-import { YouTubeIcon, RedditIcon, XIcon } from "@/components/landing/icons";
+import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
 import { Telescope } from "lucide-react";
 
 export const Route = createFileRoute("/app/discovery")({
   component: DiscoveryPage,
 });
 
-const PLAT_FILTERS = ["All", "YouTube", "Reddit", "X"];
+const PLAT_FILTERS = ["All", "YouTube", "Reddit", "X", "LinkedIn"];
 
 function DiscoveryPage() {
   const [plat, setPlat] = useState("All");
@@ -65,7 +65,7 @@ function DiscoveryPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
         <InfoCard
           icon={<YouTubeIcon size={28} />}
           title="YouTube Creator Search"
@@ -80,6 +80,11 @@ function DiscoveryPage() {
           icon={<XIcon size={28} bg="white" />}
           title="X Voice Discovery"
           body="Find niche voices by follower quality score, engagement rate, recent brand mentions, and ICP audience match."
+        />
+        <InfoCard
+          icon={<LinkedInIcon size={28} />}
+          title="LinkedIn Top Voices"
+          body="Identify Director+ contributors and Top Voices in your niche by industry, role level, and post engagement rate."
         />
       </div>
 

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/hotlist")({
   component: HotlistPage,
 });
 
-type Platform = "YouTube" | "Reddit" | "X";
+type Platform = "YouTube" | "Reddit" | "X" | "LinkedIn";
 type Creator = { name: string; platform: Platform; stats: string; fit: number; cpm: string };
 type Col = { key: string; label: string; items: Creator[] };
 
@@ -17,12 +17,14 @@ const initial: Col[] = [
     { name: "TechWithMarcus", platform: "YouTube", stats: "340K subs • 6.2% eng", fit: 94, cpm: "$14-$32" },
     { name: "r/homelab", platform: "Reddit", stats: "847K members • 4.8% eng", fit: 89, cpm: "$8-$18" },
     { name: "@buildinpublic_sara", platform: "X", stats: "128K followers • 4.8% eng", fit: 82, cpm: "$6-$14" },
+    { name: "Lena Park", platform: "LinkedIn", stats: "42K followers • Director, B2B SaaS", fit: 87, cpm: "$18-$36" },
     { name: "GadgetGuru", platform: "YouTube", stats: "210K subs • 5.1% eng", fit: 78, cpm: "$12-$24" },
   ]},
   { key: "contacted", label: "Contacted", items: [
     { name: "NightOwlTech", platform: "YouTube", stats: "180K subs • 7.3% eng", fit: 85, cpm: "$10-$22" },
     { name: "r/personalfinance", platform: "Reddit", stats: "1.2M members • 3.2% eng", fit: 76, cpm: "$10-$20" },
     { name: "@devtools_daily", platform: "X", stats: "45K followers • 8.1% eng", fit: 88, cpm: "$4-$10" },
+    { name: "Marcus Chen", platform: "LinkedIn", stats: "78K followers • VP Product", fit: 81, cpm: "$22-$40" },
   ]},
   { key: "negotiating", label: "Negotiating", items: [
     { name: "CodeWithChris", platform: "YouTube", stats: "520K subs • 4.9% eng", fit: 91, cpm: "$18-$40" },
@@ -40,6 +42,7 @@ const initial: Col[] = [
 const platBadge = (p: Platform) => {
   if (p === "YouTube") return { bg: "rgba(255,0,0,0.15)", color: "#FF6B6B" };
   if (p === "Reddit") return { bg: "rgba(255,69,0,0.15)", color: "#FF7B3D" };
+  if (p === "LinkedIn") return { bg: "rgba(10,102,194,0.15)", color: "#5BA4F5" };
   return { bg: "rgba(255,255,255,0.1)", color: "#FFFFFF" };
 };
 
@@ -82,10 +85,17 @@ function HotlistPage() {
                 const fb = fitBadge(c.fit);
                 return (
                   <div key={c.name} className="bg-[#131D2E] border border-white/[0.07] rounded-lg p-3.5 cursor-grab">
-                    <div className="flex items-start gap-2">
-                      <GripVertical className="w-3.5 h-3.5 text-[#4B5563] mt-0.5" />
+                    <div className="flex items-start gap-2.5">
+                      <img
+                        className="creator-avatar-img"
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.name)}&backgroundColor=0C1222&radius=50`}
+                        alt={c.name}
+                      />
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-sm truncate">{c.name}</div>
+                        <div className="flex items-center gap-1.5">
+                          <GripVertical className="w-3.5 h-3.5 text-[#4B5563]" />
+                          <div className="font-bold text-sm truncate">{c.name}</div>
+                        </div>
                         <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: pb.bg, color: pb.color }}>
                           {c.platform}
                         </span>

@@ -70,7 +70,12 @@ function CommunityPage() {
           return (
             <Card key={i} className="px-5 py-4">
               <div className="flex items-center gap-3 mb-3 flex-wrap">
-                <span className="text-[10px] font-bold px-2 py-1 rounded-full text-white" style={{ background: s.plat === "Reddit" ? "#FF4500" : "#1A1A1A" }}>
+                <img
+                  className="creator-avatar-img sm"
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(s.source)}&backgroundColor=0C1222&radius=50`}
+                  alt={s.source}
+                />
+                <span className="text-[10px] font-bold px-2 py-1 rounded-full text-white inline-flex items-center" style={{ background: s.plat === "Reddit" ? "#FF4500" : "#1A1A1A" }}>
                   {s.plat === "Reddit" ? <RedditIcon size={12} /> : <XIcon size={12} bg="none" className="[&_path]:fill-white" />}
                 </span>
                 <span className="font-semibold text-sm">{s.source}</span>

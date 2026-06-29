@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { YouTubeIcon, RedditIcon, XIcon } from "@/components/landing/icons";
+import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
@@ -30,7 +30,7 @@ function OnboardingPage() {
   const [gender, setGender] = useState("Any");
   const [income, setIncome] = useState("Any");
   const [notes, setNotes] = useState("");
-  const [platforms, setPlatforms] = useState({ youtube: true, reddit: true, x: true });
+  const [platforms, setPlatforms] = useState({ youtube: true, reddit: true, x: true, linkedin: false });
   const [modal, setModal] = useState<null | { kind: "store" | "payout"; name: string }>(null);
   const [teamModal, setTeamModal] = useState(false);
 
@@ -123,7 +123,7 @@ function OnboardingPage() {
             <>
               <h2 className="text-[32px] font-extrabold tracking-tight">Where do your buyers hang out?</h2>
               <p className="mt-2 text-[#8892A4]">Select all platforms you want to run creator campaigns on.</p>
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <PlatformCard
                   selected={platforms.youtube}
                   onClick={() => setPlatforms((p) => ({ ...p, youtube: !p.youtube }))}
@@ -144,6 +144,13 @@ function OnboardingPage() {
                   icon={<XIcon size={36} bg="black" />}
                   name="X / Twitter" sub="Niche authority • Real-time conversation"
                   selStyle={{ border: "1px solid rgba(255,255,255,0.3)", boxShadow: "0 0 20px rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }}
+                />
+                <PlatformCard
+                  selected={platforms.linkedin}
+                  onClick={() => setPlatforms((p) => ({ ...p, linkedin: !p.linkedin }))}
+                  icon={<LinkedInIcon size={36} />}
+                  name="LinkedIn" sub="B2B thought leadership • Director+ reach"
+                  selStyle={{ border: "1px solid rgba(10,102,194,0.6)", boxShadow: "0 0 20px rgba(10,102,194,0.25)", background: "rgba(10,102,194,0.06)" }}
                 />
               </div>
             </>
@@ -206,6 +213,7 @@ function OnboardingPage() {
                     {platforms.youtube && <Badge color="#FF0000">YouTube</Badge>}
                     {platforms.reddit && <Badge color="#FF4500">Reddit</Badge>}
                     {platforms.x && <Badge color="#FFFFFF" text="#1A1A1A">X</Badge>}
+                    {platforms.linkedin && <Badge color="#0A66C2">LinkedIn</Badge>}
                   </div>
                 </div>
                 <SummaryRow label="Store" value={<span className="flex items-center gap-2"><Dot color="#F59E0B" /> Not connected</span>} />

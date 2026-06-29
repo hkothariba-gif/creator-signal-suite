@@ -39,6 +39,7 @@ function Landing() {
         <Hero />
         <TrustBar />
         <ProblemSolution />
+        <LinkedInRevenue />
         <StatsBar />
         <HeatMapSection />
         <PlatformCards />

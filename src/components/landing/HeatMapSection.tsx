@@ -44,7 +44,7 @@ const bestMatchCount = creators.filter((c) => c.x >= 75 && c.y >= 75).length;
 export function HeatMapSection() {
   const [tab, setTab] = useState<Tab>("heat");
   return (
-    <section id="how" className="bg-brand-off-white py-16 md:py-[100px]">
+    <section id="how" className="py-16 md:py-[100px]" style={{ background: "#05080F" }}>
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center">
           <div className="text-brand-green text-xs font-bold uppercase tracking-[0.15em]">
@@ -52,7 +52,8 @@ export function HeatMapSection() {
           </div>
           <WordStagger
             text="See exactly which creators fit — before you spend a dollar"
-            className="mt-4 mx-auto max-w-[820px] font-display font-extrabold text-4xl md:text-[52px] tracking-[-0.04em] leading-[1.05] text-brand-navy"
+            className="mt-4 mx-auto max-w-[820px] font-display font-extrabold text-4xl md:text-[52px] tracking-[-0.04em] leading-[1.05]"
+            style={{ color: "#F0F4FF" }}
           />
         </div>
 

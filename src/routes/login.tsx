@@ -14,19 +14,30 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
 
+  const routeAfterAuth = (u: { role?: string; onboarded?: boolean }) => {
+    if (u.role === "admin") return navigate({ to: "/admin" });
+    try {
+      const raw = localStorage.getItem("ar_intent");
+      if (raw) {
+        const intent = JSON.parse(raw);
+        if (intent?.savedAt && Date.now() - intent.savedAt < 1800000) {
+          return navigate({ to: "/onboarding" });
+        }
+      }
+    } catch {}
+    navigate({ to: u.onboarded ? "/app" : "/onboarding" });
+  };
+
   useEffect(() => {
-    if (user) {
-      if (user.role === "admin") navigate({ to: "/admin" });
-      else navigate({ to: user.onboarded ? "/app" : "/onboarding" });
-    }
-  }, [user, navigate]);
+    if (user) routeAfterAuth(user);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
     const u = login(email);
-    if (u.role === "admin") navigate({ to: "/admin" });
-    else navigate({ to: u.onboarded ? "/app" : "/onboarding" });
+    routeAfterAuth(u);
   };
 
   return (

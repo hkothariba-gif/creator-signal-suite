@@ -24,7 +24,7 @@ const topCreators = [
 ];
 
 function HomePage() {
-  const { user } = useAuth();
+  const { user, update } = useAuth();
   const [bannerDismissed, setBannerDismissed] = useState(() => {
     try {
       return localStorage.getItem("ar_banner_dismissed") === "true";
@@ -122,6 +122,22 @@ function HomePage() {
         <QuickAction to="/app/discovery" icon={<Search className="w-5 h-5" />} label="Search Creators" />
         <QuickAction to="/app/outreach" icon={<Mail className="w-5 h-5" />} label="Send Outreach" />
         <QuickAction to="/app/affiliate" icon={<DollarSign className="w-5 h-5" />} label="View Payouts" />
+      </div>
+
+      <div className="mt-8 flex items-center gap-4">
+        <button
+          onClick={() => {
+            try {
+              localStorage.removeItem("ar_banner_dismissed");
+              localStorage.setItem("ar_onboarding_step", "1");
+            } catch {}
+            update({ onboarded: false });
+            setBannerDismissed(false);
+          }}
+          className="text-xs text-[#8892A4] hover:text-[#00D97E] underline underline-offset-2"
+        >
+          Reset onboarding
+        </button>
       </div>
     </AppShell>
   );

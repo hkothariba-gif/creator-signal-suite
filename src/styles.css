@@ -986,3 +986,356 @@ main .text-\[36px\] {
   background: rgba(255, 69, 0, 0.2);
   border-color: rgba(255, 69, 0, 0.5);
 }
+
+/* ============================================================
+   LANDING PAGE — FORCE ALL SECTIONS TO DARK BACKGROUND
+   The landing page has several sections that render on white/light
+   backgrounds. This overrides all of them to match the dark theme.
+   ============================================================ */
+
+/* Kill any white/light section backgrounds on the landing page */
+section,
+[class*="section"],
+[class*="Section"],
+.bg-white,
+.bg-gray-50,
+.bg-slate-50,
+.bg-neutral-50,
+[class*="bg-white"],
+[class*="bg-gray"],
+[class*="bg-slate"],
+[class*="bg-neutral"] {
+  background-color: transparent !important;
+}
+
+/* Force page root and main content to dark */
+main,
+#root > div,
+.landing-root {
+  background: #05080f !important;
+}
+
+/* Old/New way section — nuke the white cards, rebuild dark */
+[class*="old-way"],
+[class*="OldWay"],
+[class*="comparison"],
+[class*="Comparison"],
+[class*="versus"],
+[class*="Versus"] {
+  background: transparent !important;
+}
+
+/* Testimonials / social proof sections */
+[class*="testimonial"],
+[class*="Testimonial"],
+[class*="social-proof"],
+[class*="reviews"],
+[class*="Reviews"] {
+  background: #05080f !important;
+  color: #f0f4ff !important;
+}
+
+/* Any card that appears on a light bg section */
+[class*="card"]:not([class*="platform-card"]):not([class*="creator-card"]) {
+  background: rgba(12, 18, 34, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  color: #f0f4ff !important;
+}
+
+/* Generic text color override for white-background sections */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+li {
+  color: inherit;
+}
+
+/* ============================================================
+   OUTREACH CREATOR REACH CASCADE — LANDING PAGE VERSION
+   A standalone "How We Reach Creators" visual block for the
+   landing page (different from the app's outreach view)
+   ============================================================ */
+.reach-cascade-section {
+  background: #05080f;
+  padding: 80px 0;
+}
+
+.reach-cascade-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.reach-cascade-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.reach-cascade-header h2 {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  color: #f0f4ff;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.reach-cascade-header p {
+  font-size: 16px;
+  color: #8892a4;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.reach-cascade-timeline {
+  position: relative;
+  padding-left: 24px;
+}
+
+.reach-cascade-timeline::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #00d97e 0%, rgba(0, 217, 126, 0.1) 100%);
+}
+
+.reach-channel {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 0;
+  position: relative;
+}
+
+.reach-channel-dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reach-channel-dot.active {
+  background: #00d97e;
+  color: #05080f;
+  box-shadow: 0 0 16px rgba(0, 217, 126, 0.5);
+}
+
+.reach-channel-dot.pending {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: #8892a4;
+}
+
+.reach-channel-body {
+  flex: 1;
+  background: rgba(12, 18, 34, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reach-channel-body.active-channel {
+  border-color: rgba(0, 217, 126, 0.2);
+  background: rgba(0, 217, 126, 0.04);
+}
+
+.reach-channel-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0f4ff;
+  margin-bottom: 3px;
+}
+
+.reach-channel-sub {
+  font-size: 12px;
+  color: #8892a4;
+}
+
+.reach-channel-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.reach-channel-badge.sent {
+  background: rgba(0, 217, 126, 0.12);
+  color: #00d97e;
+  border: 1px solid rgba(0, 217, 126, 0.25);
+}
+
+.reach-channel-badge.waiting {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.reach-channel-badge.queued {
+  background: rgba(255, 255, 255, 0.04);
+  color: #8892a4;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reach-cascade-stat {
+  text-align: center;
+  margin-top: 32px;
+  padding: 16px;
+  background: rgba(0, 217, 126, 0.05);
+  border: 1px solid rgba(0, 217, 126, 0.15);
+  border-radius: 10px;
+  font-size: 14px;
+  color: #00d97e;
+  font-weight: 500;
+}
+
+/* ============================================================
+   LINKEDIN REVENUE VISUALIZATION SECTION (LANDING PAGE)
+   ============================================================ */
+.linkedin-viz-section {
+  background: #05080f;
+  padding: 80px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.linkedin-viz-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .linkedin-viz-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.linkedin-viz-left h2 {
+  font-size: clamp(26px, 3.5vw, 38px);
+  font-weight: 800;
+  color: #f0f4ff;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.linkedin-viz-left p {
+  font-size: 15px;
+  color: #8892a4;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.linkedin-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.linkedin-stat-pill.blue {
+  background: rgba(10, 102, 194, 0.15);
+  border: 1px solid rgba(10, 102, 194, 0.3);
+  color: #5ba4f5;
+}
+
+.linkedin-stat-pill.green {
+  background: rgba(0, 217, 126, 0.1);
+  border: 1px solid rgba(0, 217, 126, 0.25);
+  color: #00d97e;
+}
+
+.linkedin-viz-right {
+  background: rgba(12, 18, 34, 0.7);
+  border: 1px solid rgba(10, 102, 194, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.linkedin-viz-right::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #0a66c2, #5ba4f5, #00d97e);
+}
+
+.linkedin-funnel-step {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+  gap: 14px;
+}
+
+.linkedin-funnel-label {
+  width: 140px;
+  font-size: 12px;
+  color: #8892a4;
+  flex-shrink: 0;
+}
+
+.linkedin-funnel-bar-wrap {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.linkedin-funnel-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #0a66c2, #5ba4f5);
+}
+
+.linkedin-funnel-count {
+  width: 36px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5ba4f5;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   HERO SUBTEXT — TRIM DOWN TO 1 SHORT LINE
+   ============================================================ */
+.hero-subtext-short {
+  font-size: 17px;
+  color: #8892a4;
+  max-width: 460px;
+  margin: 0 auto;
+  line-height: 1.5;
+  text-align: center;
+}

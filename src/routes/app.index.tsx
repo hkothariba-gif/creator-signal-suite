@@ -24,7 +24,7 @@ const topCreators = [
 ];
 
 function HomePage() {
-  const { user } = useAuth();
+  const { user, update } = useAuth();
   const [bannerDismissed, setBannerDismissed] = useState(() => {
     try {
       return localStorage.getItem("ar_banner_dismissed") === "true";

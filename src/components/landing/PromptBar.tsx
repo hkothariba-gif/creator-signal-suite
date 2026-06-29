@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-
+import { ArrowUp, Sparkles, Youtube, MessageSquare, Hash, Briefcase } from "lucide-react";
 
 const CREATOR_CHIPS = [
   "Tech reviewers",
@@ -14,77 +14,57 @@ const CREATOR_CHIPS = [
   "Custom...",
 ];
 
-const cardStyle: React.CSSProperties = {
-  background: "rgba(12, 18, 34, 0.8)",
-  border: "1px solid rgba(0, 217, 126, 0.2)",
-  borderRadius: 16,
-  padding: 24,
-  maxWidth: 640,
-  margin: "0 auto 32px",
-  backdropFilter: "blur(12px)",
-  boxShadow: "0 0 40px rgba(0, 217, 126, 0.08)",
-};
-
-const inputStyle: React.CSSProperties = {
-  background: "rgba(5, 8, 15, 0.6)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: 10,
-  padding: "12px 16px",
-  color: "#F0F4FF",
-  fontSize: 14,
-  width: "100%",
-  outline: "none",
-};
+const QUICK_SUGGESTIONS = [
+  { icon: Youtube, label: "YouTube tech reviewers under 500K subs" },
+  { icon: MessageSquare, label: "Reddit power users in r/homelab" },
+  { icon: Hash, label: "X creators in build-in-public niche" },
+  { icon: Briefcase, label: "LinkedIn B2B thought leaders" },
+];
 
 export function PromptBar() {
   const navigate = useNavigate();
-  const [intentStep, setIntentStep] = useState<"idle" | "product" | "influencer" | "done">("idle");
+  const [step, setStep] = useState<"input" | "creator">("input");
   const [productDesc, setProductDesc] = useState("");
-  const [adInventory, setAdInventory] = useState("");
   const [influencerType, setInfluencerType] = useState("");
   const [customMode, setCustomMode] = useState(false);
-  const productInputRef = useRef<HTMLInputElement>(null);
-  const adInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const chipsContainerRef = useRef<HTMLDivElement>(null);
   const customInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFocus = () => { if (intentStep === "idle") setIntentStep("product"); };
+  // Auto-grow textarea
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  }, [productDesc]);
 
-  const goStep2 = () => {
+  const submitProduct = () => {
     if (!productDesc.trim()) return;
-    setIntentStep("influencer");
+    setStep("creator");
   };
 
   const finish = (type: string) => {
-    const finalType = type || influencerType;
-    if (!finalType.trim()) return;
+    const finalType = (type || influencerType).trim();
+    if (!finalType) return;
     localStorage.setItem(
       "ar_intent",
-      JSON.stringify({ productDesc, adInventory, influencerType: finalType, savedAt: Date.now() })
+      JSON.stringify({ productDesc, adInventory: "", influencerType: finalType, savedAt: Date.now() })
     );
-    setIntentStep("done");
     navigate({ to: "/login" });
   };
 
-  // Auto-focus first chip when entering step 2
   useEffect(() => {
-    if (intentStep === "influencer") {
+    if (step === "creator") {
       const first = chipsContainerRef.current?.querySelector<HTMLButtonElement>("button");
       first?.focus();
     }
-  }, [intentStep]);
+  }, [step]);
 
-  const onProductKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (productDesc.trim()) adInputRef.current?.focus();
-    }
-  };
-
-  const onAdKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      goStep2();
+      submitProduct();
     }
   };
 
@@ -112,65 +92,171 @@ export function PromptBar() {
     }
   };
 
-
   return (
-    <div style={cardStyle}>
-      {(intentStep === "idle" || intentStep === "product") && (
+    <div style={{ maxWidth: 680, margin: "0 auto 24px", width: "100%" }}>
+      {step === "input" && (
         <>
-          <input
-            ref={productInputRef}
-            type="text"
-            value={productDesc}
-            onFocus={handleFocus}
-            onChange={(e) => setProductDesc(e.target.value)}
-            onKeyDown={onProductKeyDown}
-            placeholder="Describe your product or paste an existing ad... (e.g. 'We sell a $49/mo CRM for real estate agents')"
-            style={{ ...inputStyle, fontSize: 15, padding: "16px 18px" }}
-            onFocusCapture={(e) => (e.currentTarget.style.borderColor = "#00D97E")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
-            autoFocus
-          />
-          <input
-            ref={adInputRef}
-            type="text"
-            value={adInventory}
-            onChange={(e) => setAdInventory(e.target.value)}
-            onKeyDown={onAdKeyDown}
-            placeholder="Paste existing ad copy or campaign description (optional)"
-            style={{ ...inputStyle, marginTop: 10 }}
-            onFocusCapture={(e) => (e.currentTarget.style.borderColor = "#00D97E")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
-          />
-
-          <button
-            type="button"
-            onClick={goStep2}
-            disabled={!productDesc.trim()}
+          {/* Perplexity-style single search box */}
+          <div
+            className="group"
             style={{
-              marginTop: 14,
-              width: "100%",
-              background: "#00D97E",
-              color: "#05080F",
-              fontWeight: 700,
-              fontSize: 15,
-              border: "none",
-              borderRadius: 10,
-              padding: "12px 18px",
-              cursor: productDesc.trim() ? "pointer" : "not-allowed",
-              opacity: productDesc.trim() ? 1 : 0.5,
+              position: "relative",
+              background: "rgba(12, 18, 34, 0.85)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: "14px 16px 12px",
+              backdropFilter: "blur(16px)",
+              boxShadow:
+                "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,217,126,0.05), inset 0 1px 0 rgba(255,255,255,0.04)",
+              transition: "border-color 160ms ease, box-shadow 160ms ease",
+            }}
+            onFocusCapture={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(0,217,126,0.45)";
+              (e.currentTarget as HTMLDivElement).style.boxShadow =
+                "0 8px 32px rgba(0,0,0,0.4), 0 0 0 3px rgba(0,217,126,0.12), inset 0 1px 0 rgba(255,255,255,0.04)";
+            }}
+            onBlurCapture={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)";
+              (e.currentTarget as HTMLDivElement).style.boxShadow =
+                "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,217,126,0.05), inset 0 1px 0 rgba(255,255,255,0.04)";
             }}
           >
-            Find My Creators →
-          </button>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+              <Sparkles
+                className="mt-1 shrink-0"
+                style={{ width: 18, height: 18, color: "#00D97E" }}
+              />
+              <textarea
+                ref={inputRef}
+                rows={1}
+                value={productDesc}
+                onChange={(e) => setProductDesc(e.target.value)}
+                onKeyDown={onInputKeyDown}
+                placeholder="Describe your product and who you want to reach…"
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  resize: "none",
+                  color: "#F0F4FF",
+                  fontSize: 16,
+                  lineHeight: 1.5,
+                  fontFamily: "inherit",
+                  padding: "2px 0",
+                  maxHeight: 160,
+                  overflow: "auto",
+                }}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={submitProduct}
+                disabled={!productDesc.trim()}
+                aria-label="Find creators"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: productDesc.trim() ? "#00D97E" : "rgba(255,255,255,0.08)",
+                  color: productDesc.trim() ? "#05080F" : "#8892A4",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: productDesc.trim() ? "pointer" : "not-allowed",
+                  transition: "all 160ms ease",
+                  boxShadow: productDesc.trim()
+                    ? "0 0 20px rgba(0,217,126,0.35), inset 0 1px 0 rgba(255,255,255,0.25)"
+                    : "none",
+                  flexShrink: 0,
+                }}
+              >
+                <ArrowUp style={{ width: 18, height: 18 }} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick suggestion chips */}
+          <div
+            style={{
+              marginTop: 14,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8,
+              justifyContent: "center",
+            }}
+          >
+            {QUICK_SUGGESTIONS.map((s) => (
+              <button
+                key={s.label}
+                type="button"
+                onClick={() => {
+                  setProductDesc(s.label);
+                  inputRef.current?.focus();
+                }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#8892A4",
+                  fontSize: 12.5,
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  transition: "all 160ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(0,217,126,0.4)";
+                  e.currentTarget.style.color = "#F0F4FF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                  e.currentTarget.style.color = "#8892A4";
+                }}
+              >
+                <s.icon style={{ width: 13, height: 13 }} />
+                {s.label}
+              </button>
+            ))}
+          </div>
         </>
       )}
 
-      {intentStep === "influencer" && (
-        <>
-          <div style={{ fontSize: 12, color: "#8892A4", marginBottom: 8 }}>
-            Product: <span style={{ color: "#F0F4FF" }}>{productDesc.length > 60 ? productDesc.slice(0, 60) + "…" : productDesc}</span>
+      {step === "creator" && (
+        <div
+          style={{
+            background: "rgba(12, 18, 34, 0.85)",
+            border: "1px solid rgba(0, 217, 126, 0.25)",
+            borderRadius: 16,
+            padding: 20,
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 3px rgba(0,217,126,0.08)",
+            textAlign: "left",
+          }}
+        >
+          <div style={{ fontSize: 12, color: "#8892A4", marginBottom: 4 }}>
+            <button
+              type="button"
+              onClick={() => setStep("input")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#00D97E",
+                cursor: "pointer",
+                padding: 0,
+                fontSize: 12,
+              }}
+            >
+              ← Edit
+            </button>
+            <span style={{ marginLeft: 8 }}>
+              {productDesc.length > 70 ? productDesc.slice(0, 70) + "…" : productDesc}
+            </span>
           </div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "#F0F4FF", marginBottom: 14 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "#F0F4FF", margin: "10px 0 12px" }}>
             What kind of creator are you looking for?
           </div>
           <div ref={chipsContainerRef} onKeyDown={onChipsKeyDown} style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -190,10 +276,10 @@ export function PromptBar() {
                       setInfluencerType(c);
                     }
                   }}
-                  className={`text-sm px-4 py-2 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#00D97E]/60 ${
+                  className={`text-sm px-3.5 py-1.5 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#00D97E]/60 ${
                     sel
                       ? "bg-[#00D97E]/15 border-[#00D97E] text-[#00D97E]"
-                      : "bg-white/[0.05] border-white/10 text-[#F0F4FF] hover:border-white/30"
+                      : "bg-white/[0.04] border-white/10 text-[#F0F4FF] hover:border-white/30"
                   }`}
                 >
                   {c}
@@ -208,8 +294,18 @@ export function PromptBar() {
               value={influencerType}
               onChange={(e) => setInfluencerType(e.target.value)}
               onKeyDown={onCustomKeyDown}
-              placeholder="Describe your ideal creator... (press Enter to continue)"
-              style={{ ...inputStyle, marginTop: 12 }}
+              placeholder="Describe your ideal creator… (press Enter to continue)"
+              style={{
+                marginTop: 12,
+                background: "rgba(5, 8, 15, 0.6)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 10,
+                padding: "10px 14px",
+                color: "#F0F4FF",
+                fontSize: 14,
+                width: "100%",
+                outline: "none",
+              }}
               autoFocus
             />
           )}
@@ -230,11 +326,14 @@ export function PromptBar() {
               padding: "12px 18px",
               cursor: influencerType.trim() ? "pointer" : "not-allowed",
               opacity: influencerType.trim() ? 1 : 0.5,
+              boxShadow: influencerType.trim()
+                ? "0 0 24px rgba(0,217,126,0.35), inset 0 1px 0 rgba(255,255,255,0.25)"
+                : "none",
             }}
           >
             Start Setup →
           </button>
-        </>
+        </div>
       )}
     </div>
   );

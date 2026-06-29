@@ -43,6 +43,10 @@ export function PromptBar() {
   const [adInventory, setAdInventory] = useState("");
   const [influencerType, setInfluencerType] = useState("");
   const [customMode, setCustomMode] = useState(false);
+  const productInputRef = useRef<HTMLInputElement>(null);
+  const adInputRef = useRef<HTMLInputElement>(null);
+  const chipsContainerRef = useRef<HTMLDivElement>(null);
+  const customInputRef = useRef<HTMLInputElement>(null);
 
   const handleFocus = () => { if (intentStep === "idle") setIntentStep("product"); };
 
@@ -61,6 +65,53 @@ export function PromptBar() {
     setIntentStep("done");
     navigate({ to: "/login" });
   };
+
+  // Auto-focus first chip when entering step 2
+  useEffect(() => {
+    if (intentStep === "influencer") {
+      const first = chipsContainerRef.current?.querySelector<HTMLButtonElement>("button");
+      first?.focus();
+    }
+  }, [intentStep]);
+
+  const onProductKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (productDesc.trim()) adInputRef.current?.focus();
+    }
+  };
+
+  const onAdKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      goStep2();
+    }
+  };
+
+  const onChipsKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const container = chipsContainerRef.current;
+    if (!container) return;
+    const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>("button"));
+    const idx = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      buttons[(idx + 1 + buttons.length) % buttons.length]?.focus();
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      buttons[(idx - 1 + buttons.length) % buttons.length]?.focus();
+    } else if (e.key === "Enter" && influencerType.trim() && !customMode) {
+      e.preventDefault();
+      finish(influencerType);
+    }
+  };
+
+  const onCustomKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && influencerType.trim()) {
+      e.preventDefault();
+      finish(influencerType);
+    }
+  };
+
 
   return (
     <div style={cardStyle}>

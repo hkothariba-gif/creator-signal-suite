@@ -66,7 +66,7 @@ function OnboardingPage() {
       onboarded: true,
       brand: { category, age, gender, income, notes, platforms },
     });
-    if (typeof window !== "undefined") localStorage.removeItem("ar_onboarding_step");
+    if (typeof window !== "undefined") { localStorage.removeItem("ar_onboarding_step"); localStorage.removeItem("ar_intent"); }
     navigate({ to: "/app" });
   };
 

@@ -112,11 +112,10 @@ export function Hero() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.9 }}
-          className="mt-7 mx-auto max-w-[680px] text-lg md:text-xl leading-[1.65]"
-          style={{ color: "#8892A4" }}
+          className="mt-7"
+          style={{ fontSize: 17, color: "#8892A4", maxWidth: 480, margin: "28px auto 0", textAlign: "center", lineHeight: 1.5 }}
         >
-          AspenReach maps brand-fit, reach, and buyer intent across YouTube, Reddit, and X. Stop guessing which
-          creators convert. Start building partnerships that actually move product.
+          Stop guessing. Start converting. Creator intelligence across YouTube, Reddit, X & LinkedIn.
         </motion.p>
 
         <motion.div

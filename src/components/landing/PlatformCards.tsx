@@ -172,6 +172,7 @@ function XMock() {
 const cards = [
   {
     side: "left" as const,
+    cls: "yt",
     color: "#FF0000",
     Icon: YouTubeIcon,
     title: "YouTube Creator Matching",
@@ -181,6 +182,7 @@ const cards = [
   },
   {
     side: "right" as const,
+    cls: "rd",
     color: "#FF4500",
     Icon: RedditIcon,
     title: "Reddit Community Intelligence",

@@ -114,7 +114,7 @@ function StatusBadge({ s }: { s: Status }) {
 
 function CampaignDrawer({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
-  const [plats, setPlats] = useState({ youtube: true, reddit: false, x: false });
+  const [plats, setPlats] = useState({ youtube: true, reddit: false, x: false, linkedin: false });
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />

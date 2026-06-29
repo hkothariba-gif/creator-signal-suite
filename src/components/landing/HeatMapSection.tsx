@@ -279,13 +279,13 @@ function HotlistView() {
     <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
       {cols.map((col, i) => (
         <FadeUp key={col.name} delay={i * 0.06}>
-          <div className="rounded-xl bg-white border border-slate-200 p-3 h-full">
-            <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-brand-text-muted mb-3">
+          <div className="rounded-xl p-3 h-full" style={{ background: "rgba(12,18,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="text-[10px] uppercase font-bold tracking-[0.15em] mb-3" style={{ color: "#8892A4" }}>
               {col.name}
             </div>
             <div className="space-y-2">
               {col.cards.map((c) => (
-                <div key={c} className="rounded-lg bg-brand-off-white border border-slate-100 p-3 text-sm font-semibold text-brand-navy">
+                <div key={c} className="rounded-lg p-3 text-sm font-semibold" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: "#F0F4FF" }}>
                   {c}
                 </div>
               ))}

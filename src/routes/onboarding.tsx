@@ -213,6 +213,7 @@ function OnboardingPage() {
                     {platforms.youtube && <Badge color="#FF0000">YouTube</Badge>}
                     {platforms.reddit && <Badge color="#FF4500">Reddit</Badge>}
                     {platforms.x && <Badge color="#FFFFFF" text="#1A1A1A">X</Badge>}
+                    {platforms.linkedin && <Badge color="#0A66C2">LinkedIn</Badge>}
                   </div>
                 </div>
                 <SummaryRow label="Store" value={<span className="flex items-center gap-2"><Dot color="#F59E0B" /> Not connected</span>} />

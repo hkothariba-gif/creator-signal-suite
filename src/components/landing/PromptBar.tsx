@@ -118,24 +118,30 @@ export function PromptBar() {
       {(intentStep === "idle" || intentStep === "product") && (
         <>
           <input
+            ref={productInputRef}
             type="text"
             value={productDesc}
             onFocus={handleFocus}
             onChange={(e) => setProductDesc(e.target.value)}
+            onKeyDown={onProductKeyDown}
             placeholder="Describe your product or paste an existing ad... (e.g. 'We sell a $49/mo CRM for real estate agents')"
             style={{ ...inputStyle, fontSize: 15, padding: "16px 18px" }}
             onFocusCapture={(e) => (e.currentTarget.style.borderColor = "#00D97E")}
             onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+            autoFocus
           />
           <input
+            ref={adInputRef}
             type="text"
             value={adInventory}
             onChange={(e) => setAdInventory(e.target.value)}
+            onKeyDown={onAdKeyDown}
             placeholder="Paste existing ad copy or campaign description (optional)"
             style={{ ...inputStyle, marginTop: 10 }}
             onFocusCapture={(e) => (e.currentTarget.style.borderColor = "#00D97E")}
             onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
           />
+
           <button
             type="button"
             onClick={goStep2}

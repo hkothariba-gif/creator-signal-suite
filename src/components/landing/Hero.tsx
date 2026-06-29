@@ -2,6 +2,7 @@ import { ArrowRight, Play, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { WordStagger } from "./words";
 import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "./icons";
+import { PromptBar } from "./PromptBar";
 
 const platforms = [
   {

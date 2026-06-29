@@ -245,7 +245,14 @@ function GridView() {
       {cards.map((c, i) => (
         <FadeUp key={i} delay={i * 0.08}>
           <div className="rounded-2xl p-6 h-full" style={{ background: "rgba(12,18,34,0.8)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            <c.Icon size={32} />
+            <div className="flex items-center justify-between">
+              <c.Icon size={32} />
+              <img
+                className="creator-avatar-img"
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.name)}&backgroundColor=0C1222&radius=50`}
+                alt={c.name}
+              />
+            </div>
             <div className="mt-3 font-bold text-sm" style={{ color: c.color }}>
               {c.label}
             </div>

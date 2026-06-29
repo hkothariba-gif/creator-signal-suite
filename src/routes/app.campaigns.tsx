@@ -35,6 +35,7 @@ const platText = (_p: Platform) => "#fff";
 function CampaignsPage() {
   const [tab, setTab] = useState<"Active" | "Draft" | "Completed" | "All">("Active");
   const [drawer, setDrawer] = useState(false);
+  const [intel, setIntel] = useState<{ id: string; name: string } | null>(null);
 
   const counts = {
     Active: CAMPAIGNS.filter((c) => c.status === "Active").length,

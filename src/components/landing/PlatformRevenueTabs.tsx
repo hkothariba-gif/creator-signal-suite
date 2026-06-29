@@ -1,238 +1,216 @@
 import { useState } from "react";
 
-type Key = "yt" | "rd" | "x" | "li";
-
-type Bar = { label: string; value: number };
-type Stat = { val: string; lbl: string };
-
-type TabData = {
-  key: Key;
-  label: string;
-  platform: string;
-  title: string;
-  bullets: string[];
-  cta: string;
-  mock: {
-    avatar: { type: "dicebear" | "text"; seed?: string; text?: string; bg?: string };
-    name: string;
-    meta: string;
-    badge: string;
-    rows: Array<
-      | { kind: "label-value"; label: string; value: string; italic?: boolean }
-      | { kind: "bar"; bar: Bar }
-      | { kind: "stats"; stats: Stat[] }
-    >;
-    actions: { primary: string; secondary: string };
-  };
-};
-
-const TABS: TabData[] = [
-  {
-    key: "yt",
-    label: "YouTube",
-    platform: "YouTube",
-    title: "Creator outreach at scale",
-    bullets: [
-      "YouTube API extracts verified contact emails from channel About tab",
-      "Brand-Fit Score filters by niche, engagement rate & audience match",
-      "AI sequences hit 40%+ reply rates vs 3% cold email average",
-    ],
-    cta: "Explore YouTube →",
-    mock: {
-      avatar: { type: "dicebear", seed: "marcus" },
-      name: "TechWithMarcus",
-      meta: "340K subs · Tech Reviews",
-      badge: "94% FIT",
-      rows: [
-        { kind: "label-value", label: "OUTREACH STATUS", value: "Email sent · Awaiting reply" },
-        { kind: "bar", bar: { label: "Brand Fit", value: 94 } },
-        { kind: "stats", stats: [{ val: "340K", lbl: "Subscribers" }, { val: "6.2%", lbl: "Eng. Rate" }] },
-      ],
-      actions: { primary: "View Profile", secondary: "Skip" },
-    },
-  },
-  {
-    key: "rd",
-    label: "Reddit",
-    platform: "Reddit",
-    title: "Reddit Ads from YouTube data",
-    bullets: [
-      "YouTube campaign signals auto-generate Reddit Promoted Post copy",
-      "AI matches your ICP to the top 3 subreddits by conversion intent",
-      "Launch Reddit Ads without a single manual step",
-    ],
-    cta: "Explore Reddit →",
-    mock: {
-      avatar: { type: "text", text: "r/", bg: "#FF4500" },
-      name: "r/homelab",
-      meta: "847K members · Tech & DIY",
-      badge: "89% MATCH",
-      rows: [
-        { kind: "label-value", label: "AD DRAFT", value: "\u201CTired of managing 6 tools? We built one that\u2026\u201D", italic: true },
-        { kind: "label-value", label: "TARGETING", value: "r/homelab · r/selfhosted · r/devops" },
-      ],
-      actions: { primary: "Launch Ad →", secondary: "Edit Copy" },
-    },
-  },
-  {
-    key: "x",
-    label: "X / Twitter",
-    platform: "X",
-    title: "Amplify through X creators",
-    bullets: [
-      "DM creators with open DMs — AI drafts personalised pitches per creator",
-      "Whitelist deal: run your ad through their handle for 3x conversion",
-      "X Ads amplification boosts winning posts to lookalike audiences",
-    ],
-    cta: "Explore X →",
-    mock: {
-      avatar: { type: "dicebear", seed: "sara" },
-      name: "@buildinpublic_sara",
-      meta: "128K followers · Build-in-public",
-      badge: "FOLLOWER QUALITY 91",
-      rows: [
-        { kind: "label-value", label: "DM STATUS", value: "Sent 2h ago · Opened" },
-        { kind: "bar", bar: { label: "Audience Match", value: 88 } },
-        { kind: "stats", stats: [{ val: "128K", lbl: "Followers" }, { val: "4.1%", lbl: "Eng. Rate" }] },
-      ],
-      actions: { primary: "Send DM", secondary: "Whitelist" },
-    },
-  },
-  {
-    key: "li",
-    label: "LinkedIn",
-    platform: "LinkedIn",
-    title: "B2B revenue through professional voices",
-    bullets: [
-      "Target LinkedIn Top Voices, industry analysts & Director+ decision makers",
-      "Ghostwritten or co-authored posts reach 4.2x higher B2B conversion",
-      "73% open rate on cold briefs sent to matched reviewers",
-    ],
-    cta: "Explore LinkedIn →",
-    mock: {
-      avatar: { type: "dicebear", seed: "priya" },
-      name: "Priya Nair",
-      meta: "Growth Lead · SaaS & GTM",
-      badge: "TOP VOICE",
-      rows: [
-        { kind: "label-value", label: "BRIEF STATUS", value: "Sent · Replied in 4h" },
-        { kind: "bar", bar: { label: "ICP Match", value: 91 } },
-        { kind: "stats", stats: [{ val: "4.2x", lbl: "B2B Conv." }, { val: "73%", lbl: "Open Rate" }] },
-      ],
-      actions: { primary: "View Brief", secondary: "Co-author" },
-    },
-  },
+const tabs = [
+  { id: "yt", label: "YouTube", dot: "#FF0000" },
+  { id: "rd", label: "Reddit", dot: "#FF4500" },
+  { id: "x", label: "X / Twitter", dot: "#ffffff" },
+  { id: "li", label: "LinkedIn", dot: "#0A66C2" },
 ];
 
-function Avatar({ avatar }: { avatar: TabData["mock"]["avatar"] }) {
-  if (avatar.type === "dicebear") {
-    return (
-      <img
-        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatar.seed}&backgroundColor=0C1222&radius=50`}
-        className="prc-mock-avatar"
-        alt=""
-      />
-    );
+const content: Record<
+  string,
+  {
+    eyebrow: string;
+    title: string;
+    bullets: string[];
+    cta: string;
+    mockTitle: string;
+    mockMeta: string;
+    mockBadge: string;
+    mockBadgeColor: string;
+    mockStats: { label: string; value: string }[];
+    mockBars: { label: string; pct: number; color: string }[];
+    seed: string;
   }
-  return (
-    <div
-      className="prc-mock-avatar"
-      style={{ background: avatar.bg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}
-    >
-      {avatar.text}
-    </div>
-  );
-}
+> = {
+  yt: {
+    eyebrow: "YOUTUBE REVENUE TRACK",
+    title: "Find creators. Email them directly.",
+    bullets: [
+      "Extract channel emails via YouTube Data API — no middleman",
+      "Brand-Fit Score ranks creators by audience overlap with your ICP",
+      "6-step outreach cascade: email → website → X DM → Discord → LinkedIn → agency",
+    ],
+    cta: "Explore YouTube Track",
+    mockTitle: "TechReviewer Pro",
+    mockMeta: "847K subscribers · Tech · 94% Brand-Fit",
+    mockBadge: "Email Found",
+    mockBadgeColor: "#00D97E",
+    mockStats: [
+      { label: "Avg Views", value: "312K" },
+      { label: "Eng Rate", value: "6.2%" },
+      { label: "CPM Est.", value: "$4.80" },
+    ],
+    mockBars: [
+      { label: "Audience match", pct: 94, color: "#FF0000" },
+      { label: "Content relevance", pct: 88, color: "#00D97E" },
+      { label: "Reply likelihood", pct: 72, color: "#F59E0B" },
+    ],
+    seed: "TechReviewer",
+  },
+  rd: {
+    eyebrow: "REDDIT REVENUE TRACK",
+    title: "Turn signals into promoted posts.",
+    bullets: [
+      "Cross-platform intelligence: YouTube performance data seeds Reddit ad targeting",
+      "Match top-performing videos to relevant subreddits automatically",
+      "Launch Reddit Promoted Posts to audiences already proven to convert",
+    ],
+    cta: "Explore Reddit Track",
+    mockTitle: "r/homelab · Promoted",
+    mockMeta: "2.1M members · Matched from YouTube signal",
+    mockBadge: "Ad Ready",
+    mockBadgeColor: "#FF4500",
+    mockStats: [
+      { label: "Est. Reach", value: "180K" },
+      { label: "CPC Est.", value: "$0.42" },
+      { label: "Relevance", value: "91%" },
+    ],
+    mockBars: [
+      { label: "Subreddit match", pct: 91, color: "#FF4500" },
+      { label: "Audience overlap", pct: 83, color: "#00D97E" },
+      { label: "Ad approval score", pct: 88, color: "#F59E0B" },
+    ],
+    seed: "RedditMod",
+  },
+  x: {
+    eyebrow: "X / TWITTER REVENUE TRACK",
+    title: "DM creators. Whitelist their reach.",
+    bullets: [
+      "Identify X creators with open DMs whose audience mirrors your buyer persona",
+      "Send AI-personalized DM sequences with 40%+ open rates",
+      "Whitelist top posts as X Ads to amplify organic-feeling content at scale",
+    ],
+    cta: "Explore X Track",
+    mockTitle: "@devadvocate_",
+    mockMeta: "128K followers · Open DMs · Verified",
+    mockBadge: "DM Sent",
+    mockBadgeColor: "#ffffff",
+    mockStats: [
+      { label: "Followers", value: "128K" },
+      { label: "Eng Rate", value: "4.1%" },
+      { label: "Open DM", value: "Yes" },
+    ],
+    mockBars: [
+      { label: "Audience fit", pct: 87, color: "#ffffff" },
+      { label: "DM open rate", pct: 76, color: "#00D97E" },
+      { label: "Whitelist score", pct: 82, color: "#F59E0B" },
+    ],
+    seed: "XCreator",
+  },
+  li: {
+    eyebrow: "LINKEDIN REVENUE TRACK",
+    title: "Co-author thought leadership. Convert B2B.",
+    bullets: [
+      "Target LinkedIn Top Voices and industry analysts in your vertical",
+      "Ghostwrite or co-author review posts that feel credible — not paid",
+      "4.2× higher B2B conversion vs. cold outreach",
+    ],
+    cta: "Explore LinkedIn Track",
+    mockTitle: "Sarah Chen · Top Voice",
+    mockMeta: "SaaS Growth Advisor · 34K followers",
+    mockBadge: "Brief Sent",
+    mockBadgeColor: "#0A66C2",
+    mockStats: [
+      { label: "Followers", value: "34K" },
+      { label: "Conversion", value: "4.2×" },
+      { label: "Open Rate", value: "73%" },
+    ],
+    mockBars: [
+      { label: "ICP alignment", pct: 96, color: "#0A66C2" },
+      { label: "Content authority", pct: 91, color: "#00D97E" },
+      { label: "Brief acceptance", pct: 78, color: "#F59E0B" },
+    ],
+    seed: "SarahChen",
+  },
+};
 
 export function PlatformRevenueTabs() {
-  const [activeTab, setActiveTab] = useState(0);
-  const tab = TABS[activeTab];
+  const [active, setActive] = useState(0);
+  const tab = tabs[active];
+  const c = content[tab.id];
 
   return (
     <section className="platform-revenue-section">
-      <div className="platform-revenue-eyebrow">YOUR REVENUE PLAYBOOK</div>
+      <p className="platform-revenue-eyebrow">YOUR REVENUE PLAYBOOK</p>
       <h2 className="platform-revenue-headline">One platform. Four revenue channels.</h2>
       <p className="platform-revenue-subhead">
-        Each platform has a distinct monetization strategy. Here's how AspenReach activates all four.
+        Each platform has a distinct monetization strategy — AspenReach handles all four.
       </p>
 
-      <div className="platform-revenue-tabs" role="tablist">
-        {TABS.map((t, i) => (
+      <div className="platform-revenue-tabs">
+        {tabs.map((t, i) => (
           <button
-            key={t.key}
-            role="tab"
-            aria-selected={activeTab === i}
-            onClick={() => setActiveTab(i)}
-            className={`platform-revenue-tab ${t.key}${activeTab === i ? " active" : ""}`}
+            key={t.id}
+            className={`platform-revenue-tab ${t.id}${active === i ? " active" : ""}`}
+            onClick={() => setActive(i)}
           >
-            <span className="platform-revenue-tab-dot"></span>
+            <span className="platform-revenue-tab-dot" style={{ background: t.dot }} />
             {t.label}
           </button>
         ))}
       </div>
 
-      <div className={`platform-revenue-card ${tab.key}`}>
+      <div className={`platform-revenue-card ${tab.id}`}>
         <div className="platform-revenue-card-left">
-          <div className="platform-revenue-card-platform">{tab.platform}</div>
-          <h3 className="platform-revenue-card-title">{tab.title}</h3>
+          <p className="platform-revenue-card-eyebrow">{c.eyebrow}</p>
+          <h3 className="platform-revenue-card-title">{c.title}</h3>
           <ul className="platform-revenue-card-bullets">
-            {tab.bullets.map((b) => (
-              <li key={b} className="platform-revenue-card-bullet">{b}</li>
+            {c.bullets.map((b, i) => (
+              <li key={i} className="platform-revenue-card-bullet">
+                {b}
+              </li>
             ))}
           </ul>
-          <button className="platform-revenue-card-cta">{tab.cta}</button>
+          <button className="platform-revenue-card-cta">{c.cta} →</button>
         </div>
 
         <div className="platform-revenue-card-right">
           <div className="prc-mock">
             <div className="prc-mock-header">
-              <Avatar avatar={tab.mock.avatar} />
-              <div className="prc-mock-identity">
-                <div className="prc-mock-creator-name">{tab.mock.name}</div>
-                <div className="prc-mock-creator-meta">{tab.mock.meta}</div>
+              <img
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${c.seed}&backgroundColor=0C1222&radius=50`}
+                alt=""
+                className="prc-mock-avatar"
+              />
+              <div className="prc-mock-info">
+                <div className="prc-mock-name">{c.mockTitle}</div>
+                <div className="prc-mock-meta">{c.mockMeta}</div>
               </div>
-              <span className={`prc-mock-badge ${tab.key}`}>{tab.mock.badge}</span>
+              <span
+                className="prc-mock-badge"
+                style={{
+                  background: c.mockBadgeColor + "22",
+                  color: c.mockBadgeColor,
+                  border: `1px solid ${c.mockBadgeColor}44`,
+                }}
+              >
+                {c.mockBadge}
+              </span>
             </div>
 
-            {tab.mock.rows.map((row, idx) => {
-              if (row.kind === "label-value") {
-                return (
-                  <div key={idx} className="prc-mock-row">
-                    <div className="prc-mock-label">{row.label}</div>
-                    <div className="prc-mock-value" style={row.italic ? { fontStyle: "italic", color: "#8892A4" } : undefined}>
-                      {row.value}
-                    </div>
+            <div className="prc-mock-bars">
+              {c.mockBars.map((bar, i) => (
+                <div key={i} className="prc-mock-bar-row">
+                  <span className="prc-mock-bar-label">{bar.label}</span>
+                  <div className="prc-mock-bar-track">
+                    <div
+                      className="prc-mock-bar-fill"
+                      style={{ width: `${bar.pct}%`, background: bar.color }}
+                    />
                   </div>
-                );
-              }
-              if (row.kind === "bar") {
-                return (
-                  <div key={idx} className="prc-mock-bar-row">
-                    <div className="prc-mock-bar-label">
-                      <span>{row.bar.label}</span>
-                      <span>{row.bar.value}%</span>
-                    </div>
-                    <div className="prc-mock-bar-track">
-                      <div className="prc-mock-bar-fill" style={{ width: `${row.bar.value}%` }} />
-                    </div>
-                  </div>
-                );
-              }
-              return (
-                <div key={idx} className="prc-mock-stat-grid">
-                  {row.stats.map((s) => (
-                    <div key={s.lbl} className="prc-mock-stat">
-                      <div className="prc-mock-stat-val">{s.val}</div>
-                      <div className="prc-mock-stat-lbl">{s.lbl}</div>
-                    </div>
-                  ))}
+                  <span className="prc-mock-bar-pct">{bar.pct}%</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
 
-            <div className="prc-mock-action-row">
-              <button className="prc-mock-btn primary">{tab.mock.actions.primary}</button>
-              <button className="prc-mock-btn secondary">{tab.mock.actions.secondary}</button>
+            <div className="prc-mock-stats">
+              {c.mockStats.map((s, i) => (
+                <div key={i} className="prc-mock-stat">
+                  <div className="prc-mock-stat-value">{s.value}</div>
+                  <div className="prc-mock-stat-label">{s.label}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

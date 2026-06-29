@@ -1998,3 +1998,503 @@ li {
   color: #4a5568;
   margin-top: 10px;
 }
+
+/* ============================================================
+   MODASH-STYLE PLATFORM REVENUE TABS (Manage/Discover/Track/Pay analog)
+   ============================================================ */
+
+/* Outer section wrapper */
+.platform-revenue-section {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.platform-revenue-eyebrow {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #00d97e;
+  margin-bottom: 12px;
+}
+
+.platform-revenue-headline {
+  text-align: center;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  color: #f0f4ff;
+  margin-bottom: 8px;
+  line-height: 1.15;
+}
+
+.platform-revenue-subhead {
+  text-align: center;
+  font-size: 16px;
+  color: #8892a4;
+  margin-bottom: 40px;
+}
+
+/* Tab strip — pill style like Modash */
+.platform-revenue-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  padding: 5px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.platform-revenue-tab {
+  padding: 9px 22px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #8892a4;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.platform-revenue-tab:hover {
+  color: #f0f4ff;
+}
+.platform-revenue-tab.active {
+  background: #0c1222;
+  color: #f0f4ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.platform-revenue-tab.yt.active {
+  color: #ff0000;
+  border: 1px solid rgba(255, 0, 0, 0.25);
+}
+.platform-revenue-tab.rd.active {
+  color: #ff4500;
+  border: 1px solid rgba(255, 69, 0, 0.25);
+}
+.platform-revenue-tab.x.active {
+  color: #f0f4ff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.platform-revenue-tab.li.active {
+  color: #0a66c2;
+  border: 1px solid rgba(10, 102, 194, 0.35);
+}
+
+/* Platform icon dot in tab */
+.platform-revenue-tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.platform-revenue-tab.yt .platform-revenue-tab-dot {
+  background: #ff0000;
+}
+.platform-revenue-tab.rd .platform-revenue-tab-dot {
+  background: #ff4500;
+}
+.platform-revenue-tab.x .platform-revenue-tab-dot {
+  background: #f0f4ff;
+}
+.platform-revenue-tab.li .platform-revenue-tab-dot {
+  background: #0a66c2;
+}
+
+/* Main content card — the Modash-style big dark container */
+.platform-revenue-card {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 0;
+  min-height: 440px;
+  overflow: hidden;
+  animation: prcFadeIn 0.22s ease;
+}
+@keyframes prcFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Left panel — strategy copy */
+.platform-revenue-card-left {
+  padding: 52px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.platform-revenue-card.yt {
+  background: linear-gradient(135deg, #150500 0%, #0c1222 60%);
+  border-color: rgba(255, 0, 0, 0.15);
+}
+.platform-revenue-card.rd {
+  background: linear-gradient(135deg, #180900 0%, #0c1222 60%);
+  border-color: rgba(255, 69, 0, 0.15);
+}
+.platform-revenue-card.x {
+  background: linear-gradient(135deg, #05080f 0%, #0c1222 60%);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.platform-revenue-card.li {
+  background: linear-gradient(135deg, #000d18 0%, #0c1222 60%);
+  border-color: rgba(10, 102, 194, 0.2);
+}
+
+.platform-revenue-card-platform {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.platform-revenue-card.yt .platform-revenue-card-platform {
+  color: #ff0000;
+}
+.platform-revenue-card.rd .platform-revenue-card-platform {
+  color: #ff4500;
+}
+.platform-revenue-card.x .platform-revenue-card-platform {
+  color: #8892a4;
+}
+.platform-revenue-card.li .platform-revenue-card-platform {
+  color: #0a66c2;
+}
+
+.platform-revenue-card-title {
+  font-size: clamp(22px, 2.5vw, 30px);
+  font-weight: 800;
+  color: #f0f4ff;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.platform-revenue-card-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.platform-revenue-card-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #8892a4;
+  line-height: 1.5;
+}
+.platform-revenue-card-bullet::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #00d97e;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+.platform-revenue-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  width: fit-content;
+  text-decoration: none;
+}
+.platform-revenue-card.yt .platform-revenue-card-cta {
+  background: rgba(255, 0, 0, 0.12);
+  color: #ff4444;
+  border: 1px solid rgba(255, 0, 0, 0.2);
+}
+.platform-revenue-card.rd .platform-revenue-card-cta {
+  background: rgba(255, 69, 0, 0.12);
+  color: #ff6b35;
+  border: 1px solid rgba(255, 69, 0, 0.2);
+}
+.platform-revenue-card.x .platform-revenue-card-cta {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f0f4ff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.platform-revenue-card.li .platform-revenue-card-cta {
+  background: rgba(10, 102, 194, 0.12);
+  color: #5b9fe0;
+  border: 1px solid rgba(10, 102, 194, 0.2);
+}
+.platform-revenue-card-cta:hover {
+  opacity: 0.8;
+  transform: translateX(2px);
+}
+
+/* Right panel — UI mock */
+.platform-revenue-card-right {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* The mock card inside the right panel */
+.prc-mock {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 12px;
+  padding: 20px;
+  background: #0c1222;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+}
+.prc-mock-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.prc-mock-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+}
+.prc-mock-creator-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0f4ff;
+}
+.prc-mock-creator-meta {
+  font-size: 11px;
+  color: #8892a4;
+  margin-top: 1px;
+}
+.prc-mock-badge {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.prc-mock-badge.yt {
+  background: rgba(255, 0, 0, 0.15);
+  color: #ff4444;
+}
+.prc-mock-badge.rd {
+  background: rgba(255, 69, 0, 0.15);
+  color: #ff6b35;
+}
+.prc-mock-badge.x {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f0f4ff;
+}
+.prc-mock-badge.li {
+  background: rgba(10, 102, 194, 0.15);
+  color: #5b9fe0;
+}
+
+.prc-mock-body {
+  color: #8892a4;
+  line-height: 1.55;
+  font-size: 12.5px;
+  margin-bottom: 14px;
+}
+.prc-mock-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4a5568;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+.prc-mock-value {
+  font-size: 13px;
+  color: #f0f4ff;
+  font-weight: 500;
+}
+.prc-mock-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.prc-mock-bar-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  margin: 0 10px;
+}
+.prc-mock-bar-fill {
+  height: 4px;
+  border-radius: 2px;
+  background: #00d97e;
+}
+.prc-mock-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.prc-mock-stat {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.prc-mock-stat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f0f4ff;
+}
+.prc-mock-stat-lbl {
+  font-size: 10px;
+  color: #8892a4;
+  margin-top: 2px;
+}
+.prc-mock-action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.prc-mock-btn {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+}
+.prc-mock-btn.primary {
+  background: #00d97e;
+  color: #05080f;
+}
+.prc-mock-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #8892a4;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   HERO SEARCH BAR HALO GLOW
+   ============================================================ */
+
+/* Wrapper that holds the halo + the bar + the chips */
+.hero-search-halo {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 12px;
+}
+
+/* The radial gradient halo behind the bar */
+.hero-search-halo::before {
+  content: "";
+  position: absolute;
+  inset: -40px -60px;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    rgba(0, 217, 126, 0.14) 0%,
+    rgba(124, 58, 237, 0.08) 45%,
+    transparent 75%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure bar sits above the halo */
+.hero-search-halo .ai-search-bar {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   PLATFORM STRATEGY BLOCKS — COLOR DIFFERENTIATION
+   Left-border + subtle bg tint per platform
+   ============================================================ */
+
+.platform-strategy-block {
+  border-radius: 16px;
+  padding: 32px 36px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0c1222;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Left accent bar */
+.platform-strategy-block::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+}
+
+.platform-strategy-block.yt {
+  background: linear-gradient(90deg, rgba(255, 0, 0, 0.06) 0%, #0c1222 30%);
+  border-color: rgba(255, 0, 0, 0.12);
+}
+.platform-strategy-block.yt::before {
+  background: #ff0000;
+}
+
+.platform-strategy-block.rd {
+  background: linear-gradient(90deg, rgba(255, 69, 0, 0.06) 0%, #0c1222 30%);
+  border-color: rgba(255, 69, 0, 0.12);
+}
+.platform-strategy-block.rd::before {
+  background: #ff4500;
+}
+
+.platform-strategy-block.x {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, #0c1222 30%);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.platform-strategy-block.x::before {
+  background: #ffffff;
+}
+
+.platform-strategy-block.li {
+  background: linear-gradient(90deg, rgba(10, 102, 194, 0.08) 0%, #0c1222 30%);
+  border-color: rgba(10, 102, 194, 0.15);
+}
+.platform-strategy-block.li::before {
+  background: #0a66c2;
+}

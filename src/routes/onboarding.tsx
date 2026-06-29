@@ -30,7 +30,7 @@ function OnboardingPage() {
   const [gender, setGender] = useState("Any");
   const [income, setIncome] = useState("Any");
   const [notes, setNotes] = useState("");
-  const [platforms, setPlatforms] = useState({ youtube: true, reddit: true, x: true });
+  const [platforms, setPlatforms] = useState({ youtube: true, reddit: true, x: true, linkedin: false });
   const [modal, setModal] = useState<null | { kind: "store" | "payout"; name: string }>(null);
   const [teamModal, setTeamModal] = useState(false);
 

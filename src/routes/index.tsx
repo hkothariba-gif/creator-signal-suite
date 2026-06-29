@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
+import { WorkflowTabs } from "@/components/landing/WorkflowTabs";
 import { TrustBar } from "@/components/landing/TrustBar";
 import { ProblemSolution } from "@/components/landing/ProblemSolution";
 import { LinkedInRevenue } from "@/components/landing/LinkedInRevenue";
 import { StatsBar } from "@/components/landing/StatsBar";
+import { LogoWall, ProofTestimonials } from "@/components/landing/LogoWall";
 import { HeatMapSection } from "@/components/landing/HeatMapSection";
 import { PlatformCards } from "@/components/landing/PlatformCards";
 import { Testimonials } from "@/components/landing/Testimonials";

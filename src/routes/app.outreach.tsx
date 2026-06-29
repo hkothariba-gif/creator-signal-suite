@@ -38,6 +38,57 @@ function OutreachPage() {
     <AppShell title="Outreach Sequences">
       <p className="text-[#8892A4] mb-6">AI-powered multi-touch outreach, tailored per creator</p>
 
+      {/* Creator header */}
+      <Card className="p-5 mb-6 flex flex-wrap items-center gap-4">
+        <img
+          className="creator-avatar-img lg"
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed=mkbhd&backgroundColor=0C1222&radius=50"
+          alt="Marques Brownlee"
+        />
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#F0F4FF] text-lg">Marques Brownlee</span>
+            <span className="text-sm text-[#8892A4]">@mkbhd</span>
+          </div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white inline-flex items-center gap-1" style={{ background: "#FF0000" }}>
+              <YouTubeIcon size={11} /> YouTube
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white inline-flex items-center gap-1" style={{ background: "#1A1A1A" }}>
+              <XIcon size={10} bg="none" className="[&_path]:fill-white" /> X
+            </span>
+            <span className="text-[11px] text-[#8892A4]">2.3M subscribers</span>
+          </div>
+        </div>
+        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(0,217,126,0.15)", color: "#00D97E" }}>
+          Tech Reviews
+        </span>
+        <span className="ml-auto text-sm font-bold text-[#00D97E]">94% Brand Fit</span>
+      </Card>
+
+      {/* Cascade */}
+      <Card className="p-6 mb-6">
+        <h3 className="text-lg font-bold text-[#F0F4FF]">Creator Reach Cascade</h3>
+        <p className="text-sm text-[#8892A4] mt-1 mb-5">
+          AspenReach attempts contact through every available channel — in priority order.
+        </p>
+        <div className="outreach-cascade-wrapper">
+          {CASCADE.map((s, i) => (
+            <div key={i} className="outreach-step">
+              <div className={`outreach-step-dot ${s.state}`}>{i + 1}</div>
+              <div className="outreach-step-body">
+                <div className="outreach-step-label">{s.label}</div>
+                <div className="outreach-step-sub">{s.sub}</div>
+              </div>
+              <span className={`outreach-step-status ${s.status}`}>{s.statusLabel}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 px-4 py-3 rounded-lg border border-[#00D97E]/25 bg-[#00D97E]/[0.06] text-sm text-[#00D97E] font-semibold">
+          AspenReach has a 73% reply rate when 3+ channels are attempted within 14 days.
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-0 border border-white/[0.07] rounded-xl overflow-hidden">
         {/* LEFT */}
         <div className="bg-[#0C1222] border-r border-white/[0.07] p-4">

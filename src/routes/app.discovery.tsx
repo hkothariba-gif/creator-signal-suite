@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
-import { YouTubeIcon, RedditIcon, XIcon } from "@/components/landing/icons";
+import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
 import { Telescope } from "lucide-react";
 
 export const Route = createFileRoute("/app/discovery")({
   component: DiscoveryPage,
 });
 
-const PLAT_FILTERS = ["All", "YouTube", "Reddit", "X"];
+const PLAT_FILTERS = ["All", "YouTube", "Reddit", "X", "LinkedIn"];
 
 function DiscoveryPage() {
   const [plat, setPlat] = useState("All");

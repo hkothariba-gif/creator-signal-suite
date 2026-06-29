@@ -98,7 +98,7 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="eyebrow mb-6"
         >
-          YouTube · Reddit · X — Creator Intelligence
+          YouTube · Reddit · X · LinkedIn — Creator Intelligence
         </motion.div>
 
         <WordStagger

@@ -120,7 +120,9 @@ export function Hero() {
         </motion.p>
 
         <div className="mt-9">
-          <PromptBar />
+          <div className="hero-search-halo">
+            <PromptBar />
+          </div>
         </div>
 
         <motion.div

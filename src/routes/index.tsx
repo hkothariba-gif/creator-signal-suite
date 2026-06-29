@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
-import { WorkflowTabs } from "@/components/landing/WorkflowTabs";
+import { PlatformRevenueTabs } from "@/components/landing/PlatformRevenueTabs";
 import { TrustBar } from "@/components/landing/TrustBar";
 import { ProblemSolution } from "@/components/landing/ProblemSolution";
 import { LinkedInRevenue } from "@/components/landing/LinkedInRevenue";
@@ -39,7 +39,7 @@ function Landing() {
       <LandingNav />
       <main>
         <Hero />
-        <WorkflowTabs />
+        <PlatformRevenueTabs />
         <TrustBar />
         <ProblemSolution />
         <LinkedInRevenue />

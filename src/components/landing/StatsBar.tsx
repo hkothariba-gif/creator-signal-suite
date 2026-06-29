@@ -25,7 +25,7 @@ export function StatsBar() {
             <div
               className="stat-number-glow font-display font-extrabold text-5xl md:text-[72px] lg:text-[80px] leading-none tracking-[-0.04em]"
             >
-              <Counter to={s.value} suffix={s.suffix} decimals={s.decimals} duration={2000} />
+              {s.display}
             </div>
             <div className="mt-4 text-white/85 text-sm md:text-base leading-snug max-w-[240px]">{s.label}</div>
           </div>

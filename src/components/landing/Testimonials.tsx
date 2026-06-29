@@ -50,9 +50,16 @@ export function Testimonials() {
                 </div>
                 <p className="text-lg leading-relaxed font-medium tracking-tight" style={{ color: "#F0F4FF" }}>"{t.quote}"</p>
                 <div className="mt-6 flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold" style={{ color: "#8892A4" }}>{t.role}</div>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      className="creator-avatar-img"
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(t.role)}&backgroundColor=0C1222&radius=50`}
+                      alt={t.role}
+                    />
+                    <div className="text-sm font-semibold truncate" style={{ color: "#8892A4" }}>{t.role}</div>
+                  </div>
                   <span
-                    className="text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full"
+                    className="text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1 rounded-full shrink-0"
                     style={{ background: `${t.color}28`, color: t.color }}
                   >
                     {t.tag}

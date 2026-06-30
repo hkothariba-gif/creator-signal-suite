@@ -1903,8 +1903,8 @@ li {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: #00d97e;
   border: none;
@@ -1918,7 +1918,7 @@ li {
 }
 .ai-search-bar-submit:hover {
   background: #00c070;
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 .ai-search-bar-submit:active {
   transform: scale(0.97);
@@ -1929,8 +1929,8 @@ li {
   transform: none;
 }
 .ai-search-bar-submit svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 
 /* Dropdown expansion (influencer type chips) — shown below bar when typing */

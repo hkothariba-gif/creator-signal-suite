@@ -1809,15 +1809,15 @@ li {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   color: #8892a4;
   cursor: pointer;
   transition:
     color 0.15s,
     background 0.15s;
-  margin-right: 8px;
+  margin-right: 10px;
   align-self: flex-end;
   margin-bottom: 2px;
 }

@@ -1862,9 +1862,9 @@ li {
 .ai-search-bar-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
-  margin-left: 12px;
+  margin-left: 14px;
   align-self: flex-end;
   margin-bottom: 2px;
 }

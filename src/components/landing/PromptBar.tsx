@@ -97,7 +97,7 @@ export function PromptBar() {
           onChange={(e) => setProductDesc(e.target.value)}
           onInput={onInput}
           onKeyDown={onKeyDown}
-          placeholder="Describe your product or paste ad copy… (e.g. 'We sell a $49/mo CRM for agencies')"
+          placeholder="Describe what you want affiliates to promote, or paste your ad copy… (e.g. 'We sell a $49/mo CRM for agencies')"
         />
 
         <div className="ai-search-bar-controls">

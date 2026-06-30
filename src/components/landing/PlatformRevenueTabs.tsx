@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { FadeUp } from "./words";
 
 const tabs = [
   { id: "yt", label: "YouTube", dot: "#FF0000" },
@@ -125,6 +127,37 @@ const content: Record<
   },
 };
 
+function AnimatedBar({
+  bar,
+  index,
+}: {
+  bar: { label: string; pct: number; color: string };
+  index: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
+
+  return (
+    <div ref={ref} className="prc-mock-bar-row">
+      <span className="prc-mock-bar-label">{bar.label}</span>
+      <div className="prc-mock-bar-track">
+        <motion.div
+          className="prc-mock-bar-fill"
+          initial={{ width: "0%" }}
+          animate={inView ? { width: `${bar.pct}%` } : { width: "0%" }}
+          transition={{
+            duration: 0.9,
+            delay: index * 0.15,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          style={{ background: bar.color }}
+        />
+      </div>
+      <span className="prc-mock-bar-pct">{bar.pct}%</span>
+    </div>
+  );
+}
+
 export function PlatformRevenueTabs() {
   const [active, setActive] = useState(0);
   const tab = tabs[active];
@@ -132,89 +165,96 @@ export function PlatformRevenueTabs() {
 
   return (
     <section className="platform-revenue-section">
-      <p className="platform-revenue-eyebrow">YOUR REVENUE PLAYBOOK</p>
-      <h2 className="platform-revenue-headline">One platform. Four revenue channels.</h2>
-      <p className="platform-revenue-subhead">
-        Each platform has a distinct monetization strategy — AspenReach handles all four.
-      </p>
+      <FadeUp delay={0}>
+        <p className="platform-revenue-eyebrow">YOUR REVENUE PLAYBOOK</p>
+      </FadeUp>
+      <FadeUp delay={0.08}>
+        <h2 className="platform-revenue-headline">
+          One platform. Four revenue channels.
+        </h2>
+      </FadeUp>
+      <FadeUp delay={0.16}>
+        <p className="platform-revenue-subhead">
+          Each platform has a distinct monetization strategy — AspenReach handles
+          all four.
+        </p>
+      </FadeUp>
 
-      <div className="platform-revenue-tabs">
-        {tabs.map((t, i) => (
-          <button
-            key={t.id}
-            className={`platform-revenue-tab ${t.id}${active === i ? " active" : ""}`}
-            onClick={() => setActive(i)}
-          >
-            <span className="platform-revenue-tab-dot" style={{ background: t.dot }} />
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div className={`platform-revenue-card ${tab.id}`}>
-        <div className="platform-revenue-card-left">
-          <p className="platform-revenue-card-eyebrow">{c.eyebrow}</p>
-          <h3 className="platform-revenue-card-title">{c.title}</h3>
-          <ul className="platform-revenue-card-bullets">
-            {c.bullets.map((b, i) => (
-              <li key={i} className="platform-revenue-card-bullet">
-                {b}
-              </li>
-            ))}
-          </ul>
-          <button className="platform-revenue-card-cta">{c.cta} →</button>
-        </div>
-
-        <div className="platform-revenue-card-right">
-          <div className="prc-mock">
-            <div className="prc-mock-header">
-              <img
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${c.seed}&backgroundColor=0C1222&radius=50`}
-                alt=""
-                className="prc-mock-avatar"
-              />
-              <div className="prc-mock-info">
-                <div className="prc-mock-name">{c.mockTitle}</div>
-                <div className="prc-mock-meta">{c.mockMeta}</div>
-              </div>
+      <FadeUp delay={0.24}>
+        <div className="platform-revenue-tabs">
+          {tabs.map((t, i) => (
+            <button
+              key={t.id}
+              className={`platform-revenue-tab ${t.id}${active === i ? " active" : ""}`}
+              onClick={() => setActive(i)}
+            >
               <span
-                className="prc-mock-badge"
-                style={{
-                  background: c.mockBadgeColor + "22",
-                  color: c.mockBadgeColor,
-                  border: `1px solid ${c.mockBadgeColor}44`,
-                }}
-              >
-                {c.mockBadge}
-              </span>
-            </div>
+                className="platform-revenue-tab-dot"
+                style={{ background: t.dot }}
+              />
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </FadeUp>
 
-            <div className="prc-mock-bars">
-              {c.mockBars.map((bar, i) => (
-                <div key={i} className="prc-mock-bar-row">
-                  <span className="prc-mock-bar-label">{bar.label}</span>
-                  <div className="prc-mock-bar-track">
-                    <div
-                      className="prc-mock-bar-fill"
-                      style={{ width: `${bar.pct}%`, background: bar.color }}
-                    />
+      <FadeUp delay={0.32}>
+        <div className={`platform-revenue-card ${tab.id}`}>
+          <div className="platform-revenue-card-left">
+            <p className="platform-revenue-card-eyebrow">{c.eyebrow}</p>
+            <h3 className="platform-revenue-card-title">{c.title}</h3>
+            <ul className="platform-revenue-card-bullets">
+              {c.bullets.map((b, i) => (
+                <li key={i} className="platform-revenue-card-bullet">
+                  {b}
+                </li>
+              ))}
+            </ul>
+            <button className="platform-revenue-card-cta">{c.cta} →</button>
+          </div>
+
+          <div className="platform-revenue-card-right">
+            <div className="prc-mock">
+              <div className="prc-mock-header">
+                <img
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${c.seed}&backgroundColor=0C1222&radius=50`}
+                  alt=""
+                  className="prc-mock-avatar"
+                />
+                <div className="prc-mock-info">
+                  <div className="prc-mock-name">{c.mockTitle}</div>
+                  <div className="prc-mock-meta">{c.mockMeta}</div>
+                </div>
+                <span
+                  className="prc-mock-badge"
+                  style={{
+                    background: c.mockBadgeColor + "22",
+                    color: c.mockBadgeColor,
+                    border: `1px solid ${c.mockBadgeColor}44`,
+                  }}
+                >
+                  {c.mockBadge}
+                </span>
+              </div>
+
+              <div className="prc-mock-bars">
+                {c.mockBars.map((bar, i) => (
+                  <AnimatedBar key={i} bar={bar} index={i} />
+                ))}
+              </div>
+
+              <div className="prc-mock-stats">
+                {c.mockStats.map((s, i) => (
+                  <div key={i} className="prc-mock-stat">
+                    <div className="prc-mock-stat-value">{s.value}</div>
+                    <div className="prc-mock-stat-label">{s.label}</div>
                   </div>
-                  <span className="prc-mock-bar-pct">{bar.pct}%</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="prc-mock-stats">
-              {c.mockStats.map((s, i) => (
-                <div key={i} className="prc-mock-stat">
-                  <div className="prc-mock-stat-value">{s.value}</div>
-                  <div className="prc-mock-stat-label">{s.label}</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </FadeUp>
     </section>
   );
 }

@@ -106,7 +106,7 @@ export function Hero() {
           as="h1"
           text="Find, Onboard and Scale with Creators That Actually Align with Your Audience"
           className="font-display font-extrabold leading-[1.04]"
-          style={{ fontSize: "clamp(40px, 8vw, 72px)", color: "#F0F4FF", letterSpacing: "-0.04em" }}
+          style={{ fontSize: "clamp(32px, 5.5vw, 52px)", color: "#F0F4FF", letterSpacing: "-0.03em" }}
         />
 
         <motion.p

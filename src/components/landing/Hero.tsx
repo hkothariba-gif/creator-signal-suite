@@ -106,15 +106,14 @@ export function Hero() {
           as="h1"
           text="Find, Onboard and Scale with Creators That Actually Align with Your Audience"
           className="font-display font-extrabold leading-[1.04]"
-          style={{ fontSize: "clamp(40px, 8vw, 72px)", color: "#F0F4FF", letterSpacing: "-0.04em" }}
+          style={{ fontSize: "clamp(32px, 5.5vw, 52px)", color: "#F0F4FF", letterSpacing: "-0.03em" }}
         />
 
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.9 }}
-          className="mt-7"
-          style={{ fontSize: 17, color: "#8892A4", maxWidth: 480, margin: "28px auto 0", textAlign: "center", lineHeight: 1.5 }}
+          className="hero-subtext-short mt-5"
         >
           Stop guessing. Start converting. Creator intelligence across YouTube, Reddit, X & LinkedIn.
         </motion.p>

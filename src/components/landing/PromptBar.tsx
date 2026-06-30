@@ -56,7 +56,7 @@ export function PromptBar() {
   };
 
   return (
-    <div ref={wrapperRef} style={{ maxWidth: 720, margin: "0 auto 12px", width: "100%", position: "relative" }}>
+    <div ref={wrapperRef} className="w-full relative">
       <div className="ai-search-bar">
         <button
           type="button"

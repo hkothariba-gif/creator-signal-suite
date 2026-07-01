@@ -37,7 +37,7 @@ function mockFor(id: string) {
   const engagement = `${(3 + ((h >> 3) % 60) / 10).toFixed(1)}%`;
   const avgViewsNum = 20 + ((h >> 5) % 400);
   const avgViews = avgViewsNum > 500 ? `${(avgViewsNum / 1000).toFixed(1)}M` : `${avgViewsNum}K`;
-  const dealValue = `$${(1 + ((h >> 7) % 24)).toLocaleString()},${((h >> 2) % 900 + 100)}`;
+  const dealValue = `${60 + ((h >> 7) % 40)}`;
 
   const bio = `${name} is a trusted voice on ${platform}, known for deeply-researched content and an engaged, high-intent audience. They regularly partner with brands on long-term campaigns and consistently outperform category benchmarks on conversion.`;
 

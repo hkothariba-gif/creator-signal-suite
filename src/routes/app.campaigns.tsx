@@ -154,7 +154,7 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
             <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
               <option>Brand Awareness</option>
               <option>Affiliate Sales</option>
-              <option>Product Launch</option>
+              <option>Product Review</option>
               <option>Thought Leadership</option>
             </select>
           </Field>

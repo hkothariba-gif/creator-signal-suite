@@ -128,7 +128,7 @@ function CreatorProfilePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Stat label="Avg Views" value={c.avgViews} />
         <Stat label="Engagement Rate" value={c.engagement} />
-        <Stat label="Est. Deal Value" value={c.dealValue} accent />
+        <Stat label="Brand Fit Score" value={`${c.dealValue}/100`} accent />
       </div>
 
       {/* Bio */}

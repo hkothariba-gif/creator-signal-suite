@@ -21,6 +21,7 @@ import { Route as AppOutreachRouteImport } from './routes/app.outreach'
 import { Route as AppHotlistRouteImport } from './routes/app.hotlist'
 import { Route as AppExpansionRouteImport } from './routes/app.expansion'
 import { Route as AppDiscoveryRouteImport } from './routes/app.discovery'
+import { Route as AppCreatorsRouteImport } from './routes/app.creators'
 import { Route as AppCommunityRouteImport } from './routes/app.community'
 import { Route as AppCampaignsRouteImport } from './routes/app.campaigns'
 import { Route as AppAffiliateRouteImport } from './routes/app.affiliate'
@@ -88,6 +89,11 @@ const AppDiscoveryRoute = AppDiscoveryRouteImport.update({
   path: '/discovery',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCreatorsRoute = AppCreatorsRouteImport.update({
+  id: '/creators',
+  path: '/creators',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCommunityRoute = AppCommunityRouteImport.update({
   id: '/community',
   path: '/community',
@@ -109,9 +115,9 @@ const AppCampaignsIndexRoute = AppCampaignsIndexRouteImport.update({
   getParentRoute: () => AppCampaignsRoute,
 } as any)
 const AppCreatorsIdRoute = AppCreatorsIdRouteImport.update({
-  id: '/creators/$id',
-  path: '/creators/$id',
-  getParentRoute: () => AppRoute,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppCreatorsRoute,
 } as any)
 const AppCampaignsIdRoute = AppCampaignsIdRouteImport.update({
   id: '/$id',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/app/affiliate': typeof AppAffiliateRoute
   '/app/campaigns': typeof AppCampaignsRouteWithChildren
   '/app/community': typeof AppCommunityRoute
+  '/app/creators': typeof AppCreatorsRouteWithChildren
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/expansion': typeof AppExpansionRoute
   '/app/hotlist': typeof AppHotlistRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/app/affiliate': typeof AppAffiliateRoute
   '/app/community': typeof AppCommunityRoute
+  '/app/creators': typeof AppCreatorsRouteWithChildren
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/expansion': typeof AppExpansionRoute
   '/app/hotlist': typeof AppHotlistRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/app/affiliate': typeof AppAffiliateRoute
   '/app/campaigns': typeof AppCampaignsRouteWithChildren
   '/app/community': typeof AppCommunityRoute
+  '/app/creators': typeof AppCreatorsRouteWithChildren
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/expansion': typeof AppExpansionRoute
   '/app/hotlist': typeof AppHotlistRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/app/affiliate'
     | '/app/campaigns'
     | '/app/community'
+    | '/app/creators'
     | '/app/discovery'
     | '/app/expansion'
     | '/app/hotlist'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/app/affiliate'
     | '/app/community'
+    | '/app/creators'
     | '/app/discovery'
     | '/app/expansion'
     | '/app/hotlist'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/app/affiliate'
     | '/app/campaigns'
     | '/app/community'
+    | '/app/creators'
     | '/app/discovery'
     | '/app/expansion'
     | '/app/hotlist'
@@ -333,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDiscoveryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/creators': {
+      id: '/app/creators'
+      path: '/creators'
+      fullPath: '/app/creators'
+      preLoaderRoute: typeof AppCreatorsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/community': {
       id: '/app/community'
       path: '/community'
@@ -363,10 +382,10 @@ declare module '@tanstack/react-router' {
     }
     '/app/creators/$id': {
       id: '/app/creators/$id'
-      path: '/creators/$id'
+      path: '/$id'
       fullPath: '/app/creators/$id'
       preLoaderRoute: typeof AppCreatorsIdRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppCreatorsRoute
     }
     '/app/campaigns/$id': {
       id: '/app/campaigns/$id'
@@ -392,10 +411,23 @@ const AppCampaignsRouteWithChildren = AppCampaignsRoute._addFileChildren(
   AppCampaignsRouteChildren,
 )
 
+interface AppCreatorsRouteChildren {
+  AppCreatorsIdRoute: typeof AppCreatorsIdRoute
+}
+
+const AppCreatorsRouteChildren: AppCreatorsRouteChildren = {
+  AppCreatorsIdRoute: AppCreatorsIdRoute,
+}
+
+const AppCreatorsRouteWithChildren = AppCreatorsRoute._addFileChildren(
+  AppCreatorsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppAffiliateRoute: typeof AppAffiliateRoute
   AppCampaignsRoute: typeof AppCampaignsRouteWithChildren
   AppCommunityRoute: typeof AppCommunityRoute
+  AppCreatorsRoute: typeof AppCreatorsRouteWithChildren
   AppDiscoveryRoute: typeof AppDiscoveryRoute
   AppExpansionRoute: typeof AppExpansionRoute
   AppHotlistRoute: typeof AppHotlistRoute
@@ -403,13 +435,13 @@ interface AppRouteChildren {
   AppPlatformsRoute: typeof AppPlatformsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppCreatorsIdRoute: typeof AppCreatorsIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAffiliateRoute: AppAffiliateRoute,
   AppCampaignsRoute: AppCampaignsRouteWithChildren,
   AppCommunityRoute: AppCommunityRoute,
+  AppCreatorsRoute: AppCreatorsRouteWithChildren,
   AppDiscoveryRoute: AppDiscoveryRoute,
   AppExpansionRoute: AppExpansionRoute,
   AppHotlistRoute: AppHotlistRoute,
@@ -417,7 +449,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlatformsRoute: AppPlatformsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
-  AppCreatorsIdRoute: AppCreatorsIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

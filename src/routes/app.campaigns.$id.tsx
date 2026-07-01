@@ -235,7 +235,7 @@ function CampaignDetailPage() {
           ) : (
             <div className="divide-y divide-white/[0.07]">
               {c.outreach.map((o) => (
-                <div key={o.name} className="flex items-center gap-4 py-3">
+                <div key={o.id} className="flex items-center gap-4 py-3">
                   <img src={avatar(o.name)} alt="" className="w-10 h-10 rounded-full bg-white/5" />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-[#F0F4FF] truncate">{o.name}</div>

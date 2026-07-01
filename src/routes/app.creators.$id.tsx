@@ -37,7 +37,7 @@ function mockFor(id: string) {
   const engagement = `${(3 + ((h >> 3) % 60) / 10).toFixed(1)}%`;
   const avgViewsNum = 20 + ((h >> 5) % 400);
   const avgViews = avgViewsNum > 500 ? `${(avgViewsNum / 1000).toFixed(1)}M` : `${avgViewsNum}K`;
-  const dealValue = `$${(1 + ((h >> 7) % 24)).toLocaleString()},${((h >> 2) % 900 + 100)}`;
+  const dealValue = `${60 + ((h >> 7) % 40)}`;
 
   const bio = `${name} is a trusted voice on ${platform}, known for deeply-researched content and an engaged, high-intent audience. They regularly partner with brands on long-term campaigns and consistently outperform category benchmarks on conversion.`;
 
@@ -59,7 +59,7 @@ function mockFor(id: string) {
 function CreatorProfilePage() {
   const { id } = useParams({ from: "/app/creators/$id" });
   const c = mockFor(id);
-  const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.name)}`;
+  const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(id)}`;
 
   const addHotlist = () => {
     const list = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");
@@ -128,7 +128,7 @@ function CreatorProfilePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Stat label="Avg Views" value={c.avgViews} />
         <Stat label="Engagement Rate" value={c.engagement} />
-        <Stat label="Est. Deal Value" value={c.dealValue} accent />
+        <Stat label="Brand Fit Score" value={`${c.dealValue}/100`} accent />
       </div>
 
       {/* Bio */}

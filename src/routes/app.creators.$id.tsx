@@ -59,7 +59,7 @@ function mockFor(id: string) {
 function CreatorProfilePage() {
   const { id } = useParams({ from: "/app/creators/$id" });
   const c = mockFor(id);
-  const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.name)}`;
+  const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(id)}`;
 
   const addHotlist = () => {
     const list = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");

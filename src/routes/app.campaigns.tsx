@@ -135,13 +135,13 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-6 space-y-5">
           <Field label="Campaign Name">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube Push" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube Push" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
           <Field label="Product / Brand Being Promoted">
-            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
           <Field label="Target Platform">
-            <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className="w-full h-11 px-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
+            <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
               <option>YouTube</option>
               <option>Reddit</option>
               <option>X</option>
@@ -150,7 +150,7 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
             </select>
           </Field>
           <Field label="Campaign Goal">
-            <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full h-11 px-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
+            <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
               <option>Brand Awareness</option>
               <option>Affiliate Sales</option>
               <option>Product Launch</option>
@@ -158,18 +158,18 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
             </select>
           </Field>
           <Field label="Budget">
-            <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+            <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Start Date">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
             </Field>
             <Field label="End Date">
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
             </Field>
           </div>
           <Field label="Campaign Brief / Notes">
-            <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="Describe what creators should know about the product..." className="w-full px-4 py-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4] resize-none" />
+            <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="Describe what creators should know about the product..." className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4] resize-none" />
           </Field>
         </div>
         <div className="p-6 border-t border-white/[0.07] flex gap-3">

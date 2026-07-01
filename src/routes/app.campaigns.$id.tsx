@@ -64,11 +64,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Seed conversations in r/homelab, r/selfhosted, and r/HomeServer. Focus on organic-feeling posts from trusted community members. No aggressive CTAs — build trust first.",
     stats: { contacted: 12, replyRate: "58%", emailsSent: 18, spend: "$1,240" },
     outreach: [
-      { name: "u/rackmountking", platform: "Reddit", status: "Contracted", date: "Jun 05" },
-      { name: "u/selfhostedsam", platform: "Reddit", status: "Contracted", date: "Jun 08" },
-      { name: "u/proxmoxpete", platform: "Reddit", status: "Negotiating", date: "Jun 12" },
-      { name: "u/unraidundine", platform: "Reddit", status: "Replied", date: "Jun 15" },
-      { name: "u/homelabhelen", platform: "Reddit", status: "Contacted", date: "Jun 20" },
+      { id: "cr_rackmountking", name: "u/rackmountking", platform: "Reddit", status: "Contracted", date: "Jun 05" },
+      { id: "cr_selfhostedsam", name: "u/selfhostedsam", platform: "Reddit", status: "Contracted", date: "Jun 08" },
+      { id: "cr_proxmoxpete", name: "u/proxmoxpete", platform: "Reddit", status: "Negotiating", date: "Jun 12" },
+      { id: "cr_unraidundine", name: "u/unraidundine", platform: "Reddit", status: "Replied", date: "Jun 15" },
+      { id: "cr_homelabhelen", name: "u/homelabhelen", platform: "Reddit", status: "Contacted", date: "Jun 20" },
     ],
     hotlist: [
       { name: "u/rackmountking", platform: "Reddit", followers: "88K karma", score: 92 },

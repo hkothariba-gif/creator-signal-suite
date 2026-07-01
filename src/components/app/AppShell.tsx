@@ -16,6 +16,7 @@ const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] =
   { to: "/app/affiliate", label: "Affiliate", icon: DollarSign },
   { to: "/app/community", label: "Community", icon: Radio },
   { to: "/app/expansion", label: "Expansion", icon: TrendingUp },
+  { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 
@@ -73,7 +74,7 @@ export function AppShell({ title, right, children }: { title: string; right?: Re
             <div className="flex-1 min-w-0">
               <div className="text-xs text-[#8892A4] truncate">{user?.email}</div>
             </div>
-            <button className="text-[#8892A4] hover:text-white"><Settings className="w-4 h-4" /></button>
+            <Link to="/app/settings" className="text-[#8892A4] hover:text-white"><Settings className="w-4 h-4" /></Link>
           </div>
           <button
             onClick={() => { logout(); navigate({ to: "/login" }); }}

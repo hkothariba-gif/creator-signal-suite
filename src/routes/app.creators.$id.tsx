@@ -1,3 +1,4 @@
+// Creator Profile Page
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";

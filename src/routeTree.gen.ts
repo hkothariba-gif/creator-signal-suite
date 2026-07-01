@@ -15,6 +15,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppPlatformsRouteImport } from './routes/app.platforms'
 import { Route as AppOutreachRouteImport } from './routes/app.outreach'
 import { Route as AppHotlistRouteImport } from './routes/app.hotlist'
@@ -52,6 +53,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPlatformsRoute = AppPlatformsRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/app/hotlist': typeof AppHotlistRoute
   '/app/outreach': typeof AppOutreachRoute
   '/app/platforms': typeof AppPlatformsRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/app/hotlist': typeof AppHotlistRoute
   '/app/outreach': typeof AppOutreachRoute
   '/app/platforms': typeof AppPlatformsRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/app/hotlist': typeof AppHotlistRoute
   '/app/outreach': typeof AppOutreachRoute
   '/app/platforms': typeof AppPlatformsRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/app/hotlist'
     | '/app/outreach'
     | '/app/platforms'
+    | '/app/settings'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/app/hotlist'
     | '/app/outreach'
     | '/app/platforms'
+    | '/app/settings'
     | '/app'
   id:
     | '__root__'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/app/hotlist'
     | '/app/outreach'
     | '/app/platforms'
+    | '/app/settings'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -243,6 +255,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/platforms': {
@@ -313,6 +332,7 @@ interface AppRouteChildren {
   AppHotlistRoute: typeof AppHotlistRoute
   AppOutreachRoute: typeof AppOutreachRoute
   AppPlatformsRoute: typeof AppPlatformsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -325,6 +345,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppHotlistRoute: AppHotlistRoute,
   AppOutreachRoute: AppOutreachRoute,
   AppPlatformsRoute: AppPlatformsRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

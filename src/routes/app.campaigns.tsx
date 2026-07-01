@@ -198,7 +198,7 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
               toast.success("Campaign created!", { duration: 2000 });
               onClose();
             }}
-            className="flex-1 h-11 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00c472]"
+            className="w-full py-3 rounded-lg bg-[#00D97E] text-[#05080F] font-semibold hover:bg-[#00c472]"
           >
             Create Campaign →
           </button>

@@ -21,7 +21,7 @@ type CampaignMock = {
   endDate: string;
   brief: string;
   stats: { contacted: number; replyRate: string; emailsSent: number; spend: string };
-  outreach: { name: string; platform: string; status: OutreachStatus; date: string }[];
+  outreach: { id: string; name: string; platform: string; status: OutreachStatus; date: string }[];
   hotlist: { name: string; platform: string; followers: string; score: number }[];
 };
 
@@ -39,11 +39,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Push our new summer tech accessories bundle to mid-tier tech reviewers. Focus on unboxing content and honest reviews. Target 5-7% affiliate commission structure. Priority on YouTube long-form and Reddit r/gadgets threads.",
     stats: { contacted: 20, replyRate: "42%", emailsSent: 34, spend: "$3,120" },
     outreach: [
-      { name: "Marques Chen", platform: "YouTube", status: "Contracted", date: "Jun 20" },
-      { name: "Priya Ramesh", platform: "YouTube", status: "Negotiating", date: "Jun 22" },
-      { name: "u/techdadmike", platform: "Reddit", status: "Replied", date: "Jun 24" },
-      { name: "Alex Johansson", platform: "YouTube", status: "Contacted", date: "Jun 26" },
-      { name: "u/gadgetlab", platform: "Reddit", status: "Contacted", date: "Jun 28" },
+      { id: "cr_marques_chen", name: "Marques Chen", platform: "YouTube", status: "Contracted", date: "Jun 20" },
+      { id: "cr_priya_ramesh", name: "Priya Ramesh", platform: "YouTube", status: "Negotiating", date: "Jun 22" },
+      { id: "cr_techdadmike", name: "u/techdadmike", platform: "Reddit", status: "Replied", date: "Jun 24" },
+      { id: "cr_alex_johansson", name: "Alex Johansson", platform: "YouTube", status: "Contacted", date: "Jun 26" },
+      { id: "cr_gadgetlab", name: "u/gadgetlab", platform: "Reddit", status: "Contacted", date: "Jun 28" },
     ],
     hotlist: [
       { name: "Marques Chen", platform: "YouTube", followers: "1.2M", score: 94 },
@@ -64,11 +64,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Seed conversations in r/homelab, r/selfhosted, and r/HomeServer. Focus on organic-feeling posts from trusted community members. No aggressive CTAs — build trust first.",
     stats: { contacted: 12, replyRate: "58%", emailsSent: 18, spend: "$1,240" },
     outreach: [
-      { name: "u/rackmountking", platform: "Reddit", status: "Contracted", date: "Jun 05" },
-      { name: "u/selfhostedsam", platform: "Reddit", status: "Contracted", date: "Jun 08" },
-      { name: "u/proxmoxpete", platform: "Reddit", status: "Negotiating", date: "Jun 12" },
-      { name: "u/unraidundine", platform: "Reddit", status: "Replied", date: "Jun 15" },
-      { name: "u/homelabhelen", platform: "Reddit", status: "Contacted", date: "Jun 20" },
+      { id: "cr_rackmountking", name: "u/rackmountking", platform: "Reddit", status: "Contracted", date: "Jun 05" },
+      { id: "cr_selfhostedsam", name: "u/selfhostedsam", platform: "Reddit", status: "Contracted", date: "Jun 08" },
+      { id: "cr_proxmoxpete", name: "u/proxmoxpete", platform: "Reddit", status: "Negotiating", date: "Jun 12" },
+      { id: "cr_unraidundine", name: "u/unraidundine", platform: "Reddit", status: "Replied", date: "Jun 15" },
+      { id: "cr_homelabhelen", name: "u/homelabhelen", platform: "Reddit", status: "Contacted", date: "Jun 20" },
     ],
     hotlist: [
       { name: "u/rackmountking", platform: "Reddit", followers: "88K karma", score: 92 },
@@ -88,11 +88,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Launch cross-platform push for our new SaaS tool. Prioritize B2B thought leaders on LinkedIn and X. YouTube reviews should target productivity and dev-tools channels.",
     stats: { contacted: 15, replyRate: "36%", emailsSent: 22, spend: "$4,850" },
     outreach: [
-      { name: "Devon Park", platform: "LinkedIn", status: "Contracted", date: "Jul 03" },
-      { name: "Sarah Kwon", platform: "X", status: "Negotiating", date: "Jul 05" },
-      { name: "Fireship Dev", platform: "YouTube", status: "Replied", date: "Jul 07" },
-      { name: "Melissa Ortiz", platform: "LinkedIn", status: "Contacted", date: "Jul 09" },
-      { name: "Ravi Sundar", platform: "X", status: "Contacted", date: "Jul 11" },
+      { id: "cr_devon_park", name: "Devon Park", platform: "LinkedIn", status: "Contracted", date: "Jul 03" },
+      { id: "cr_sarah_kwon", name: "Sarah Kwon", platform: "X", status: "Negotiating", date: "Jul 05" },
+      { id: "cr_fireship_dev", name: "Fireship Dev", platform: "YouTube", status: "Replied", date: "Jul 07" },
+      { id: "cr_melissa_ortiz", name: "Melissa Ortiz", platform: "LinkedIn", status: "Contacted", date: "Jul 09" },
+      { id: "cr_ravi_sundar", name: "Ravi Sundar", platform: "X", status: "Contacted", date: "Jul 11" },
     ],
     hotlist: [
       { name: "Fireship Dev", platform: "YouTube", followers: "3.4M", score: 96 },
@@ -112,11 +112,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Partner with senior B2B voices on LinkedIn to publish co-authored posts and carousels. Focus on industry insights, not product features.",
     stats: { contacted: 10, replyRate: "50%", emailsSent: 14, spend: "$2,900" },
     outreach: [
-      { name: "Erika Vasquez", platform: "LinkedIn", status: "Contracted", date: "Jun 12" },
-      { name: "Nathan Ho", platform: "LinkedIn", status: "Negotiating", date: "Jun 15" },
-      { name: "Sofia Lindqvist", platform: "LinkedIn", status: "Replied", date: "Jun 18" },
-      { name: "Tomás Ribeiro", platform: "LinkedIn", status: "Contacted", date: "Jun 22" },
-      { name: "Yuki Tanaka", platform: "LinkedIn", status: "Contacted", date: "Jun 25" },
+      { id: "cr_erika_vasquez", name: "Erika Vasquez", platform: "LinkedIn", status: "Contracted", date: "Jun 12" },
+      { id: "cr_nathan_ho", name: "Nathan Ho", platform: "LinkedIn", status: "Negotiating", date: "Jun 15" },
+      { id: "cr_sofia_lindqvist", name: "Sofia Lindqvist", platform: "LinkedIn", status: "Replied", date: "Jun 18" },
+      { id: "cr_tomas_ribeiro", name: "Tomás Ribeiro", platform: "LinkedIn", status: "Contacted", date: "Jun 22" },
+      { id: "cr_yuki_tanaka", name: "Yuki Tanaka", platform: "LinkedIn", status: "Contacted", date: "Jun 25" },
     ],
     hotlist: [
       { name: "Erika Vasquez", platform: "LinkedIn", followers: "240K", score: 93 },
@@ -235,7 +235,7 @@ function CampaignDetailPage() {
           ) : (
             <div className="divide-y divide-white/[0.07]">
               {c.outreach.map((o) => (
-                <div key={o.name} className="flex items-center gap-4 py-3">
+                <div key={o.id} className="flex items-center gap-4 py-3">
                   <img src={avatar(o.name)} alt="" className="w-10 h-10 rounded-full bg-white/5" />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-[#F0F4FF] truncate">{o.name}</div>
@@ -254,7 +254,7 @@ function CampaignDetailPage() {
                   </span>
                   <Link
                     to="/app/creators/$id"
-                    params={{ id: o.name.replace(/\s+/g, "-").toLowerCase() }}
+                    params={{ id: o.id }}
                     className="text-sm text-[#00D97E] hover:underline"
                   >
                     View Profile →

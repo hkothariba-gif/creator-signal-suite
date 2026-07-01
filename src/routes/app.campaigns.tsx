@@ -91,7 +91,8 @@ function CampaignsPage() {
                 <div className="md:col-span-3 flex items-center justify-end gap-3">
                   <StatusBadge s={c.status} />
                   <span className="text-sm text-[#8892A4]">{c.budget}</span>
-                  <button onClick={() => setIntel({ id: c.campaignId, name: c.name })} className="text-sm text-[#00D97E] hover:underline">Open →</button>
+                  <button onClick={() => setIntel({ id: c.campaignId, name: c.name })} className="text-sm text-[#8892A4] hover:text-white">Intel</button>
+                  <Link to="/app/campaigns/$id" params={{ id: c.campaignId }} className="text-sm text-[#00D97E] hover:underline">Open →</Link>
                 </div>
               </div>
             </Card>

@@ -117,7 +117,14 @@ function StatusBadge({ s }: { s: Status }) {
 
 function CampaignDrawer({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
-  const [plats, setPlats] = useState({ youtube: true, reddit: false, x: false, linkedin: false });
+  const [product, setProduct] = useState("");
+  const [platform, setPlatform] = useState<Platform>("All");
+  const [goal, setGoal] = useState("Brand Awareness");
+  const [budget, setBudget] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [brief, setBrief] = useState("");
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
@@ -127,38 +134,42 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="text-[#8892A4] hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6 space-y-5">
-          <Field label="Campaign name">
-            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E]" />
+          <Field label="Campaign Name">
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube Push" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
-          <Field label="Platforms">
-            <div className="space-y-2">
-              {([
-                ["youtube", "YouTube", "#FF0000"],
-                ["reddit", "Reddit", "#FF4500"],
-                ["x", "X / Twitter", "#1A1A1A"],
-                ["linkedin", "LinkedIn", "#0A66C2"],
-              ] as const).map(([k, l, c]) => (
-                <label key={k} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#131D2E] border border-white/10 cursor-pointer">
-                  <input type="checkbox" checked={(plats as any)[k]} onChange={(e) => setPlats((p) => ({ ...p, [k]: e.target.checked }))} />
-                  <span className="w-3 h-3 rounded" style={{ background: c }} />
-                  <span className="text-sm">{l}</span>
-                </label>
-              ))}
-            </div>
+          <Field label="Product / Brand Being Promoted">
+            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
-          <Field label="Budget ($)">
-            <input type="number" placeholder="5000" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E]" />
-          </Field>
-          <Field label="Goal">
-            <select className="w-full h-11 px-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E]">
-              <option>Brand Awareness</option><option>Product Launch</option><option>Affiliate Sales</option><option>Community Building</option>
+          <Field label="Target Platform">
+            <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className="w-full h-11 px-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
+              <option>YouTube</option>
+              <option>Reddit</option>
+              <option>X</option>
+              <option>LinkedIn</option>
+              <option>All</option>
             </select>
           </Field>
-          <Field label="Target creator count">
-            <input type="number" placeholder="20" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E]" />
+          <Field label="Campaign Goal">
+            <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full h-11 px-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
+              <option>Brand Awareness</option>
+              <option>Affiliate Sales</option>
+              <option>Product Launch</option>
+              <option>Thought Leadership</option>
+            </select>
           </Field>
-          <Field label="Start date">
-            <input type="date" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E]" />
+          <Field label="Budget">
+            <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Start Date">
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
+            </Field>
+            <Field label="End Date">
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
+            </Field>
+          </div>
+          <Field label="Campaign Brief / Notes">
+            <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="Describe what creators should know about the product..." className="w-full px-4 py-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4] resize-none" />
           </Field>
         </div>
         <div className="p-6 border-t border-white/[0.07] flex gap-3">

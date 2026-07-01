@@ -88,11 +88,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Launch cross-platform push for our new SaaS tool. Prioritize B2B thought leaders on LinkedIn and X. YouTube reviews should target productivity and dev-tools channels.",
     stats: { contacted: 15, replyRate: "36%", emailsSent: 22, spend: "$4,850" },
     outreach: [
-      { name: "Devon Park", platform: "LinkedIn", status: "Contracted", date: "Jul 03" },
-      { name: "Sarah Kwon", platform: "X", status: "Negotiating", date: "Jul 05" },
-      { name: "Fireship Dev", platform: "YouTube", status: "Replied", date: "Jul 07" },
-      { name: "Melissa Ortiz", platform: "LinkedIn", status: "Contacted", date: "Jul 09" },
-      { name: "Ravi Sundar", platform: "X", status: "Contacted", date: "Jul 11" },
+      { id: "cr_devon_park", name: "Devon Park", platform: "LinkedIn", status: "Contracted", date: "Jul 03" },
+      { id: "cr_sarah_kwon", name: "Sarah Kwon", platform: "X", status: "Negotiating", date: "Jul 05" },
+      { id: "cr_fireship_dev", name: "Fireship Dev", platform: "YouTube", status: "Replied", date: "Jul 07" },
+      { id: "cr_melissa_ortiz", name: "Melissa Ortiz", platform: "LinkedIn", status: "Contacted", date: "Jul 09" },
+      { id: "cr_ravi_sundar", name: "Ravi Sundar", platform: "X", status: "Contacted", date: "Jul 11" },
     ],
     hotlist: [
       { name: "Fireship Dev", platform: "YouTube", followers: "3.4M", score: 96 },

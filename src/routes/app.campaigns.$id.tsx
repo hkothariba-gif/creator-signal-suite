@@ -254,7 +254,7 @@ function CampaignDetailPage() {
                   </span>
                   <Link
                     to="/app/creators/$id"
-                    params={{ id: o.name.replace(/\s+/g, "-").toLowerCase() }}
+                    params={{ id: o.id }}
                     className="text-sm text-[#00D97E] hover:underline"
                   >
                     View Profile →

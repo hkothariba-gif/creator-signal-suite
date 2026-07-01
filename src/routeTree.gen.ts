@@ -24,6 +24,7 @@ import { Route as AppDiscoveryRouteImport } from './routes/app.discovery'
 import { Route as AppCommunityRouteImport } from './routes/app.community'
 import { Route as AppCampaignsRouteImport } from './routes/app.campaigns'
 import { Route as AppAffiliateRouteImport } from './routes/app.affiliate'
+import { Route as AppCampaignsIdRouteImport } from './routes/app.campaigns.$id'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -100,6 +101,11 @@ const AppAffiliateRoute = AppAffiliateRouteImport.update({
   path: '/affiliate',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCampaignsIdRoute = AppCampaignsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppCampaignsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,7 +114,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/app/affiliate': typeof AppAffiliateRoute
-  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/campaigns': typeof AppCampaignsRouteWithChildren
   '/app/community': typeof AppCommunityRoute
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/expansion': typeof AppExpansionRoute
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/app/platforms': typeof AppPlatformsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/campaigns/$id': typeof AppCampaignsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,7 +131,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/app/affiliate': typeof AppAffiliateRoute
-  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/campaigns': typeof AppCampaignsRouteWithChildren
   '/app/community': typeof AppCommunityRoute
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/expansion': typeof AppExpansionRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/app/platforms': typeof AppPlatformsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/campaigns/$id': typeof AppCampaignsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -142,7 +150,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/app/affiliate': typeof AppAffiliateRoute
-  '/app/campaigns': typeof AppCampaignsRoute
+  '/app/campaigns': typeof AppCampaignsRouteWithChildren
   '/app/community': typeof AppCommunityRoute
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/expansion': typeof AppExpansionRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/app/platforms': typeof AppPlatformsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/campaigns/$id': typeof AppCampaignsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/app/platforms'
     | '/app/settings'
     | '/app/'
+    | '/app/campaigns/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/app/platforms'
     | '/app/settings'
     | '/app'
+    | '/app/campaigns/$id'
   id:
     | '__root__'
     | '/'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/app/platforms'
     | '/app/settings'
     | '/app/'
+    | '/app/campaigns/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -320,12 +332,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAffiliateRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/campaigns/$id': {
+      id: '/app/campaigns/$id'
+      path: '/$id'
+      fullPath: '/app/campaigns/$id'
+      preLoaderRoute: typeof AppCampaignsIdRouteImport
+      parentRoute: typeof AppCampaignsRoute
+    }
   }
 }
 
+interface AppCampaignsRouteChildren {
+  AppCampaignsIdRoute: typeof AppCampaignsIdRoute
+}
+
+const AppCampaignsRouteChildren: AppCampaignsRouteChildren = {
+  AppCampaignsIdRoute: AppCampaignsIdRoute,
+}
+
+const AppCampaignsRouteWithChildren = AppCampaignsRoute._addFileChildren(
+  AppCampaignsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppAffiliateRoute: typeof AppAffiliateRoute
-  AppCampaignsRoute: typeof AppCampaignsRoute
+  AppCampaignsRoute: typeof AppCampaignsRouteWithChildren
   AppCommunityRoute: typeof AppCommunityRoute
   AppDiscoveryRoute: typeof AppDiscoveryRoute
   AppExpansionRoute: typeof AppExpansionRoute
@@ -338,7 +369,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAffiliateRoute: AppAffiliateRoute,
-  AppCampaignsRoute: AppCampaignsRoute,
+  AppCampaignsRoute: AppCampaignsRouteWithChildren,
   AppCommunityRoute: AppCommunityRoute,
   AppDiscoveryRoute: AppDiscoveryRoute,
   AppExpansionRoute: AppExpansionRoute,

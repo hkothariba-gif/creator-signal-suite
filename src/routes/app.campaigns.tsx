@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
@@ -91,7 +91,8 @@ function CampaignsPage() {
                 <div className="md:col-span-3 flex items-center justify-end gap-3">
                   <StatusBadge s={c.status} />
                   <span className="text-sm text-[#8892A4]">{c.budget}</span>
-                  <button onClick={() => setIntel({ id: c.campaignId, name: c.name })} className="text-sm text-[#00D97E] hover:underline">Open →</button>
+                  <button onClick={() => setIntel({ id: c.campaignId, name: c.name })} className="text-sm text-[#8892A4] hover:text-white">Intel</button>
+                  <Link to="/app/campaigns/$id" params={{ id: c.campaignId }} className="text-sm text-[#00D97E] hover:underline">Open →</Link>
                 </div>
               </div>
             </Card>
@@ -153,7 +154,7 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
             <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
               <option>Brand Awareness</option>
               <option>Affiliate Sales</option>
-              <option>Product Launch</option>
+              <option>Product Review</option>
               <option>Thought Leadership</option>
             </select>
           </Field>

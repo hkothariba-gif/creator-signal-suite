@@ -39,11 +39,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Push our new summer tech accessories bundle to mid-tier tech reviewers. Focus on unboxing content and honest reviews. Target 5-7% affiliate commission structure. Priority on YouTube long-form and Reddit r/gadgets threads.",
     stats: { contacted: 20, replyRate: "42%", emailsSent: 34, spend: "$3,120" },
     outreach: [
-      { name: "Marques Chen", platform: "YouTube", status: "Contracted", date: "Jun 20" },
-      { name: "Priya Ramesh", platform: "YouTube", status: "Negotiating", date: "Jun 22" },
-      { name: "u/techdadmike", platform: "Reddit", status: "Replied", date: "Jun 24" },
-      { name: "Alex Johansson", platform: "YouTube", status: "Contacted", date: "Jun 26" },
-      { name: "u/gadgetlab", platform: "Reddit", status: "Contacted", date: "Jun 28" },
+      { id: "cr_marques_chen", name: "Marques Chen", platform: "YouTube", status: "Contracted", date: "Jun 20" },
+      { id: "cr_priya_ramesh", name: "Priya Ramesh", platform: "YouTube", status: "Negotiating", date: "Jun 22" },
+      { id: "cr_techdadmike", name: "u/techdadmike", platform: "Reddit", status: "Replied", date: "Jun 24" },
+      { id: "cr_alex_johansson", name: "Alex Johansson", platform: "YouTube", status: "Contacted", date: "Jun 26" },
+      { id: "cr_gadgetlab", name: "u/gadgetlab", platform: "Reddit", status: "Contacted", date: "Jun 28" },
     ],
     hotlist: [
       { name: "Marques Chen", platform: "YouTube", followers: "1.2M", score: 94 },

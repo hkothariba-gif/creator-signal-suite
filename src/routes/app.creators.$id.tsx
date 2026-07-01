@@ -1,115 +1,98 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, useParams } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
-import { ArrowLeft, Mail, ExternalLink } from "lucide-react";
+import { ArrowLeft, Mail, Star } from "lucide-react";
 
 export const Route = createFileRoute("/app/creators/$id")({
   component: CreatorProfilePage,
 });
 
-type Creator = {
-  name: string;
-  handle: string;
-  platform: "YouTube" | "Reddit" | "X" | "LinkedIn";
-  bio: string;
-  location: string;
-  followers: string;
-  engagement: string;
-  avgViews: string;
-  score: number;
-  topics: string[];
-  recentPosts: { title: string; date: string; engagement: string }[];
-  campaigns: { name: string; status: string; date: string }[];
-};
+type Platform = "YouTube" | "Reddit" | "X" | "LinkedIn";
 
-const PROFILES: Record<string, Creator> = {
-  "marques-chen": {
-    name: "Marques Chen",
-    handle: "@marqueschen",
-    platform: "YouTube",
-    bio: "Long-form tech reviewer covering consumer electronics, dev tools, and home lab gear. 8+ years of honest reviews.",
-    location: "San Francisco, CA",
-    followers: "1.2M",
-    engagement: "6.8%",
-    avgViews: "340K",
-    score: 94,
-    topics: ["Consumer Tech", "Dev Tools", "Home Lab", "Reviews"],
-    recentPosts: [
-      { title: "Testing the 2026 Summer Tech Bundle — Worth It?", date: "3d ago", engagement: "42K likes" },
-      { title: "My Home Office Rebuild for Under $2K", date: "1w ago", engagement: "58K likes" },
-      { title: "Framework 16 — 6 Months Later", date: "2w ago", engagement: "71K likes" },
-    ],
-    campaigns: [
-      { name: "Summer Tech Drop", status: "Contracted", date: "Jun 20" },
-      { name: "Spring Gadget Push", status: "Completed", date: "Apr 12" },
-    ],
-  },
-  "priya-ramesh": {
-    name: "Priya Ramesh",
-    handle: "@priyabuilds",
-    platform: "YouTube",
-    bio: "Mid-tier reviewer focused on productivity gear and workspace setups. Known for detailed unboxings.",
-    location: "Austin, TX",
-    followers: "480K",
-    engagement: "8.2%",
-    avgViews: "125K",
-    score: 89,
-    topics: ["Productivity", "Workspace", "Unboxings"],
-    recentPosts: [
-      { title: "Best Desk Accessories of 2026", date: "5d ago", engagement: "18K likes" },
-      { title: "Minimalist Setup Tour", date: "2w ago", engagement: "24K likes" },
-    ],
-    campaigns: [{ name: "Summer Tech Drop", status: "Negotiating", date: "Jun 22" }],
-  },
-};
+const platColor = (p: Platform) =>
+  p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : "#0A66C2";
 
-const genericProfile = (slug: string): Creator => {
-  const name = slug
+function hash(s: string) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function mockFor(id: string) {
+  const name = id
     .split("-")
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .map((s) => (s.startsWith("@") || s.startsWith("u/") ? s : s.charAt(0).toUpperCase() + s.slice(1)))
     .join(" ");
-  const isReddit = name.toLowerCase().startsWith("u/") || slug.startsWith("u-");
-  const isX = name.startsWith("@") || slug.startsWith("-");
-  return {
-    name,
-    handle: isReddit ? name : isX ? name : `@${slug.replace(/-/g, "")}`,
-    platform: isReddit ? "Reddit" : isX ? "X" : "YouTube",
-    bio: "Creator profile — full analytics and outreach history will populate as campaigns run.",
-    location: "—",
-    followers: "—",
-    engagement: "—",
-    avgViews: "—",
-    score: 78,
-    topics: ["General"],
-    recentPosts: [],
-    campaigns: [],
-  };
-};
+  const h = hash(id);
+  const platforms: Platform[] = ["YouTube", "Reddit", "X", "LinkedIn"];
+  const lowered = id.toLowerCase();
+  const platform: Platform = lowered.startsWith("u-") || lowered.startsWith("r-")
+    ? "Reddit"
+    : lowered.startsWith("-") || lowered.includes("twitter")
+    ? "X"
+    : platforms[h % 4];
 
-const platColor = (p: string) =>
-  p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : p === "LinkedIn" ? "#0A66C2" : "#7C3AED";
+  const followersNum = 40 + (h % 1500);
+  const followers = followersNum > 1000 ? `${(followersNum / 1000).toFixed(1)}M` : `${followersNum}K`;
+  const engagement = `${(3 + ((h >> 3) % 60) / 10).toFixed(1)}%`;
+  const avgViewsNum = 20 + ((h >> 5) % 400);
+  const avgViews = avgViewsNum > 500 ? `${(avgViewsNum / 1000).toFixed(1)}M` : `${avgViewsNum}K`;
+  const dealValue = `$${(1 + ((h >> 7) % 24)).toLocaleString()},${((h >> 2) % 900 + 100)}`;
+
+  const bio = `${name} is a trusted voice on ${platform}, known for deeply-researched content and an engaged, high-intent audience. They regularly partner with brands on long-term campaigns and consistently outperform category benchmarks on conversion.`;
+
+  const content = [
+    { title: "Why the new 2026 lineup actually matters", views: `${(h % 400) + 40}K`, days: 2 },
+    { title: "I tested 12 tools so you don't have to", views: `${(h % 250) + 30}K`, days: 6 },
+    { title: "The honest review nobody asked for", views: `${(h % 180) + 20}K`, days: 12 },
+  ];
+
+  const audience = [
+    { label: "United States", pct: 45 },
+    { label: "Tech & Software", pct: 38 },
+    { label: "Age 18–34", pct: 55 },
+  ];
+
+  return { name, platform, followers, engagement, avgViews, dealValue, bio, content, audience };
+}
 
 function CreatorProfilePage() {
   const { id } = useParams({ from: "/app/creators/$id" });
-  const c = PROFILES[id] || genericProfile(id);
+  const c = mockFor(id);
   const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.name)}`;
+
+  const addHotlist = () => {
+    const list = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");
+    if (!list.find((x: { id: string }) => x.id === id)) {
+      list.push({ id, name: c.name, platform: c.platform });
+      localStorage.setItem("ar_hotlist", JSON.stringify(list));
+    }
+    toast.success("Added to hotlist!");
+  };
 
   return (
     <AppShell
       title=""
       right={
-        <Link
-          to="/app/campaigns"
+        <button
+          onClick={() => window.history.back()}
           className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-white/10 hover:bg-white/5 text-sm text-[#8892A4] hover:text-white"
         >
           <ArrowLeft className="w-4 h-4" /> Back
-        </Link>
+        </button>
       }
     >
       {/* Header */}
       <Card className="p-6 mb-6">
-        <div className="flex items-start gap-5">
-          <img src={avatar} alt="" className="w-24 h-24 rounded-full bg-white/5 border border-white/10" />
-          <div className="flex-1 min-w-0">
+        <div className="flex items-start gap-5 flex-wrap">
+          <img
+            src={avatar}
+            alt={c.name}
+            width={80}
+            height={80}
+            className="w-20 h-20 rounded-full bg-white/5 border border-white/10 shrink-0"
+          />
+          <div className="flex-1 min-w-[240px]">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-3xl font-bold text-[#F0F4FF]">{c.name}</h1>
               <span
@@ -119,79 +102,86 @@ function CreatorProfilePage() {
                 {c.platform}
               </span>
             </div>
-            <div className="text-sm text-[#8892A4] mt-1">
-              {c.handle} · {c.location}
-            </div>
-            <p className="text-sm text-[#F0F4FF]/80 mt-3 max-w-2xl leading-relaxed">{c.bio}</p>
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {c.topics.map((t) => (
-                <span
-                  key={t}
-                  className="text-[11px] px-2 py-0.5 rounded-full bg-[#131D2E] border border-white/10 text-[#8892A4]"
-                >
-                  {t}
-                </span>
-              ))}
+            <div className="text-sm text-[#8892A4] mt-1.5">
+              <span className="font-semibold text-[#F0F4FF]">{c.followers}</span> followers ·{" "}
+              <span className="font-semibold text-[#F0F4FF]">{c.engagement}</span> engagement
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <button className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold">
-              <Mail className="w-4 h-4" /> Outreach
+          <div className="flex gap-2">
+            <button
+              onClick={() => alert(`Outreach sequence started for ${c.name}`)}
+              className="inline-flex items-center gap-1.5 px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:brightness-110"
+            >
+              <Mail className="w-4 h-4" /> Contact Creator
             </button>
-            <button className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg border border-white/10 text-sm text-[#F0F4FF] hover:bg-white/5">
-              <ExternalLink className="w-4 h-4" /> Add to Hotlist
+            <button
+              onClick={addHotlist}
+              className="inline-flex items-center gap-1.5 px-4 h-10 rounded-lg border border-[#00D97E] text-[#00D97E] text-sm font-bold hover:bg-[#00D97E]/10"
+            >
+              <Star className="w-4 h-4" /> Add to Hotlist
             </button>
           </div>
         </div>
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Stat label="Followers" value={c.followers} />
-        <Stat label="Engagement" value={c.engagement} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Stat label="Avg Views" value={c.avgViews} />
-        <Stat label="Match Score" value={String(c.score)} accent />
+        <Stat label="Engagement Rate" value={c.engagement} />
+        <Stat label="Est. Deal Value" value={c.dealValue} accent />
       </div>
 
+      {/* Bio */}
+      <Card className="p-6 mb-6">
+        <h3 className="text-lg font-bold text-[#F0F4FF] mb-2">About</h3>
+        <p className="text-sm text-[#F0F4FF]/80 leading-relaxed">{c.bio}</p>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Content */}
         <Card className="lg:col-span-2 p-6">
-          <h3 className="text-lg font-bold text-[#F0F4FF] mb-4">Recent Posts</h3>
-          {c.recentPosts.length === 0 ? (
-            <div className="text-sm text-[#8892A4]">No recent posts synced.</div>
-          ) : (
-            <div className="divide-y divide-white/[0.07]">
-              {c.recentPosts.map((p) => (
-                <div key={p.title} className="py-3">
-                  <div className="font-semibold text-[#F0F4FF]">{p.title}</div>
-                  <div className="text-xs text-[#8892A4] mt-1">
-                    {p.date} · {p.engagement}
+          <h3 className="text-lg font-bold text-[#F0F4FF] mb-4">Recent Content</h3>
+          <div className="divide-y divide-white/[0.07]">
+            {c.content.map((p) => (
+              <div key={p.title} className="py-3 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-[#F0F4FF] truncate">{p.title}</div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                      style={{ background: platColor(c.platform) }}
+                    >
+                      {c.platform}
+                    </span>
+                    <span className="text-xs text-[#8892A4]">
+                      {p.views} {c.platform === "Reddit" ? "upvotes" : "views"} · {p.days}d ago
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </Card>
 
+        {/* Audience */}
         <Card className="p-6">
-          <h3 className="text-lg font-bold text-[#F0F4FF] mb-4">Campaign History</h3>
-          {c.campaigns.length === 0 ? (
-            <div className="text-sm text-[#8892A4]">No campaigns yet.</div>
-          ) : (
-            <div className="space-y-3">
-              {c.campaigns.map((cp) => (
-                <div
-                  key={cp.name}
-                  className="p-3 rounded-lg border border-white/[0.07] bg-[#131D2E]"
-                >
-                  <div className="font-semibold text-sm text-[#F0F4FF]">{cp.name}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-[#8892A4]">{cp.date}</span>
-                    <span className="text-xs font-bold text-[#00D97E]">{cp.status}</span>
-                  </div>
+          <h3 className="text-lg font-bold text-[#F0F4FF] mb-4">Audience</h3>
+          <div className="space-y-4">
+            {c.audience.map((a) => (
+              <div key={a.label}>
+                <div className="flex items-center justify-between text-sm mb-1.5">
+                  <span className="text-[#F0F4FF]">{a.label}</span>
+                  <span className="font-bold text-[#00D97E]">{a.pct}%</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="h-2 rounded-full bg-[#131D2E] overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-[#00D97E]"
+                    style={{ width: `${a.pct}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       </div>
     </AppShell>

@@ -135,10 +135,10 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-6 space-y-5">
           <Field label="Campaign Name">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube Push" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube Push" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
           <Field label="Product / Brand Being Promoted">
-            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className="w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
           <Field label="Target Platform">
             <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className="w-full h-11 px-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">

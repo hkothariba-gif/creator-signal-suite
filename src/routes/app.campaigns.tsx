@@ -175,7 +175,29 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
         <div className="p-6 border-t border-white/[0.07] flex gap-3">
           <button onClick={onClose} className="flex-1 h-11 rounded-lg border border-white/15 hover:bg-white/5 text-sm font-semibold">Cancel</button>
           <button
-            onClick={() => { toast.success("Campaign created! Add creators in Discovery."); onClose(); }}
+            onClick={() => {
+              if (!name.trim()) {
+                toast.error("Campaign Name is required.");
+                return;
+              }
+              const existing = JSON.parse(localStorage.getItem("ar_campaigns") || "[]");
+              const newCampaign = {
+                id: "camp_" + Math.random().toString(36).slice(2, 10),
+                name: name.trim(),
+                product: product.trim(),
+                platform,
+                goal,
+                budget,
+                startDate,
+                endDate,
+                brief: brief.trim(),
+                status: "draft",
+                createdAt: Date.now(),
+              };
+              localStorage.setItem("ar_campaigns", JSON.stringify([...existing, newCampaign]));
+              toast.success("Campaign created!", { duration: 2000 });
+              onClose();
+            }}
             className="flex-1 h-11 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00c472]"
           >
             Create Campaign →

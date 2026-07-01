@@ -119,9 +119,9 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [plats, setPlats] = useState({ youtube: true, reddit: false, x: false, linkedin: false });
   return (
-    <div className="fixed inset-0 z-40 flex justify-end">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative w-[480px] h-full bg-[#0C1222] border-l border-white/[0.07] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-[520px] max-h-[90vh] bg-[#0C1222] border border-white/[0.07] rounded-2xl shadow-2xl overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-white/[0.07]">
           <h3 className="font-bold text-lg">New Campaign</h3>
           <button onClick={onClose} className="text-[#8892A4] hover:text-white"><X className="w-5 h-5" /></button>

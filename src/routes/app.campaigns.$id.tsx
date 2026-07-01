@@ -21,7 +21,7 @@ type CampaignMock = {
   endDate: string;
   brief: string;
   stats: { contacted: number; replyRate: string; emailsSent: number; spend: string };
-  outreach: { name: string; platform: string; status: OutreachStatus; date: string }[];
+  outreach: { id: string; name: string; platform: string; status: OutreachStatus; date: string }[];
   hotlist: { name: string; platform: string; followers: string; score: number }[];
 };
 

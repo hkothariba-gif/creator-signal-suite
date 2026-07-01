@@ -252,7 +252,13 @@ function CampaignDetailPage() {
                   <span className="text-xs font-bold" style={{ color: outreachColor(o.status) }}>
                     {o.status}
                   </span>
-                  <button className="text-sm text-[#00D97E] hover:underline">View Profile →</button>
+                  <Link
+                    to="/app/creators/$id"
+                    params={{ id: o.name.replace(/\s+/g, "-").toLowerCase() }}
+                    className="text-sm text-[#00D97E] hover:underline"
+                  >
+                    View Profile →
+                  </Link>
                 </div>
               ))}
             </div>

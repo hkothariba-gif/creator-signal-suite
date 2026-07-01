@@ -112,11 +112,11 @@ const MOCK: Record<string, CampaignMock> = {
       "Partner with senior B2B voices on LinkedIn to publish co-authored posts and carousels. Focus on industry insights, not product features.",
     stats: { contacted: 10, replyRate: "50%", emailsSent: 14, spend: "$2,900" },
     outreach: [
-      { name: "Erika Vasquez", platform: "LinkedIn", status: "Contracted", date: "Jun 12" },
-      { name: "Nathan Ho", platform: "LinkedIn", status: "Negotiating", date: "Jun 15" },
-      { name: "Sofia Lindqvist", platform: "LinkedIn", status: "Replied", date: "Jun 18" },
-      { name: "Tomás Ribeiro", platform: "LinkedIn", status: "Contacted", date: "Jun 22" },
-      { name: "Yuki Tanaka", platform: "LinkedIn", status: "Contacted", date: "Jun 25" },
+      { id: "cr_erika_vasquez", name: "Erika Vasquez", platform: "LinkedIn", status: "Contracted", date: "Jun 12" },
+      { id: "cr_nathan_ho", name: "Nathan Ho", platform: "LinkedIn", status: "Negotiating", date: "Jun 15" },
+      { id: "cr_sofia_lindqvist", name: "Sofia Lindqvist", platform: "LinkedIn", status: "Replied", date: "Jun 18" },
+      { id: "cr_tomas_ribeiro", name: "Tomás Ribeiro", platform: "LinkedIn", status: "Contacted", date: "Jun 22" },
+      { id: "cr_yuki_tanaka", name: "Yuki Tanaka", platform: "LinkedIn", status: "Contacted", date: "Jun 25" },
     ],
     hotlist: [
       { name: "Erika Vasquez", platform: "LinkedIn", followers: "240K", score: 93 },

@@ -118,7 +118,7 @@ function DiscoveryPage() {
           />
           <button
             onClick={() => {
-              if (typeof window !== "undefined") localStorage.setItem("ar_yt_key", apiKey);
+              if (typeof window !== "undefined") localStorage.setItem("ar_yt_api_key", apiKey);
               toast.success("API key saved. YouTube search is now active!");
               setApiModal(false);
             }}

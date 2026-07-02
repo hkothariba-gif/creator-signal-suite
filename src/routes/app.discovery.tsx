@@ -56,14 +56,16 @@ function DiscoveryPage() {
         className="w-full h-[52px] px-5 rounded-lg bg-[#0C1222] border border-white/10 focus:outline-none focus:border-[#00D97E] mb-4"
       />
 
-      <div className="flex items-center justify-between p-4 rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/[0.06] mb-10">
-        <span className="text-sm text-[#FCD34D]">
-          ⚠ YouTube search requires API connection. Reddit and X signals load automatically once connected.
-        </span>
-        <button onClick={() => setApiModal(true)} className="px-4 h-9 rounded-lg border border-[#F59E0B]/50 text-[#F59E0B] text-xs font-bold hover:bg-[#F59E0B]/10">
-          Connect YouTube API →
-        </button>
-      </div>
+      {!ytKey && (
+        <div className="flex items-center justify-between p-4 rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/[0.06] mb-10">
+          <span className="text-sm text-[#FCD34D]">
+            ⚠ YouTube search requires API connection. Reddit and X signals load automatically once connected.
+          </span>
+          <button onClick={() => setApiModal(true)} className="px-4 h-9 rounded-lg border border-[#F59E0B]/50 text-[#F59E0B] text-xs font-bold hover:bg-[#F59E0B]/10">
+            Connect YouTube API →
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col items-center text-center py-12">
         <Telescope className="w-28 h-28 text-[#00D97E]" strokeWidth={1.2} />

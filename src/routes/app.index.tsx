@@ -41,6 +41,14 @@ function HomePage() {
     }
   }, [bannerDismissed]);
 
+  const [campaignsCount, hotlistCount] = (() => {
+    try {
+      const c = JSON.parse(localStorage.getItem("ar_campaigns") || "[]");
+      const h = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");
+      return [Array.isArray(c) && c.length ? c.length : 3, Array.isArray(h) && h.length ? h.length : 47];
+    } catch { return [3, 47]; }
+  })();
+
   const firstName = (user?.email ?? "there").split("@")[0].split(/[._-]/)[0];
   const greeting = firstName.charAt(0).toUpperCase() + firstName.slice(1);
   const showSetup = user?.role === "user" && user?.onboarded === false && !bannerDismissed;
@@ -72,8 +80,8 @@ function HomePage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Active Campaigns" value="3" trend="↑ vs last month" />
-        <StatCard label="Creators in Hotlist" value="47" trend="↑ 12 this week" />
+        <StatCard label="Active Campaigns" value={String(campaignsCount)} trend="↑ vs last month" />
+        <StatCard label="Creators in Hotlist" value={String(hotlistCount)} trend="↑ 12 this week" />
         <StatCard label="Pending Outreach" value="12" trend="→ no change" trendColor="muted" />
         <StatCard label="Avg Brand-Fit Score" value="84%" trend="↑ from 79%" />
       </div>

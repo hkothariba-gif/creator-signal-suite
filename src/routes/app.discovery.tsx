@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
@@ -19,6 +19,16 @@ function DiscoveryPage() {
 
   return (
     <AppShell title="Creator Discovery">
+      {!ytKey && (
+        <div className="mb-4 flex items-center justify-between gap-3 p-4 rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/[0.06]">
+          <span className="text-sm text-[#FCD34D]">
+            ⚠ YouTube API key not configured. Go to Settings → API Keys to connect.
+          </span>
+          <Link to="/app/settings" className="px-4 h-9 inline-flex items-center rounded-lg border border-[#F59E0B]/50 text-[#F59E0B] text-xs font-bold hover:bg-[#F59E0B]/10">
+            Open Settings →
+          </Link>
+        </div>
+      )}
       <Card className="p-4 mb-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-1.5">

@@ -41,7 +41,7 @@ function OnboardingPage() {
   const [modal, setModal] = useState<null | { kind: "store" | "payout"; name: string }>(null);
   const [teamModal, setTeamModal] = useState(false);
 
-  useEffect(() => { if (!user) navigate({ to: "/login" }); }, [user, navigate]);
+  
 
   useEffect(() => {
     if (!intent) return;

@@ -15,6 +15,7 @@ function DiscoveryPage() {
   const [plat, setPlat] = useState("All");
   const [apiModal, setApiModal] = useState(false);
   const [apiKey, setApiKey] = useState("");
+  const ytKey = typeof window !== "undefined" ? (localStorage.getItem("ar_yt_api_key") || "") : "";
 
   return (
     <AppShell title="Creator Discovery">

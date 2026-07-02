@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app/AppShell";
@@ -110,7 +110,13 @@ function HotlistPage() {
                         </div>
                         <div className="mt-3 flex gap-3">
                           <button className="text-[11px] text-[#00D97E] hover:underline">Message →</button>
-                          <button className="text-[11px] text-[#00D97E] hover:underline">View Profile →</button>
+                          <Link
+                            to="/app/creators/$id"
+                            params={{ id: c.name.toLowerCase().replace(/\s+/g, "-").replace(/[@/]/g, "").replace(/[^a-z0-9-]/g, "") }}
+                            className="text-[11px] text-[#00D97E] hover:underline"
+                          >
+                            View Profile →
+                          </Link>
                         </div>
                       </div>
                     </div>

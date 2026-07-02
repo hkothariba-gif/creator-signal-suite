@@ -94,7 +94,13 @@ function HotlistPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <GripVertical className="w-3.5 h-3.5 text-[#4B5563]" />
-                          <div className="font-bold text-sm truncate">{c.name}</div>
+                          <Link
+                            to="/app/creators/$id"
+                            params={{ id: c.name.toLowerCase().replace(/\s+/g, "-") }}
+                            className="font-bold text-sm truncate hover:text-[#00D97E] transition-colors"
+                          >
+                            {c.name}
+                          </Link>
                         </div>
                         <span className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: pb.bg, color: pb.color }}>
                           {c.platform}
@@ -112,7 +118,7 @@ function HotlistPage() {
                           <button className="text-[11px] text-[#00D97E] hover:underline">Message →</button>
                           <Link
                             to="/app/creators/$id"
-                            params={{ id: c.name.toLowerCase().replace(/\s+/g, "-").replace(/[@/]/g, "").replace(/[^a-z0-9-]/g, "") }}
+                            params={{ id: c.name.toLowerCase().replace(/\s+/g, "-") }}
                             className="text-[11px] text-[#00D97E] hover:underline"
                           >
                             View Profile →

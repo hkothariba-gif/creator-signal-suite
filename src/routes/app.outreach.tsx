@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Telescope } from "lucide-react";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { YouTubeIcon, XIcon } from "@/components/landing/icons";
 

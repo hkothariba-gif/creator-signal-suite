@@ -35,37 +35,34 @@ function OutreachPage() {
   const [sel, setSel] = useState(0);
   const [launch, setLaunch] = useState(false);
 
+  const hasCampaigns = (() => {
+    try {
+      const c = JSON.parse(localStorage.getItem("ar_campaigns") || "[]");
+      return Array.isArray(c) && c.length > 0;
+    } catch {
+      return false;
+    }
+  })();
+
   return (
     <AppShell title="Outreach Sequences">
       <p className="text-[#8892A4] mb-6">AI-powered multi-touch outreach, tailored per creator</p>
 
-      {/* Creator header */}
-      <Card className="p-5 mb-6 flex flex-wrap items-center gap-4">
-        <img
-          className="creator-avatar-img lg"
-          src="https://api.dicebear.com/7.x/avataaars/svg?seed=mkbhd&backgroundColor=0C1222&radius=50"
-          alt="Marques Brownlee"
-        />
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-[#F0F4FF] text-lg">Marques Brownlee</span>
-            <span className="text-sm text-[#8892A4]">@mkbhd</span>
-          </div>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white inline-flex items-center gap-1" style={{ background: "#FF0000" }}>
-              <YouTubeIcon size={11} /> YouTube
-            </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white inline-flex items-center gap-1" style={{ background: "#1A1A1A" }}>
-              <XIcon size={10} bg="none" className="[&_path]:fill-white" /> X
-            </span>
-            <span className="text-[11px] text-[#8892A4]">2.3M subscribers</span>
-          </div>
+      {!hasCampaigns && (
+        <div className="mb-8 flex flex-col items-center justify-center text-center py-10">
+          <Telescope className="w-10 h-10 text-[#00D97E] mb-4" />
+          <h2 className="text-xl font-bold text-[#F0F4FF]">No outreach sequences yet</h2>
+          <p className="text-sm text-[#8892A4] mt-2 max-w-md">
+            Start a campaign and add creators to your hotlist to begin outreach.
+          </p>
+          <Link
+            to="/app/campaigns"
+            className="mt-5 inline-flex items-center px-5 h-11 rounded-lg bg-[#00D97E] text-[#05080F] font-bold text-sm hover:bg-[#00c472]"
+          >
+            Start a Campaign →
+          </Link>
         </div>
-        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(0,217,126,0.15)", color: "#00D97E" }}>
-          Tech Reviews
-        </span>
-        <span className="ml-auto text-sm font-bold text-[#00D97E]">94% Brand Fit</span>
-      </Card>
+      )}
 
       {/* Cascade */}
       <Card className="p-6 mb-6">

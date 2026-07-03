@@ -8,20 +8,23 @@ export const Route = createFileRoute("/app/")({
   component: HomePage,
 });
 
-const activity = [
-  { color: "#00D97E", name: "TechWithMarcus", action: "Responded to outreach", time: "2h ago" },
-  { color: "#FF4500", name: "r/homelab", action: "New brand mention detected", time: "5h ago" },
-  { color: "#00D97E", name: "@buildinpublic_sara", action: "Accepted deal", time: "1d ago" },
-  { color: "#FF0000", name: "GadgetReviewHub", action: "Posted sponsored video", time: "2d ago" },
-  { color: "#FF4500", name: "r/SaaS", action: "New buyer intent signal", time: "2d ago" },
-  { color: "#00D97E", name: "CodeWithChris", action: "Contract signed", time: "3d ago" },
-];
+const activity: { color: string; name: string; action: string; time: string }[] = [];
 
-const topCreators = [
-  { name: "TechWithMarcus", platform: "YouTube", score: 94, color: "#00D97E" },
-  { name: "r/homelab", platform: "Reddit", score: 89, color: "#00D97E" },
-  { name: "@buildinpublic_sara", platform: "X", score: 82, color: "#F59E0B" },
-];
+const topCreators = (() => {
+  try {
+    const h = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");
+    return Array.isArray(h)
+      ? h.slice(0, 3).map((c: any) => ({
+          name: c.name || "Creator",
+          platform: c.platform || "YouTube",
+          score: c.score || 80,
+          color: "#00D97E",
+        }))
+      : [];
+  } catch {
+    return [];
+  }
+})();
 
 function HomePage() {
   const { user, update } = useAuth();

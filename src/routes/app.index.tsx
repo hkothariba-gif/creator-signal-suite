@@ -92,42 +92,50 @@ function HomePage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
         <Card className="lg:col-span-3 p-6">
           <h3 className="font-semibold mb-4">Recent Campaign Activity</h3>
-          <ul className="space-y-3">
-            {activity.map((a, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm py-2 border-b border-white/[0.04] last:border-0">
-                <img
-                  className="creator-avatar-img sm"
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=0C1222&radius=50`}
-                  alt={a.name}
-                />
-                <span className="w-2 h-2 rounded-full" style={{ background: a.color }} />
-                <span className="font-semibold text-[#F0F4FF]">{a.name}</span>
-                <span className="text-[#8892A4]">— {a.action}</span>
-                <span className="ml-auto text-xs text-[#4B5563]">{a.time}</span>
-              </li>
-            ))}
-          </ul>
+          {activity.length === 0 ? (
+            <p className="text-[#8892A4] text-sm py-6 text-center">No campaign activity yet. Start a campaign to see updates here.</p>
+          ) : (
+            <ul className="space-y-3">
+              {activity.map((a, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm py-2 border-b border-white/[0.04] last:border-0">
+                  <img
+                    className="creator-avatar-img sm"
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=0C1222&radius=50`}
+                    alt={a.name}
+                  />
+                  <span className="w-2 h-2 rounded-full" style={{ background: a.color }} />
+                  <span className="font-semibold text-[#F0F4FF]">{a.name}</span>
+                  <span className="text-[#8892A4]">— {a.action}</span>
+                  <span className="ml-auto text-xs text-[#4B5563]">{a.time}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <a href="#" className="block mt-4 text-sm text-[#00D97E] hover:underline">View all activity →</a>
         </Card>
 
         <Card className="lg:col-span-2 p-6">
           <h3 className="font-semibold mb-4">Top Creators by Brand Fit</h3>
-          <ul className="space-y-4">
-            {topCreators.map((c) => (
-              <li key={c.name}>
-                <div className="flex items-center justify-between text-sm mb-1.5">
-                  <span className="font-semibold">{c.name}</span>
-                  <span className="text-xs text-[#8892A4]">{c.platform}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full" style={{ width: `${c.score}%`, background: c.color }} />
+          {topCreators.length === 0 ? (
+            <p className="text-[#8892A4] text-sm py-4 text-center">Add creators to your hotlist to see them here.</p>
+          ) : (
+            <ul className="space-y-4">
+              {topCreators.map((c) => (
+                <li key={c.name}>
+                  <div className="flex items-center justify-between text-sm mb-1.5">
+                    <span className="font-semibold">{c.name}</span>
+                    <span className="text-xs text-[#8892A4]">{c.platform}</span>
                   </div>
-                  <span className="text-xs font-bold" style={{ color: c.color }}>{c.score}%</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full" style={{ width: `${c.score}%`, background: c.color }} />
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: c.color }}>{c.score}%</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
           <a href="#" className="block mt-5 text-sm text-[#00D97E] hover:underline">View →</a>
         </Card>
       </div>

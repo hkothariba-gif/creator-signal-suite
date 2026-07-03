@@ -42,11 +42,8 @@ function Landing() {
         <ProblemSolution />
         <LinkedInRevenue />
         <StatsBar />
-        <LogoWall />
-        <ProofTestimonials />
         <HeatMapSection />
         <PlatformCards />
-        <Testimonials />
         <Pricing />
         <FinalCTA />
       </main>

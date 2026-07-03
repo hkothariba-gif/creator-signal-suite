@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaigns: {
+        Row: {
+          budget: string | null
+          created_at: string
+          id: string
+          name: string
+          platforms: string[] | null
+          user_id: string
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          platforms?: string[] | null
+          user_id: string
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          platforms?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hotlist: {
+        Row: {
+          cpm: string | null
+          created_at: string
+          creator_name: string
+          id: string
+          platform: string | null
+          score: number | null
+          stage: string | null
+          user_id: string
+        }
+        Insert: {
+          cpm?: string | null
+          created_at?: string
+          creator_name: string
+          id?: string
+          platform?: string | null
+          score?: number | null
+          stage?: string | null
+          user_id: string
+        }
+        Update: {
+          cpm?: string | null
+          created_at?: string
+          creator_name?: string
+          id?: string
+          platform?: string | null
+          score?: number | null
+          stage?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company_name: string | null

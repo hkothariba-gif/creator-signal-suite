@@ -29,7 +29,7 @@ const tiers = [
     features: [
       "Everything in Growth",
       "Admin dashboard",
-      "Multi-team access",
+      "Access for multiple teams",
       "Custom brand voice AI",
       "Priority support",
     ],
@@ -65,7 +65,7 @@ export function Pricing() {
                     className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold tracking-[0.15em] uppercase px-3 py-1 rounded-full z-10"
                     style={{ background: "#00D97E", color: "#020A06" }}
                   >
-                    Most Popular
+                    Recommended
                   </span>
                 )}
 

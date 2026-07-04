@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { WordStagger } from "./words";
 
 export function FinalCTA() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   return (
     <section
       id="cta"
@@ -34,7 +35,7 @@ export function FinalCTA() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (email) setSubmitted(true);
+            if (email) navigate({ to: "/signup" });
           }}
           className="mt-10 flex flex-col sm:flex-row items-center gap-3 max-w-xl mx-auto"
         >
@@ -50,13 +51,13 @@ export function FinalCTA() {
             type="submit"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-brand-green hover:bg-brand-green-dark text-white font-semibold px-7 h-14 transition-all hover:scale-[1.02]"
           >
-            {submitted ? "You're on the list" : "Get Early Access"}
-            {!submitted && <ArrowRight className="w-4 h-4" />}
+            Get Early Access
+            <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <p className="mt-6 text-[13px] text-brand-muted">
-          No credit card required · Setup in 5 minutes · Cancel anytime
+          No credit card required · Cancel anytime
         </p>
       </div>
     </section>

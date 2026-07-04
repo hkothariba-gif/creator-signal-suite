@@ -2,18 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowUp, ChevronDown, Paperclip } from "lucide-react";
 
-const CREATOR_TYPES = [
-  "Tech Reviewers",
-  "Lifestyle Creators",
-  "Finance Influencers",
-  "Gaming Creators",
-  "B2B Thought Leaders",
+const AD_GOALS = [
+  "Reddit ads",
+  "X ads",
+  "YouTube ads",
+  "Ad copy only",
+  "Copy and imagery",
 ];
 
 export function PromptBar() {
   const navigate = useNavigate();
   const [productDesc, setProductDesc] = useState("");
-  const [selectedType, setSelectedType] = useState<string>(CREATOR_TYPES[0]);
+  const [selectedType, setSelectedType] = useState<string>(AD_GOALS[0]);
   const [showExpansion, setShowExpansion] = useState(false);
   const [showAttachTip, setShowAttachTip] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -31,15 +31,7 @@ export function PromptBar() {
 
   const submit = () => {
     if (!productDesc.trim()) return;
-    localStorage.setItem(
-      "ar_intent",
-      JSON.stringify({
-        productDesc,
-        influencerType: selectedType,
-        savedAt: Date.now(),
-      })
-    );
-    navigate({ to: "/login" });
+    navigate({ to: "/signup" });
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -97,7 +89,7 @@ export function PromptBar() {
           onChange={(e) => setProductDesc(e.target.value)}
           onInput={onInput}
           onKeyDown={onKeyDown}
-          placeholder="Describe what you want affiliates to promote, or paste your ad copy… (e.g. 'We sell a $49/mo CRM for agencies')"
+          placeholder="Describe your product, or paste ad copy you want to improve"
         />
 
         <div className="ai-search-bar-controls">
@@ -114,7 +106,7 @@ export function PromptBar() {
             className="ai-search-bar-submit"
             onClick={submit}
             disabled={!productDesc.trim()}
-            aria-label="Find creators"
+            aria-label="Start building ads"
           >
             <ArrowUp width={16} height={16} strokeWidth={2.5} />
           </button>
@@ -122,9 +114,9 @@ export function PromptBar() {
 
         {showExpansion && (
           <div className="ai-search-bar-expansion">
-            <div className="ai-search-bar-expansion-label">Who are you looking for?</div>
+            <div className="ai-search-bar-expansion-label">What do you want to build?</div>
             <div className="ai-search-bar-chips">
-              {CREATOR_TYPES.map((t) => (
+              {AD_GOALS.map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -142,7 +134,7 @@ export function PromptBar() {
         )}
       </div>
 
-      <p className="ai-search-bar-hint">Press Enter or click → to find your creators</p>
+      <p className="ai-search-bar-hint">Press Enter to start building ads</p>
     </div>
   );
 }

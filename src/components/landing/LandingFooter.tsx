@@ -10,7 +10,7 @@ export function LandingFooter() {
             <span className="font-extrabold text-brand-green">Reach</span>
           </div>
           <p className="mt-3 text-brand-muted text-sm max-w-xs leading-relaxed">
-            Find the people already talking about what you sell — before you ask them.
+            Run affiliate marketing programs to build better advertising and ads.
           </p>
         </div>
 

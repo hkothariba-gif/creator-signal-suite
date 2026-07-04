@@ -1,42 +1,100 @@
 import { WordStagger, FadeUp } from "./words";
 import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "./icons";
 
+// Each platform card keeps its visual frame, but no fabricated creators,
+// metrics, or quotes. Data areas show Waiting for API connection until a
+// live integration is wired up.
+
+const mockFrameStyle = {
+  border: "1px solid rgba(255,255,255,0.1)",
+  boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+  background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
+} as const;
+
+function WaitingPanel() {
+  return (
+    <div
+      className="mt-5 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-center px-4"
+      style={{ minHeight: 180 }}
+    >
+      <span className="text-sm font-semibold" style={{ color: "#8892A4" }}>
+        Waiting for API connection
+      </span>
+    </div>
+  );
+}
+
+function PlatformMock({
+  icon,
+  name,
+  meta,
+  iconBg,
+}: {
+  icon: JSX.Element;
+  name: string;
+  meta: string;
+  iconBg?: string;
+}) {
+  return (
+    <div className="rounded-2xl p-6" style={mockFrameStyle}>
+      <div className="flex items-center gap-3">
+        {iconBg ? (
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: iconBg }}>
+            {icon}
+          </div>
+        ) : (
+          icon
+        )}
+        <div>
+          <div className="text-white font-bold">{name}</div>
+          <div className="text-brand-muted text-xs">{meta}</div>
+        </div>
+      </div>
+      <WaitingPanel />
+    </div>
+  );
+}
+
+function YouTubeMock() {
+  return (
+    <PlatformMock
+      icon={<YouTubeIcon size={24} />}
+      iconBg="rgba(255,0,0,0.2)"
+      name="YouTube signals"
+      meta="Creator matches appear here"
+    />
+  );
+}
+
+function RedditMock() {
+  return (
+    <PlatformMock
+      icon={<RedditIcon size={24} />}
+      iconBg="rgba(255,69,0,0.2)"
+      name="Reddit signals"
+      meta="Community matches appear here"
+    />
+  );
+}
+
+function XMock() {
+  return (
+    <PlatformMock
+      icon={<XIcon size={36} bg="white" />}
+      name="X campaigns"
+      meta="Published ads appear here"
+    />
+  );
+}
+
 function LinkedInMock() {
   return (
-    <div className="rounded-2xl p-6" style={{
-        border: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
-        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
-      }}>
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-[#0A66C2]/20 flex items-center justify-center">
-          <LinkedInIcon size={26} />
-        </div>
-        <div>
-          <div className="text-white font-bold">Priya Raman</div>
-          <div className="text-brand-muted text-xs">VP Growth · 64K followers · 7.1% eng</div>
-        </div>
-      </div>
-      <div className="mt-5 rounded-lg bg-white/[0.04] border border-white/[0.06] p-3">
-        <div className="text-sm text-slate-200 leading-snug">
-          "Spent 3 months evaluating creator platforms. Here's what actually moved pipeline for our B2B funnel…"
-        </div>
-        <div className="mt-2 flex items-center gap-3 text-[11px] text-brand-muted">
-          <span>👍 1.2K</span><span>💬 184</span><span>🔁 96</span>
-        </div>
-      </div>
-      <div className="mt-5 grid grid-cols-2 gap-2 text-center">
-        {[["82%", "ICP Match"], ["B2B SaaS", "Audience"]].map(([v, l]) => (
-          <div key={l} className="rounded-lg bg-white/[0.04] p-3">
-            <div className="text-white font-bold text-sm">{v}</div>
-            <div className="text-[10px] text-brand-muted uppercase tracking-wider">{l}</div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 inline-block text-[11px] font-bold px-2.5 py-1 rounded-md bg-[#0A66C2]/15 text-[#4A9EFF]">
-        PIPELINE INFLUENCE: HIGH
-      </div>
-    </div>
+    <PlatformMock
+      icon={<LinkedInIcon size={26} />}
+      iconBg="rgba(10,102,194,0.2)"
+      name="LinkedIn signals"
+      meta="Professional voices appear here"
+    />
   );
 }
 
@@ -56,119 +114,6 @@ function Pills({ items, color }: { items: string[]; color: string }) {
   );
 }
 
-function YouTubeMock() {
-  return (
-    <div className="rounded-2xl p-6" style={{
-        border: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
-        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
-      }}>
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-[#FF0000]/20 flex items-center justify-center">
-          <YouTubeIcon size={24} />
-        </div>
-        <div>
-          <div className="text-white font-bold">TechWithMarcus</div>
-          <div className="text-brand-muted text-xs">340K subscribers · 6.2% engagement</div>
-        </div>
-      </div>
-      <div className="mt-5">
-        <div className="flex justify-between text-[10px] uppercase tracking-wider text-brand-muted mb-1.5">
-          <span>Brand Fit</span>
-          <span className="text-brand-green font-bold">94%</span>
-        </div>
-        <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-          <div className="h-full bg-brand-green" style={{ width: "94%" }} />
-        </div>
-      </div>
-      <div className="mt-5 space-y-2">
-        {["The best home server setup for 2026", "Why I switched my whole stack", "Live: building a dev rig"].map((t) => (
-          <div key={t} className="flex items-center gap-3 text-sm text-slate-300">
-            <div className="w-14 h-9 rounded bg-white/10" />
-            <span className="truncate">{t}</span>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 inline-block text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-amber/15 text-brand-amber">
-        CPM RANGE: $14 – $32
-      </div>
-    </div>
-  );
-}
-
-function RedditMock() {
-  return (
-    <div className="rounded-2xl p-6" style={{
-        border: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
-        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
-      }}>
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-[#FF4500]/20 flex items-center justify-center">
-          <RedditIcon size={24} />
-        </div>
-        <div>
-          <div className="text-white font-bold">r/homelab</div>
-          <div className="text-brand-muted text-xs">847K members · 12K online</div>
-        </div>
-      </div>
-      <div className="mt-5 space-y-3">
-        {[
-          { title: "Which platform actually helps you find creators?", flag: "Buyer journey" },
-          { title: "Anyone tried AspenReach? Honest review inside", flag: "Brand mention" },
-        ].map((p) => (
-          <div key={p.title} className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-3">
-            <div className="text-sm text-slate-200 leading-snug">{p.title}</div>
-            <span className="mt-2 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#FF4500]/15 text-[#FF4500]">
-              Why Flagged · {p.flag}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 inline-block text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-green/15 text-brand-green">
-        COMMUNITY FIT: 89%
-      </div>
-    </div>
-  );
-}
-
-function XMock() {
-  return (
-    <div className="rounded-2xl p-6" style={{
-        border: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 0 0 1px rgba(0,217,126,0.08), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
-        background: "linear-gradient(145deg, #131D2E 0%, #0C1222 100%)",
-      }}>
-      <div className="flex items-center gap-3">
-        <XIcon size={36} bg="white" />
-        <div>
-          <div className="text-white font-bold">@buildinpublic_sara</div>
-          <div className="text-brand-muted text-xs">128K followers · 4.8% eng</div>
-        </div>
-      </div>
-      <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-        {[
-          ["91", "Quality"],
-          ["4.8%", "Eng"],
-          ["12", "Mentions"],
-        ].map(([v, l]) => (
-          <div key={l} className="rounded-lg bg-white/[0.04] p-3">
-            <div className="text-white font-bold text-lg">{v}</div>
-            <div className="text-[10px] text-brand-muted uppercase tracking-wider">{l}</div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 space-y-2">
-        {["Been using this for 3 weeks now and wow...", "Hot take: most influencer tools are dead."].map((t) => (
-          <div key={t} className="text-sm text-slate-300 italic">
-            "{t}"
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 const cards = [
   {
     side: "left" as const,
@@ -176,8 +121,8 @@ const cards = [
     color: "#FF0000",
     Icon: YouTubeIcon,
     title: "YouTube Creator Matching",
-    desc: "Match to creators based on subscriber count, topic clusters, CPM ranges, and audience demographics. See engagement rate, estimated reach, and rate cards — all before you reach out.",
-    tags: ["Subscriber Tiers", "CPM Ranges", "Engagement Rate", "Demographic Fit"],
+    desc: "Match creators by topic clusters, audience demographics, and engagement signals. See how a channel fits your brand before you reach out.",
+    tags: ["Topic Clusters", "Audience Fit", "Engagement Signals", "Contact Paths"],
     Mock: YouTubeMock,
   },
   {
@@ -186,7 +131,7 @@ const cards = [
     color: "#FF4500",
     Icon: RedditIcon,
     title: "Reddit Community Intelligence",
-    desc: "AspenReach scans subreddits for people already discussing your product category. 'Why Flagged' snippets show you the exact posts that match your buyer journey.",
+    desc: "AspenReach scans subreddits for people already discussing your product category. Why Flagged snippets show you the exact posts that match your buyer journey.",
     tags: ["Subreddit Mapping", "Sentiment Signals", "Why Flagged Snippets", "Community Fit Score"],
     Mock: RedditMock,
   },
@@ -195,9 +140,9 @@ const cards = [
     cls: "x",
     color: "#FFFFFF",
     Icon: (props: { size?: number }) => <XIcon size={props.size} bg="white" />,
-    title: "X Conversation Mapping",
-    desc: "Find niche X voices whose followers match your ICP. Surface engagement rate, follower quality score, and recent brand mentions.",
-    tags: ["Follower Quality", "ICP Match", "Brand Mention Tracking", "Niche Authority"],
+    title: "X Ad Publishing",
+    desc: "Turn the hooks and selling points that work into paid posts on X. AspenReach drafts the creative and publishes it as a campaign.",
+    tags: ["Ad Copy Drafts", "Creative Variants", "Audience Targeting", "Campaign Publishing"],
     Mock: XMock,
   },
   {
@@ -206,8 +151,8 @@ const cards = [
     color: "#0A66C2",
     Icon: LinkedInIcon,
     title: "LinkedIn B2B Authority Mapping",
-    desc: "Surface thought leaders whose followers match your buyer committee. Track pipeline-influencing posts, ICP match, and engagement quality from decision-makers — not vanity reach.",
-    tags: ["ICP Audience Match", "Decision-Maker Reach", "Pipeline Influence", "Thought-Leader Score"],
+    desc: "Surface professional voices whose followers match your buyer committee. Track the posts that influence pipeline and the engagement that comes from decision makers.",
+    tags: ["ICP Audience Match", "Decision Maker Reach", "Pipeline Influence", "Thought Leader Score"],
     Mock: LinkedInMock,
   },
 ];
@@ -218,10 +163,10 @@ export function PlatformCards() {
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="text-center">
           <div className="text-brand-green text-xs font-bold uppercase tracking-[0.15em]">
-            Three Platforms. One Intelligence Layer.
+            Intelligence In. Ads Out.
           </div>
           <WordStagger
-            text="Built for the platforms where real conversations happen"
+            text="Learn from YouTube, LinkedIn, and Reddit. Publish ads to Reddit, X, and YouTube."
             className="mt-4 mx-auto max-w-[820px] text-white font-display font-extrabold text-4xl md:text-[52px] tracking-[-0.04em] leading-[1.05]"
           />
         </div>

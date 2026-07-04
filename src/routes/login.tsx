@@ -18,15 +18,6 @@ function LoginPage() {
 
   const routeAfterAuth = (u: { role?: string; onboarded?: boolean }) => {
     if (u.role === "admin") return navigate({ to: "/admin" });
-    try {
-      const raw = localStorage.getItem("ar_intent");
-      if (raw) {
-        const intent = JSON.parse(raw);
-        if (intent?.savedAt && Date.now() - intent.savedAt < 1800000) {
-          return navigate({ to: "/onboarding" });
-        }
-      }
-    } catch {}
     navigate({ to: u.onboarded ? "/app" : "/onboarding" });
   };
 

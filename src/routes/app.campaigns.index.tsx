@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { Plus, X } from "lucide-react";
 import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
+import { DataGate } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
@@ -82,19 +83,7 @@ function CampaignsPage() {
         ))}
       </div>
 
-      {loading ? (
-        <div className="text-sm text-[#8892A4] py-12 text-center">Loading…</div>
-      ) : visible.length === 0 ? (
-        <Card className="p-12 text-center">
-          <div className="text-[#8892A4] text-sm">No campaigns yet</div>
-          <button
-            onClick={() => setDrawer(true)}
-            className="mt-4 inline-flex items-center gap-1.5 px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00c472]"
-          >
-            <Plus className="w-4 h-4" /> Create your first campaign
-          </button>
-        </Card>
-      ) : (
+      <DataGate connected={true} loading={loading} empty={visible.length === 0}>
         <div className="space-y-3">
           {visible.map((c) => (
             <Card key={c.id} className="px-6 py-5">
@@ -121,7 +110,7 @@ function CampaignsPage() {
             </Card>
           ))}
         </div>
-      )}
+      </DataGate>
 
       {drawer && <CampaignDrawer onClose={() => setDrawer(false)} onCreated={refresh} />}
       {intel && <CampaignIntelligence campaignId={intel.id} campaignName={intel.name} onClose={() => setIntel(null)} />}
@@ -181,7 +170,7 @@ function CampaignDrawer({ onClose, onCreated }: { onClose: () => void; onCreated
       return;
     }
 
-    toast.success("Campaign created — generating search criteria…", { duration: 2000 });
+    toast.success("Campaign created. Generating search criteria…", { duration: 2000 });
 
     // Fire-and-await edge function
     try {

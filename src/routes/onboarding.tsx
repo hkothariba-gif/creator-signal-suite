@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
@@ -15,23 +15,12 @@ const CATEGORIES = [
 ];
 
 function OnboardingPage() {
-  const { user, update } = useAuth();
+  const { update } = useAuth();
   const navigate = useNavigate();
-  const [intent] = useState(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const raw = localStorage.getItem("ar_intent");
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  });
-  const [step, setStep] = useState(() => {
-    if (typeof window === "undefined") return 1;
-    const saved = parseInt(localStorage.getItem("ar_onboarding_step") ?? "1", 10);
-    return Number.isFinite(saved) && saved >= 1 && saved <= 6 ? saved : 1;
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") localStorage.setItem("ar_onboarding_step", String(step));
-  }, [step]);
+  // Onboarding state is saved to Supabase when the flow finishes.
+  // profiles.onboarded holds the flag and organizations.brand_profile holds
+  // the brand answers. Nothing is persisted in localStorage.
+  const [step, setStep] = useState(1);
   const [category, setCategory] = useState("");
   const [age, setAge] = useState("25-34");
   const [gender, setGender] = useState("Any");
@@ -40,23 +29,6 @@ function OnboardingPage() {
   const [platforms, setPlatforms] = useState({ youtube: true, reddit: true, x: true, linkedin: false });
   const [modal, setModal] = useState<null | { kind: "store" | "payout"; name: string }>(null);
   const [teamModal, setTeamModal] = useState(false);
-
-  
-
-  useEffect(() => {
-    if (!intent) return;
-    if (intent.productDesc) {
-      setCategory(intent.productDesc);
-      const matched = CATEGORIES.find((c) =>
-        intent.productDesc.toLowerCase().includes(c.split(" /")[0].toLowerCase())
-      );
-      if (matched) setCategory(matched);
-    }
-    if (intent.influencerType) {
-      setNotes((n) => (n ? n : `Target creators: ${intent.influencerType}`));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const next = () => setStep((s) => Math.min(6, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
@@ -70,7 +42,6 @@ function OnboardingPage() {
       toast.error(`Could not save profile: ${error}`);
       return;
     }
-    if (typeof window !== "undefined") { localStorage.removeItem("ar_onboarding_step"); localStorage.removeItem("ar_intent"); }
     navigate({ to: "/app" });
   };
 
@@ -96,12 +67,6 @@ function OnboardingPage() {
         <div key={step} className="animate-[fadeIn_0.3s_ease]">
           {step === 1 && (
             <>
-              {intent && (
-                <div style={{ background: "rgba(0,217,126,0.06)", border: "1px solid rgba(0,217,126,0.15)", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#00D97E" }}>
-                  ✓ We pre-filled your answers based on what you entered on the homepage
-                  <button onClick={() => { localStorage.removeItem("ar_intent"); window.location.reload(); }} style={{ marginLeft: 12, background: "none", border: "none", color: "#8892A4", fontSize: 12, cursor: "pointer" }}>Clear</button>
-                </div>
-              )}
               <h2 className="text-[32px] font-extrabold tracking-tight">What does your brand sell?</h2>
               <p className="mt-2 text-[#8892A4]">This helps us match you to creators whose audiences actually buy your category.</p>
               <input
@@ -144,7 +109,7 @@ function OnboardingPage() {
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Tech-savvy early adopters, fitness-conscious homeowners..."
+                placeholder="e.g. Early adopters who love tech, homeowners focused on fitness..."
                 rows={3}
                 className="mt-2 w-full p-4 rounded-xl bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E]"
               />
@@ -160,7 +125,7 @@ function OnboardingPage() {
                   selected={platforms.youtube}
                   onClick={() => setPlatforms((p) => ({ ...p, youtube: !p.youtube }))}
                   icon={<YouTubeIcon size={36} />}
-                  name="YouTube" sub="Long-form video • High purchase intent"
+                  name="YouTube" sub="Long form video • High purchase intent"
                   selStyle={{ border: "1px solid rgba(255,0,0,0.6)", boxShadow: "0 0 20px rgba(255,0,0,0.2)", background: "rgba(255,0,0,0.05)" }}
                 />
                 <PlatformCard
@@ -174,7 +139,7 @@ function OnboardingPage() {
                   selected={platforms.x}
                   onClick={() => setPlatforms((p) => ({ ...p, x: !p.x }))}
                   icon={<XIcon size={36} bg="black" />}
-                  name="X / Twitter" sub="Niche authority • Real-time conversation"
+                  name="X / Twitter" sub="Niche authority • Live conversation"
                   selStyle={{ border: "1px solid rgba(255,255,255,0.3)", boxShadow: "0 0 20px rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }}
                 />
                 <PlatformCard
@@ -191,7 +156,7 @@ function OnboardingPage() {
           {step === 4 && (
             <>
               <h2 className="text-[32px] font-extrabold tracking-tight">Connect your store or tracking</h2>
-              <p className="mt-2 text-[#8892A4]">Link your sales platform so AspenReach can attribute creator-driven conversions.</p>
+              <p className="mt-2 text-[#8892A4]">Link your sales platform so AspenReach can attribute conversions from creator campaigns.</p>
               <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-3">
                 {["Shopify","WooCommerce","Stripe","PayPal","BigCommerce","Custom Webhook"].map((p) => (
                   <div key={p} className="bg-[#0C1222] border border-white/[0.07] rounded-xl p-5 text-center">
@@ -279,53 +244,23 @@ function OnboardingPage() {
 
       {modal && (
         <Modal onClose={() => setModal(null)}>
-          {modal.kind === "store" ? (
-            <StoreModal name={modal.name} email={user?.email ?? ""} onClose={() => setModal(null)} />
-          ) : (
-            <>
-              <h3 className="text-xl font-bold">{modal.name} payouts coming soon</h3>
-              <p className="mt-3 text-sm text-[#8892A4]">
-                We're building direct {modal.name} integration for seamless creator payouts. You can manually track payments in the meantime using the Affiliate tab.
-              </p>
-              <button onClick={() => setModal(null)} className="mt-6 w-full h-11 rounded-lg bg-[#00D97E] text-[#05080F] font-bold">Got it</button>
-            </>
-          )}
+          <h3 className="text-xl font-bold">{modal.name}</h3>
+          <p className="mt-3 text-sm text-[#8892A4]">Waiting for API connection</p>
+          <p className="mt-2 text-xs text-[#8892A4]">
+            The {modal.name} connector is not configured yet. This step will light up once the integration is live. You can skip it and connect later from Settings.
+          </p>
+          <button onClick={() => setModal(null)} className="mt-6 w-full h-11 rounded-lg bg-[#00D97E] text-[#05080F] font-bold">Got it</button>
         </Modal>
       )}
 
       {teamModal && (
         <Modal onClose={() => setTeamModal(false)}>
-          <h3 className="text-xl font-bold">Team invites coming soon</h3>
-          <p className="mt-3 text-sm text-[#8892A4]">You'll be able to add teammates in Settings.</p>
+          <h3 className="text-xl font-bold">Invite teammates</h3>
+          <p className="mt-3 text-sm text-[#8892A4]">Once you finish setup, open Settings and use the Team tab to invite teammates as admin, editor, or reviewer.</p>
           <button onClick={() => setTeamModal(false)} className="mt-6 w-full h-11 rounded-lg bg-[#00D97E] text-[#05080F] font-bold">Got it</button>
         </Modal>
       )}
     </div>
-  );
-}
-
-function StoreModal({ name, email, onClose }: { name: string; email: string; onClose: () => void }) {
-  const [val, setVal] = useState(email);
-  return (
-    <>
-      <h3 className="text-xl font-bold">{name} integration coming soon</h3>
-      <p className="mt-3 text-sm text-[#8892A4]">
-        We're finalizing our {name} connector. Drop your email and we'll notify you the moment it's live.
-      </p>
-      <input
-        value={val} onChange={(e) => setVal(e.target.value)}
-        className="mt-4 w-full h-11 px-4 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E]"
-      />
-      <div className="mt-5 flex gap-2">
-        <button onClick={onClose} className="flex-1 h-11 rounded-lg border border-white/15 text-sm">Skip for now</button>
-        <button
-          onClick={() => { toast.success(`You're on the list! We'll email ${val} when ${name} is ready.`); onClose(); }}
-          className="flex-1 h-11 rounded-lg bg-[#00D97E] text-[#05080F] font-bold text-sm"
-        >
-          Notify Me
-        </button>
-      </div>
-    </>
   );
 }
 

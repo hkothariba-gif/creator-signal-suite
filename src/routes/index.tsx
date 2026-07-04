@@ -5,7 +5,6 @@ import { PlatformRevenueTabs } from "@/components/landing/PlatformRevenueTabs";
 import { TrustBar } from "@/components/landing/TrustBar";
 import { ProblemSolution } from "@/components/landing/ProblemSolution";
 import { LinkedInRevenue } from "@/components/landing/LinkedInRevenue";
-import { StatsBar } from "@/components/landing/StatsBar";
 import { HeatMapSection } from "@/components/landing/HeatMapSection";
 import { PlatformCards } from "@/components/landing/PlatformCards";
 import { Pricing } from "@/components/landing/Pricing";
@@ -15,13 +14,13 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AspenReach — Creator Intelligence for YouTube, Reddit & X" },
+      { title: "AspenReach | Creator Intelligence for YouTube, LinkedIn, and Reddit" },
       {
         name: "description",
         content:
-          "AspenReach maps brand-fit, reach, and buyer intent across YouTube, Reddit, and X — so growth teams find creators who actually convert.",
+          "Run affiliate marketing programs to build better advertising and ads. AspenReach learns from YouTube, LinkedIn, and Reddit, then publishes ads to Reddit, X, and YouTube.",
       },
-      { property: "og:title", content: "AspenReach — Creator Intelligence Platform" },
+      { property: "og:title", content: "AspenReach | Creator Intelligence Platform" },
       {
         property: "og:description",
         content: "Stop paying for reach. Start paying for relevance.",
@@ -41,7 +40,6 @@ function Landing() {
         <TrustBar />
         <ProblemSolution />
         <LinkedInRevenue />
-        <StatsBar />
         <HeatMapSection />
         <PlatformCards />
         <Pricing />

@@ -1,33 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowUp, ChevronDown, Paperclip } from "lucide-react";
-
-const AD_GOALS = [
-  "Reddit ads",
-  "X ads",
-  "YouTube ads",
-  "Ad copy only",
-  "Copy and imagery",
-];
+import { ArrowUp, Paperclip } from "lucide-react";
 
 export function PromptBar() {
   const navigate = useNavigate();
   const [productDesc, setProductDesc] = useState("");
-  const [selectedType, setSelectedType] = useState<string>(AD_GOALS[0]);
-  const [showExpansion, setShowExpansion] = useState(false);
   const [showAttachTip, setShowAttachTip] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setShowExpansion(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
 
   const submit = () => {
     if (!productDesc.trim()) return;

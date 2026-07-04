@@ -146,7 +146,7 @@ export function Hero() {
             href="#cta"
             className="btn-primary-cta inline-flex items-center gap-2 rounded-full text-lg h-14 px-8"
           >
-            Start building ads <ArrowRight className="w-5 h-5" />
+            Show me the right creators <ArrowRight className="w-5 h-5" />
           </a>
           <a
             href="#how"

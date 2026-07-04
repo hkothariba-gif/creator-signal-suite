@@ -1,11 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
 import { Telescope } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/app/discovery")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    campaign: typeof search.campaign === "string" ? search.campaign : undefined,
+  }),
   component: DiscoveryPage,
 });
 
@@ -20,6 +25,8 @@ interface CreatorResult {
 }
 
 function DiscoveryPage() {
+  const { user } = useAuth();
+  const { campaign: campaignParam } = Route.useSearch();
   const [plat, setPlat] = useState("All");
   const [apiModal, setApiModal] = useState(false);
   const [apiKey, setApiKey] = useState("");
@@ -30,6 +37,32 @@ function DiscoveryPage() {
   const [results, setResults] = useState<CreatorResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  // Prefill query from campaign search_criteria (specified id, else most recent)
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      let q = supabase
+        .from("campaigns")
+        .select("id,search_criteria")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (campaignParam) q = q.eq("id", campaignParam);
+      const { data } = await q;
+      if (cancelled) return;
+      const sc = (data?.[0]?.search_criteria ?? null) as
+        | { primaryQuery?: string; searchQueries?: string[] }
+        | null;
+      const pre = sc?.primaryQuery || sc?.searchQueries?.[0];
+      if (pre) setQuery((cur) => cur || pre);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, campaignParam]);
+
 
   const handleSearch = async () => {
     if (!ytKey || !query.trim()) return;

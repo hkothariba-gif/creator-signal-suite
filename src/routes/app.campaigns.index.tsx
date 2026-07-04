@@ -1,49 +1,63 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { Plus, X } from "lucide-react";
 import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/app/campaigns/")({
   component: CampaignsPage,
 });
 
-type Status = "Active" | "Draft" | "Completed";
+type Campaign = Tables<"campaigns">;
 type Platform = "YouTube" | "Reddit" | "X" | "LinkedIn" | "All";
 
-const CAMPAIGNS: { name: string; campaignId: string; platforms: Platform[]; status: Status; done: number; total: number; budget: string }[] = [
-  { name: "Summer Tech Drop", campaignId: "camp_001", platforms: ["YouTube", "Reddit"], status: "Active", done: 14, total: 20, budget: "$8,400" },
-  { name: "Home Lab Awareness", campaignId: "camp_002", platforms: ["Reddit"], status: "Active", done: 8, total: 12, budget: "$3,200" },
-  { name: "SaaS Tool Launch", campaignId: "camp_001", platforms: ["YouTube", "X", "LinkedIn"], status: "Active", done: 6, total: 15, budget: "$12,000" },
-  { name: "Q4 Holiday Push", campaignId: "camp_001", platforms: ["All"], status: "Draft", done: 0, total: 0, budget: "Budget TBD" },
-  { name: "Spring Fitness", campaignId: "camp_002", platforms: ["YouTube"], status: "Completed", done: 20, total: 20, budget: "$6,000" },
-  { name: "Crypto Community", campaignId: "camp_002", platforms: ["Reddit", "X"], status: "Completed", done: 18, total: 18, budget: "$4,500" },
-  { name: "B2B Thought Leadership", campaignId: "camp_001", platforms: ["LinkedIn"], status: "Active", done: 4, total: 10, budget: "$7,500" },
+const TABS: { key: "active" | "draft" | "completed" | "all"; label: string }[] = [
+  { key: "active", label: "Active" },
+  { key: "draft", label: "Draft" },
+  { key: "completed", label: "Completed" },
+  { key: "all", label: "All" },
 ];
 
-const TABS: { key: "Active" | "Draft" | "Completed" | "All"; label: string }[] = [
-  { key: "Active", label: "Active" },
-  { key: "Draft", label: "Draft" },
-  { key: "Completed", label: "Completed" },
-  { key: "All", label: "All" },
-];
-
-const platColor = (p: Platform) => p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : p === "LinkedIn" ? "#0A66C2" : "#7C3AED";
-const platText = (_p: Platform) => "#fff";
+const platColor = (p: string) =>
+  p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : p === "LinkedIn" ? "#0A66C2" : "#7C3AED";
 
 function CampaignsPage() {
-  const [tab, setTab] = useState<"Active" | "Draft" | "Completed" | "All">("Active");
+  const { user } = useAuth();
+  const [tab, setTab] = useState<"active" | "draft" | "completed" | "all">("active");
   const [drawer, setDrawer] = useState(false);
   const [intel, setIntel] = useState<{ id: string; name: string } | null>(null);
+  const [rows, setRows] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("campaigns")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) toast.error(error.message);
+    setRows(data ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const counts = {
-    Active: CAMPAIGNS.filter((c) => c.status === "Active").length,
-    Draft: CAMPAIGNS.filter((c) => c.status === "Draft").length,
-    Completed: CAMPAIGNS.filter((c) => c.status === "Completed").length,
-    All: CAMPAIGNS.length,
+    active: rows.filter((c) => c.status === "active").length,
+    draft: rows.filter((c) => c.status === "draft").length,
+    completed: rows.filter((c) => c.status === "completed").length,
+    all: rows.length,
   };
-  const visible = tab === "All" ? CAMPAIGNS : CAMPAIGNS.filter((c) => c.status === tab);
+  const visible = tab === "all" ? rows : rows.filter((c) => c.status === tab);
 
   return (
     <AppShell
@@ -68,55 +82,65 @@ function CampaignsPage() {
         ))}
       </div>
 
-      <div className="space-y-3">
-        {visible.map((c) => {
-          const pct = c.total > 0 ? (c.done / c.total) * 100 : 0;
-          return (
-            <Card key={c.name} className="px-6 py-5">
+      {loading ? (
+        <div className="text-sm text-[#8892A4] py-12 text-center">Loading…</div>
+      ) : visible.length === 0 ? (
+        <Card className="p-12 text-center">
+          <div className="text-[#8892A4] text-sm">No campaigns yet</div>
+          <button
+            onClick={() => setDrawer(true)}
+            className="mt-4 inline-flex items-center gap-1.5 px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00c472]"
+          >
+            <Plus className="w-4 h-4" /> Create your first campaign
+          </button>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {visible.map((c) => (
+            <Card key={c.id} className="px-6 py-5">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 <div className="md:col-span-4">
                   <div className="font-bold text-[#F0F4FF]">{c.name}</div>
-                  <div className="flex gap-1.5 mt-2">
-                    {c.platforms.map((p) => (
-                      <span key={p} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: platColor(p), color: platText(p) }}>{p}</span>
+                  <div className="flex gap-1.5 mt-2 flex-wrap">
+                    {(c.platforms ?? []).map((p) => (
+                      <span key={p} className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: platColor(p) }}>{p}</span>
                     ))}
                   </div>
                 </div>
-                <div className="md:col-span-5">
-                  <div className="text-xs text-[#8892A4] mb-1.5">{c.done} of {c.total} creators contacted</div>
-                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full bg-[#00D97E]" style={{ width: `${pct}%` }} />
-                  </div>
+                <div className="md:col-span-5 text-xs text-[#8892A4]">
+                  {c.goal ? <div>Goal: {c.goal}</div> : null}
+                  {c.product_description ? <div className="line-clamp-1 mt-1">{c.product_description}</div> : null}
                 </div>
                 <div className="md:col-span-3 flex items-center justify-end gap-3">
                   <StatusBadge s={c.status} />
-                  <span className="text-sm text-[#8892A4]">{c.budget}</span>
-                  <button onClick={() => setIntel({ id: c.campaignId, name: c.name })} className="text-sm text-[#8892A4] hover:text-white">Intel</button>
-                  <Link to="/app/campaigns/$id" params={{ id: c.campaignId }} className="text-sm text-[#00D97E] hover:underline">Open →</Link>
+                  {c.budget ? <span className="text-sm text-[#8892A4]">{c.budget}</span> : null}
+                  <button onClick={() => setIntel({ id: c.id, name: c.name })} className="text-sm text-[#8892A4] hover:text-white">Intel</button>
+                  <Link to="/app/campaigns/$id" params={{ id: c.id }} className="text-sm text-[#00D97E] hover:underline">Open →</Link>
                 </div>
               </div>
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {drawer && <CampaignDrawer onClose={() => setDrawer(false)} />}
+      {drawer && <CampaignDrawer onClose={() => setDrawer(false)} onCreated={refresh} />}
       {intel && <CampaignIntelligence campaignId={intel.id} campaignName={intel.name} onClose={() => setIntel(null)} />}
     </AppShell>
   );
 }
 
-function StatusBadge({ s }: { s: Status }) {
-  const map = {
-    Active: { bg: "rgba(0,217,126,0.15)", color: "#00D97E" },
-    Draft: { bg: "rgba(255,255,255,0.08)", color: "#8892A4" },
-    Completed: { bg: "rgba(59,130,246,0.15)", color: "#60A5FA" },
+function StatusBadge({ s }: { s: string }) {
+  const map: Record<string, { bg: string; color: string; label: string }> = {
+    active: { bg: "rgba(0,217,126,0.15)", color: "#00D97E", label: "Active" },
+    draft: { bg: "rgba(255,255,255,0.08)", color: "#8892A4", label: "Draft" },
+    completed: { bg: "rgba(59,130,246,0.15)", color: "#60A5FA", label: "Completed" },
   };
-  const v = map[s];
-  return <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: v.bg, color: v.color }}>{s}</span>;
+  const v = map[s] ?? { bg: "rgba(255,255,255,0.08)", color: "#8892A4", label: s };
+  return <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: v.bg, color: v.color }}>{v.label}</span>;
 }
 
-function CampaignDrawer({ onClose }: { onClose: () => void }) {
+function CampaignDrawer({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [product, setProduct] = useState("");
   const [platform, setPlatform] = useState<Platform>("All");
@@ -125,6 +149,72 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [brief, setBrief] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const create = async () => {
+    if (!user) return;
+    if (!name.trim()) {
+      toast.error("Campaign Name is required.");
+      return;
+    }
+    setSaving(true);
+    const platforms = platform === "All" ? ["YouTube", "Reddit", "X", "LinkedIn"] : [platform];
+    const { data: inserted, error } = await supabase
+      .from("campaigns")
+      .insert({
+        user_id: user.id,
+        name: name.trim(),
+        product_description: product.trim() || null,
+        platforms,
+        goal,
+        budget: budget || null,
+        start_date: startDate || null,
+        end_date: endDate || null,
+        brief: brief.trim() || null,
+        status: "draft",
+      })
+      .select("*")
+      .single();
+    if (error || !inserted) {
+      setSaving(false);
+      toast.error(error?.message ?? "Failed to create campaign");
+      return;
+    }
+
+    toast.success("Campaign created — generating search criteria…", { duration: 2000 });
+
+    // Fire-and-await edge function
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const res = await fetch(`${supabaseUrl}/functions/v1/generate-search-criteria`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${anonKey}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          productDescription: product.trim() || brief.trim() || name.trim(),
+          targetAudience: undefined,
+          goal,
+        }),
+      });
+      if (res.ok) {
+        const criteria = await res.json();
+        await supabase
+          .from("campaigns")
+          .update({ search_criteria: criteria })
+          .eq("id", inserted.id);
+      }
+    } catch (e) {
+      console.error("generate-search-criteria failed", e);
+    }
+
+    setSaving(false);
+    onCreated();
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -159,7 +249,7 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
             </select>
           </Field>
           <Field label="Budget">
-            <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+            <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Start Date">
@@ -174,34 +264,13 @@ function CampaignDrawer({ onClose }: { onClose: () => void }) {
           </Field>
         </div>
         <div className="p-6 border-t border-white/[0.07] flex gap-3">
-          <button onClick={onClose} className="flex-1 h-11 rounded-lg border border-white/15 hover:bg-white/5 text-sm font-semibold">Cancel</button>
+          <button onClick={onClose} disabled={saving} className="flex-1 h-11 rounded-lg border border-white/15 hover:bg-white/5 text-sm font-semibold">Cancel</button>
           <button
-            onClick={() => {
-              if (!name.trim()) {
-                toast.error("Campaign Name is required.");
-                return;
-              }
-              const existing = JSON.parse(localStorage.getItem("ar_campaigns") || "[]");
-              const newCampaign = {
-                id: "camp_" + Math.random().toString(36).slice(2, 10),
-                name: name.trim(),
-                product: product.trim(),
-                platform,
-                goal,
-                budget,
-                startDate,
-                endDate,
-                brief: brief.trim(),
-                status: "draft",
-                createdAt: Date.now(),
-              };
-              localStorage.setItem("ar_campaigns", JSON.stringify([...existing, newCampaign]));
-              toast.success("Campaign created!", { duration: 2000 });
-              onClose();
-            }}
-            className="w-full py-3 rounded-lg bg-[#00D97E] text-[#05080F] font-semibold hover:bg-[#00c472]"
+            onClick={create}
+            disabled={saving}
+            className="w-full py-3 rounded-lg bg-[#00D97E] text-[#05080F] font-semibold hover:bg-[#00c472] disabled:opacity-50"
           >
-            Create Campaign →
+            {saving ? "Creating…" : "Create Campaign →"}
           </button>
         </div>
       </div>

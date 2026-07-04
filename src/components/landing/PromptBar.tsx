@@ -69,52 +69,23 @@ export function PromptBar() {
           onChange={(e) => setProductDesc(e.target.value)}
           onInput={onInput}
           onKeyDown={onKeyDown}
-          placeholder="Describe your product, or paste ad copy you want to improve"
+          placeholder="Tell us a bit about your product and brand and who you're trying to sell to"
         />
 
         <div className="ai-search-bar-controls">
           <button
             type="button"
-            className="ai-search-bar-model"
-            onClick={() => setShowExpansion((v) => !v)}
-          >
-            {selectedType}
-            <ChevronDown width={14} height={14} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
             className="ai-search-bar-submit"
             onClick={submit}
             disabled={!productDesc.trim()}
-            aria-label="Start building ads"
+            aria-label="Show me the right creators"
           >
             <ArrowUp width={16} height={16} strokeWidth={2.5} />
           </button>
         </div>
-
-        {showExpansion && (
-          <div className="ai-search-bar-expansion">
-            <div className="ai-search-bar-expansion-label">What do you want to build?</div>
-            <div className="ai-search-bar-chips">
-              {AD_GOALS.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  className={`ai-search-bar-chip${selectedType === t ? " active" : ""}`}
-                  onClick={() => {
-                    setSelectedType(t);
-                    setShowExpansion(false);
-                  }}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      <p className="ai-search-bar-hint">Press Enter to start building ads</p>
+      <p className="ai-search-bar-hint">Press Enter to find the right creators</p>
     </div>
   );
 }

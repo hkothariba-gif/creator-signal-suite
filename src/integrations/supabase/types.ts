@@ -16,61 +16,153 @@ export type Database = {
     Tables: {
       campaigns: {
         Row: {
+          brief: string | null
           budget: string | null
           created_at: string
+          end_date: string | null
+          goal: string | null
           id: string
           name: string
           platforms: string[] | null
+          product_description: string | null
+          search_criteria: Json | null
+          start_date: string | null
+          status: string
+          target_audience: Json | null
           user_id: string
         }
         Insert: {
+          brief?: string | null
           budget?: string | null
           created_at?: string
+          end_date?: string | null
+          goal?: string | null
           id?: string
           name: string
           platforms?: string[] | null
+          product_description?: string | null
+          search_criteria?: Json | null
+          start_date?: string | null
+          status?: string
+          target_audience?: Json | null
           user_id: string
         }
         Update: {
+          brief?: string | null
           budget?: string | null
           created_at?: string
+          end_date?: string | null
+          goal?: string | null
           id?: string
           name?: string
           platforms?: string[] | null
+          product_description?: string | null
+          search_criteria?: Json | null
+          start_date?: string | null
+          status?: string
+          target_audience?: Json | null
           user_id?: string
         }
         Relationships: []
       }
       hotlist: {
         Row: {
+          avatar_url: string | null
+          campaign_id: string | null
           cpm: string | null
           created_at: string
           creator_name: string
+          external_id: string | null
           id: string
           platform: string | null
+          profile_data: Json | null
           score: number | null
+          source: string
           stage: string | null
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
+          campaign_id?: string | null
           cpm?: string | null
           created_at?: string
           creator_name: string
+          external_id?: string | null
           id?: string
           platform?: string | null
+          profile_data?: Json | null
           score?: number | null
+          source?: string
           stage?: string | null
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
+          campaign_id?: string | null
           cpm?: string | null
           created_at?: string
           creator_name?: string
+          external_id?: string | null
           id?: string
           platform?: string | null
+          profile_data?: Json | null
           score?: number | null
+          source?: string
           stage?: string | null
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotlist_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          category: string | null
+          company_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          notes: string | null
+          onboarded: boolean
+          platforms: string[]
+          target_age: string | null
+          target_gender: string | null
+          target_income: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          notes?: string | null
+          onboarded?: boolean
+          platforms?: string[]
+          target_age?: string | null
+          target_gender?: string | null
+          target_income?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          notes?: string | null
+          onboarded?: boolean
+          platforms?: string[]
+          target_age?: string | null
+          target_gender?: string | null
+          target_income?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

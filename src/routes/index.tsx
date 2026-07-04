@@ -14,16 +14,16 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AspenReach | Creator Intelligence for YouTube, LinkedIn, and Reddit" },
+      { title: "AspenReach | The Right Signals. The Right Creators. Ads That Convert." },
       {
         name: "description",
         content:
-          "Run affiliate marketing programs to build better advertising and ads. AspenReach learns from YouTube, LinkedIn, and Reddit, then publishes ads to Reddit, X, and YouTube.",
+          "Finally, run influencer marketing and paid media from one seamless base. This is Aspen.",
       },
-      { property: "og:title", content: "AspenReach | Creator Intelligence Platform" },
+      { property: "og:title", content: "AspenReach | The Right Signals. The Right Creators. Ads That Convert." },
       {
         property: "og:description",
-        content: "Stop paying for reach. Start paying for relevance.",
+        content: "Finally, run influencer marketing and paid media from one seamless base. This is Aspen.",
       },
     ],
   }),

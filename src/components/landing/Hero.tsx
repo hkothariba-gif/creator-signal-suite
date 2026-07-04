@@ -106,7 +106,7 @@ export function Hero() {
 
         <WordStagger
           as="h1"
-          text="Run affiliate marketing programs to build better advertising and ads."
+          text="The right signals. The right creators. Ads that actually convert."
           className="font-display font-extrabold leading-[1.04]"
           style={{ fontSize: "clamp(32px, 5.5vw, 52px)", color: "#F0F4FF", letterSpacing: "-0.03em" }}
         />
@@ -117,8 +117,17 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.9 }}
           className="hero-subtext-short mt-5"
         >
-          AspenReach reads your affiliate performance, social chatter, and content scanners to find the hooks and
-          messaging that convert, then builds the ads for you.
+          Finally, run influencer marketing and paid media from one seamless base.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 1.0 }}
+          className="mt-6 text-2xl font-bold tracking-tight"
+          style={{ color: "#00D97E" }}
+        >
+          This is Aspen.
         </motion.p>
 
         <div className="mt-9">

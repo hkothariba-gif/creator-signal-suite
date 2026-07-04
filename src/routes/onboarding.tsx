@@ -61,11 +61,15 @@ function OnboardingPage() {
   const next = () => setStep((s) => Math.min(6, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
 
-  const finish = () => {
-    update({
+  const finish = async () => {
+    const { error } = await update({
       onboarded: true,
       brand: { category, age, gender, income, notes, platforms },
     });
+    if (error) {
+      toast.error(`Could not save profile: ${error}`);
+      return;
+    }
     if (typeof window !== "undefined") { localStorage.removeItem("ar_onboarding_step"); localStorage.removeItem("ar_intent"); }
     navigate({ to: "/app" });
   };

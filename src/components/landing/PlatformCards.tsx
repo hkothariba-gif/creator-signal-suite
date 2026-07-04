@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { WordStagger, FadeUp } from "./words";
 import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "./icons";
 
@@ -30,7 +31,7 @@ function PlatformMock({
   meta,
   iconBg,
 }: {
-  icon: JSX.Element;
+  icon: ReactElement;
   name: string;
   meta: string;
   iconBg?: string;

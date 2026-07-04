@@ -16,7 +16,7 @@ function LoginPage() {
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const routeAfterAuth = (u: { role?: string; onboarded?: boolean }) => {
+  const routeAfterAuth = (u: { role?: string | null; onboarded?: boolean }) => {
     if (u.role === "admin") return navigate({ to: "/admin" });
     navigate({ to: u.onboarded ? "/app" : "/onboarding" });
   };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 import { motion } from "framer-motion";
 import { Crosshair, Move, Sparkles, MousePointer2 } from "lucide-react";
 import { WordStagger, FadeUp } from "./words";
@@ -10,7 +10,7 @@ import { YouTubeIcon, RedditIcon, LinkedInIcon } from "./icons";
 
 type PlatformTab = "youtube" | "linkedin" | "reddit";
 
-const PLATFORM_TABS: { id: PlatformTab; label: string; color: string; Icon: (p: { size?: number }) => JSX.Element }[] = [
+const PLATFORM_TABS: { id: PlatformTab; label: string; color: string; Icon: (p: { size?: number }) => ReactElement }[] = [
   { id: "youtube", label: "YouTube", color: "#FF0000", Icon: (p) => <YouTubeIcon size={p.size} /> },
   { id: "linkedin", label: "LinkedIn", color: "#0A66C2", Icon: (p) => <LinkedInIcon size={p.size} /> },
   { id: "reddit", label: "Reddit", color: "#FF4500", Icon: (p) => <RedditIcon size={p.size} /> },

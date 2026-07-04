@@ -17,6 +17,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppPlatformsRouteImport } from './routes/app.platforms'
 import { Route as AppOutreachRouteImport } from './routes/app.outreach'
@@ -70,6 +71,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/app/outreach': typeof AppOutreachRoute
   '/app/platforms': typeof AppPlatformsRoute
   '/app/settings': typeof AppSettingsRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/app/': typeof AppIndexRoute
   '/app/campaigns/$id': typeof AppCampaignsIdRoute
   '/app/creators/$id': typeof AppCreatorsIdRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/app/outreach': typeof AppOutreachRoute
   '/app/platforms': typeof AppPlatformsRoute
   '/app/settings': typeof AppSettingsRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/app': typeof AppIndexRoute
   '/app/campaigns/$id': typeof AppCampaignsIdRoute
   '/app/creators/$id': typeof AppCreatorsIdRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/app/outreach': typeof AppOutreachRoute
   '/app/platforms': typeof AppPlatformsRoute
   '/app/settings': typeof AppSettingsRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/app/': typeof AppIndexRoute
   '/app/campaigns/$id': typeof AppCampaignsIdRoute
   '/app/creators/$id': typeof AppCreatorsIdRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/app/outreach'
     | '/app/platforms'
     | '/app/settings'
+    | '/invite/$token'
     | '/app/'
     | '/app/campaigns/$id'
     | '/app/creators/$id'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/app/outreach'
     | '/app/platforms'
     | '/app/settings'
+    | '/invite/$token'
     | '/app'
     | '/app/campaigns/$id'
     | '/app/creators/$id'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/app/outreach'
     | '/app/platforms'
     | '/app/settings'
+    | '/invite/$token'
     | '/app/'
     | '/app/campaigns/$id'
     | '/app/creators/$id'
@@ -283,6 +295,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
+  InviteTokenRoute: typeof InviteTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -342,6 +355,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/settings': {
       id: '/app/settings'
@@ -501,7 +521,18 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
+  InviteTokenRoute: InviteTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

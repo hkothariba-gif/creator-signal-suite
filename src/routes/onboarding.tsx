@@ -178,7 +178,7 @@ function OnboardingPage() {
               <p className="mt-2 text-[#8892A4]">AspenReach handles contracts, invoicing, and payouts automatically.</p>
               <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-3">
                 {[
-                  { icon: "🏦", name: "Direct Bank Transfer", sub: "ACH or SWIFT — connect your business account" },
+                  { icon: "🏦", name: "Direct Bank Transfer", sub: "ACH or SWIFT from your business account" },
                   { icon: "S", name: "Stripe Connect", sub: "Instant payouts to creator Stripe accounts", color: "#7C3AED" },
                   { icon: "W", name: "Wise Business", sub: "International multi-currency payouts", color: "#00B9FF" },
                 ].map((m) => (

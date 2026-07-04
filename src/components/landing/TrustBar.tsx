@@ -12,7 +12,7 @@ export function TrustBar() {
   return (
     <section className="py-10 bg-bg-surface border-y border-white/[0.06]">
       <div className="max-w-[1200px] mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
-        <div className="text-brand-muted text-sm">The only platform built natively for</div>
+        <div className="text-brand-muted text-sm">Built for</div>
         <div className="platform-trust-bar">
           {items.map((b, i) => (
             <motion.div

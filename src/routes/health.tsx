@@ -7,7 +7,7 @@ import { Activity, ArrowLeft, CheckCircle2, XCircle, Clock, Server } from "lucid
 export const Route = createFileRoute("/health")({
   head: () => ({
     meta: [
-      { title: "Health Check — AspenReach" },
+      { title: "Health Check | AspenReach" },
       { name: "description", content: "Supabase connection health check." },
     ],
   }),
@@ -36,7 +36,7 @@ function HealthPage() {
 
   const checkedAt = dataUpdatedAt
     ? new Date(dataUpdatedAt).toLocaleString()
-    : "—";
+    : "N/A";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#05080F]">
@@ -91,7 +91,7 @@ function HealthPage() {
                 </div>
               </div>
               <span className="text-sm font-semibold text-[#F0F4FF]">
-                {data?.latency != null ? `${data.latency} ms` : isLoading ? "—" : "N/A"}
+                {data?.latency != null ? `${data.latency} ms` : isLoading ? "..." : "N/A"}
               </span>
             </div>
 

@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 import { Search, Send, BarChart3, TrendingUp } from "lucide-react";
 
 const workflowSteps = [
-  { label: "Discover", desc: "Find creators by niche, audience & brand fit score", Icon: Search },
-  { label: "Outreach", desc: "Multi-channel automated contact cascade", Icon: Send },
-  { label: "Track", desc: "Monitor performance across all 4 platforms", Icon: BarChart3 },
-  { label: "Scale", desc: "Cross-platform intelligence → Reddit & LinkedIn ads", Icon: TrendingUp },
+  { label: "Discover", desc: "Find creators by niche, audience, and brand fit score", Icon: Search },
+  { label: "Outreach", desc: "Automated contact cascade across every channel", Icon: Send },
+  { label: "Track", desc: "Monitor performance across your connected platforms", Icon: BarChart3 },
+  { label: "Scale", desc: "Signals from one platform power paid campaigns on the next", Icon: TrendingUp },
 ];
 
 export function WorkflowTabs() {

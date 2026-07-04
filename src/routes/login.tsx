@@ -16,17 +16,8 @@ function LoginPage() {
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const routeAfterAuth = (u: { role?: string; onboarded?: boolean }) => {
+  const routeAfterAuth = (u: { role?: string | null; onboarded?: boolean }) => {
     if (u.role === "admin") return navigate({ to: "/admin" });
-    try {
-      const raw = localStorage.getItem("ar_intent");
-      if (raw) {
-        const intent = JSON.parse(raw);
-        if (intent?.savedAt && Date.now() - intent.savedAt < 1800000) {
-          return navigate({ to: "/onboarding" });
-        }
-      }
-    } catch {}
     navigate({ to: u.onboarded ? "/app" : "/onboarding" });
   };
 

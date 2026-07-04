@@ -6,6 +6,7 @@ import { AppShell, Card } from "@/components/app/AppShell";
 import { ArrowLeft, Mail, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/app/creators/$id")({
@@ -19,11 +20,10 @@ const platColor = (p: string | null | undefined) => {
   return v === "youtube" ? "#FF0000" : v === "reddit" ? "#FF4500" : v === "x" ? "#1A1A1A" : v === "linkedin" ? "#0A66C2" : "#7C3AED";
 };
 
-const LIVE_PLATFORMS = new Set(["youtube"]);
-
 function CreatorProfilePage() {
   const { id } = useParams({ from: "/app/creators/$id" });
   const { user } = useAuth();
+  const status = useConnectorStatus();
   const [row, setRow] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -74,8 +74,6 @@ function CreatorProfilePage() {
   }
 
   if (!row) {
-    const emptyText =
-      "No profiles to view - connect this integration to load creators.";
     return (
       <AppShell
         title=""
@@ -88,19 +86,26 @@ function CreatorProfilePage() {
           </button>
         }
       >
-        <Card className="p-12 text-center">
-          <div className="text-sm text-[#8892A4]">{emptyText}</div>
-        </Card>
+        <DataGate connected={true} empty>
+          <></>
+        </DataGate>
       </AppShell>
     );
   }
 
   const platform = row.platform ?? "";
-  const isLive = LIVE_PLATFORMS.has(platform.toLowerCase());
+  const platKey = platform.toLowerCase();
+  const p = status.data?.platform;
+  const platformConnected = status.data
+    ? platKey === "youtube"
+      ? p!.youtube
+      : platKey === "reddit"
+        ? p!.reddit
+        : platKey === "x"
+          ? p!.x
+          : false
+    : undefined;
   const profile = (row.profile_data ?? {}) as { description?: string; thumbnail?: string };
-  const avatar =
-    row.avatar_url ||
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(row.creator_name)}`;
 
   return (
     <AppShell
@@ -116,13 +121,19 @@ function CreatorProfilePage() {
     >
       <Card className="p-6 mb-6">
         <div className="flex items-start gap-5 flex-wrap">
-          <img
-            src={avatar}
-            alt={row.creator_name}
-            width={80}
-            height={80}
-            className="w-20 h-20 rounded-full bg-white/5 border border-white/10 shrink-0"
-          />
+          {row.avatar_url ? (
+            <img
+              src={row.avatar_url}
+              alt={row.creator_name}
+              width={80}
+              height={80}
+              className="w-20 h-20 rounded-full bg-white/5 border border-white/10 shrink-0"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 shrink-0 flex items-center justify-center text-xl font-bold text-[#8892A4]">
+              {row.creator_name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-[240px]">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-3xl font-bold text-[#F0F4FF]">{row.creator_name}</h1>
@@ -180,13 +191,17 @@ function CreatorProfilePage() {
         </p>
       </Card>
 
-      {!isLive && (
-        <Card className="p-12 text-center">
-          <div className="text-sm text-[#8892A4]">
-            No profiles to view - connect this integration to load creators.
-          </div>
-        </Card>
-      )}
+      <Card className="p-6">
+        <h3 className="text-lg font-bold text-[#F0F4FF] mb-4">Platform Metrics</h3>
+        <DataGate
+          connected={platformConnected}
+          empty
+          loading={status.isLoading}
+          label={platform ? `Metrics load from the ${platform} connection` : "Metrics load once this platform is connected"}
+        >
+          <></>
+        </DataGate>
+      </Card>
     </AppShell>
   );
 }

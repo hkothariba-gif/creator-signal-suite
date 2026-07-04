@@ -1,19 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Check, X } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth, type OrgRole } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { DataGate, useConnectorStatus, WAITING_COPY } from "@/components/app/DataGate";
 
 export const Route = createFileRoute("/app/settings")({
   component: SettingsPage,
 });
 
-type TabId = "profile" | "keys" | "integrations" | "billing";
+type TabId = "profile" | "team" | "connectors" | "billing";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "profile", label: "Profile" },
-  { id: "keys", label: "API Keys" },
-  { id: "integrations", label: "Integrations" },
+  { id: "team", label: "Team" },
+  { id: "connectors", label: "Connectors" },
   { id: "billing", label: "Billing" },
 ];
 
@@ -44,175 +48,335 @@ function SettingsPage() {
         </div>
 
         {tab === "profile" && <ProfileTab />}
-        {tab === "keys" && <KeysTab />}
-        {tab === "integrations" && <IntegrationsTab />}
+        {tab === "team" && <TeamTab />}
+        {tab === "connectors" && <ConnectorsTab />}
         {tab === "billing" && <BillingTab />}
       </div>
     </AppShell>
   );
 }
 
-/* ---------- Profile ---------- */
-
-type UserData = {
-  companyName: string;
-  website: string;
-  industry: string;
-  contactEmail: string;
-};
-
-const DEFAULT_USER: UserData = {
-  companyName: "",
-  website: "",
-  industry: "SaaS",
-  contactEmail: "",
-};
+/* ---------- Profile (stored in Supabase, not localStorage) ---------- */
 
 function ProfileTab() {
-  const [data, setData] = useState<UserData>(DEFAULT_USER);
+  const { user, update, canEdit } = useAuth();
+  const [companyName, setCompanyName] = useState(user?.company_name ?? "");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("ar_user");
-      if (raw) setData({ ...DEFAULT_USER, ...JSON.parse(raw) });
-    } catch {}
-  }, []);
+    setCompanyName(user?.company_name ?? "");
+  }, [user?.company_name]);
 
-  const save = () => {
-    localStorage.setItem("ar_user", JSON.stringify(data));
-    toast.success("Saved!", { duration: 2000 });
+  const save = async () => {
+    setSaving(true);
+    const { error } = await update({ company_name: companyName });
+    setSaving(false);
+    if (error) toast.error(`Could not save: ${error}`);
+    else toast.success("Saved", { duration: 2000 });
   };
-
-  const update = (k: keyof UserData, v: string) =>
-    setData((d) => ({ ...d, [k]: v }));
 
   return (
     <Card className="p-6 space-y-5">
-      <Field label="Company Name">
-        <TextInput
-          value={data.companyName}
-          onChange={(v) => update("companyName", v)}
-          placeholder="Acme Inc."
-        />
+      <Field label="Company name">
+        <TextInput value={companyName} onChange={setCompanyName} placeholder="Acme Inc." />
       </Field>
-      <Field label="Website URL">
-        <TextInput
-          value={data.website}
-          onChange={(v) => update("website", v)}
-          placeholder="https://acme.com"
-        />
+      <Field label="Account email">
+        <div className="text-sm text-[#F0F4FF]">{user?.email}</div>
       </Field>
-      <Field label="Industry">
-        <select
-          value={data.industry}
-          onChange={(e) => update("industry", e.target.value)}
-          className="w-full rounded-lg px-3 py-2.5 text-sm text-white outline-none"
-          style={{
-            background: "#131D2E",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <option>SaaS</option>
-          <option>eCommerce</option>
-          <option>Agency</option>
-          <option>Other</option>
-        </select>
+      <Field label="Account type">
+        <div className="text-sm text-[#F0F4FF] capitalize">{user?.accountType}</div>
       </Field>
-      <Field label="Contact Email">
-        <TextInput
-          value={data.contactEmail}
-          onChange={(v) => update("contactEmail", v)}
-          placeholder="you@company.com"
-          type="email"
-        />
+      <Field label="Your role">
+        <div className="text-sm text-[#F0F4FF] capitalize">{user?.role ?? "No organization yet"}</div>
       </Field>
-      <div>
-        <PrimaryButton onClick={save}>Save Changes</PrimaryButton>
-      </div>
+      {canEdit ? (
+        <div>
+          <PrimaryButton onClick={save} disabled={saving}>
+            {saving ? "Saving" : "Save changes"}
+          </PrimaryButton>
+        </div>
+      ) : (
+        <p className="text-xs text-[#8892A4]">Reviewers have read only access. Ask an admin to change profile details.</p>
+      )}
     </Card>
   );
 }
 
-/* ---------- API Keys ---------- */
+/* ---------- Team ---------- */
 
-const PLATFORMS = [
-  { name: "YouTube Data API v3", storageKey: "ar_yt_api_key", placeholder: "AIza...", color: "#FF0000", initials: "YT" },
-  { name: "Reddit API", storageKey: "ar_reddit_api_key", placeholder: "your-client-id", color: "#FF4500", initials: "RD" },
-  { name: "X / Twitter API", storageKey: "ar_x_api_key", placeholder: "Bearer Token...", color: "#1A1A1A", initials: "X", border: true },
-  { name: "LinkedIn API", storageKey: "ar_li_api_key", placeholder: "Access Token...", color: "#0A66C2", initials: "LI" },
-];
+type MemberRow = {
+  id: string;
+  user_id: string;
+  role: OrgRole;
+  email: string;
+  created_at: string;
+};
 
-function KeysTab() {
+type InviteRow = {
+  id: string;
+  email: string;
+  role: OrgRole;
+  status: string;
+  created_at: string;
+  expires_at: string;
+};
+
+const ROLE_OPTIONS: OrgRole[] = ["admin", "editor", "reviewer"];
+
+function TeamTab() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const orgId = user?.organization?.id;
+  const isAdmin = user?.role === "admin";
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<OrgRole>("editor");
+  const [inviting, setInviting] = useState(false);
+  const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
+
+  const membersQuery = useQuery({
+    queryKey: ["org-members", orgId],
+    enabled: !!orgId,
+    queryFn: async (): Promise<MemberRow[]> => {
+      const { data: members, error } = await supabase
+        .from("organization_members")
+        .select("id, user_id, role, created_at")
+        .eq("organization_id", orgId!)
+        .order("created_at", { ascending: true });
+      if (error) throw new Error(error.message);
+      const ids = (members ?? []).map((m) => m.user_id);
+      const { data: profiles } = ids.length
+        ? await supabase.from("profiles").select("id, email").in("id", ids)
+        : { data: [] as { id: string; email: string | null }[] };
+      const emailById = new Map((profiles ?? []).map((p) => [p.id, p.email ?? ""]));
+      return (members ?? []).map((m) => ({
+        ...m,
+        role: m.role as OrgRole,
+        email: emailById.get(m.user_id) || m.user_id,
+      }));
+    },
+  });
+
+  const invitesQuery = useQuery({
+    queryKey: ["org-invites", orgId],
+    enabled: !!orgId && isAdmin,
+    queryFn: async (): Promise<InviteRow[]> => {
+      const { data, error } = await supabase
+        .from("invitations")
+        .select("id, email, role, status, created_at, expires_at")
+        .eq("organization_id", orgId!)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as InviteRow[];
+    },
+  });
+
+  const refetchAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["org-members", orgId] });
+    queryClient.invalidateQueries({ queryKey: ["org-invites", orgId] });
+  };
+
+  const sendInvite = async () => {
+    if (!orgId || !inviteEmail.trim()) return;
+    setInviting(true);
+    const { data, error } = await supabase.functions.invoke("invite-member", {
+      body: { organizationId: orgId, email: inviteEmail.trim(), role: inviteRole },
+    });
+    setInviting(false);
+    if (error || data?.error) {
+      toast.error(`Invite failed: ${error?.message ?? data?.error}`);
+      return;
+    }
+    setInviteEmail("");
+    setLastInviteLink(data?.emailSent ? null : (data?.inviteUrl ?? null));
+    toast.success(data?.emailSent ? "Invitation email sent" : "Invitation created");
+    refetchAll();
+  };
+
+  const changeRole = async (memberId: string, role: OrgRole) => {
+    const { error } = await supabase.from("organization_members").update({ role }).eq("id", memberId);
+    if (error) toast.error(`Could not change role: ${error.message}`);
+    else {
+      toast.success("Role updated");
+      refetchAll();
+    }
+  };
+
+  const removeMember = async (memberId: string) => {
+    const { error } = await supabase.from("organization_members").delete().eq("id", memberId);
+    if (error) toast.error(`Could not remove member: ${error.message}`);
+    else {
+      toast.success("Member removed");
+      refetchAll();
+    }
+  };
+
+  const revokeInvite = async (inviteId: string) => {
+    const { error } = await supabase.from("invitations").update({ status: "revoked" }).eq("id", inviteId);
+    if (error) toast.error(`Could not revoke: ${error.message}`);
+    else refetchAll();
+  };
+
+  if (!orgId) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-[#8892A4]">
+          Finish onboarding to create your organization, then invite teammates here.
+        </p>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {PLATFORMS.map((p) => (
-        <KeyRow key={p.storageKey} {...p} />
-      ))}
+      {isAdmin && (
+        <Card className="p-6">
+          <h3 className="font-semibold text-[#F0F4FF] mb-1">Invite a teammate</h3>
+          <p className="text-xs text-[#8892A4] mb-4">
+            Admins manage the team. Editors can change campaigns and ads. Reviewers can view everything but cannot make changes.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <TextInput value={inviteEmail} onChange={setInviteEmail} placeholder="teammate@company.com" type="email" />
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as OrgRole)}
+              className="rounded-lg px-3 py-2.5 text-sm text-white outline-none"
+              style={{ background: "#131D2E", border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              {ROLE_OPTIONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+            <PrimaryButton onClick={sendInvite} disabled={inviting || !inviteEmail.trim()}>
+              {inviting ? "Sending" : "Send invite"}
+            </PrimaryButton>
+          </div>
+          {lastInviteLink && (
+            <div className="mt-3 text-xs text-[#8892A4] break-all">
+              Email delivery is not configured. Share this link directly:{" "}
+              <span className="text-[#00D97E]">{lastInviteLink}</span>
+            </div>
+          )}
+        </Card>
+      )}
+
+      <Card className="p-6">
+        <h3 className="font-semibold text-[#F0F4FF] mb-4">Members</h3>
+        {membersQuery.isLoading ? (
+          <p className="text-sm text-[#8892A4]">Loading</p>
+        ) : (
+          <ul className="divide-y divide-white/[0.05]">
+            {(membersQuery.data ?? []).map((m) => (
+              <li key={m.id} className="py-3 flex items-center justify-between gap-3 text-sm">
+                <span className="font-medium text-[#F0F4FF] truncate">{m.email}</span>
+                {isAdmin && m.user_id !== user?.id ? (
+                  <span className="flex items-center gap-2">
+                    <select
+                      value={m.role}
+                      onChange={(e) => changeRole(m.id, e.target.value as OrgRole)}
+                      className="rounded-lg px-2 py-1.5 text-xs text-white outline-none"
+                      style={{ background: "#131D2E", border: "1px solid rgba(255,255,255,0.1)" }}
+                    >
+                      {ROLE_OPTIONS.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                    <button onClick={() => removeMember(m.id)} className="text-xs text-[#8892A4] hover:text-white">
+                      Remove
+                    </button>
+                  </span>
+                ) : (
+                  <span className="text-xs text-[#8892A4] capitalize">{m.role}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      {isAdmin && (
+        <Card className="p-6">
+          <h3 className="font-semibold text-[#F0F4FF] mb-4">Pending invitations</h3>
+          {(invitesQuery.data ?? []).length === 0 ? (
+            <p className="text-sm text-[#8892A4]">No pending invitations.</p>
+          ) : (
+            <ul className="divide-y divide-white/[0.05]">
+              {(invitesQuery.data ?? []).map((i) => (
+                <li key={i.id} className="py-3 flex items-center justify-between gap-3 text-sm">
+                  <span className="font-medium text-[#F0F4FF] truncate">{i.email}</span>
+                  <span className="text-xs text-[#8892A4] capitalize">{i.role}</span>
+                  <button onClick={() => revokeInvite(i.id)} className="text-xs text-[#8892A4] hover:text-white">
+                    Revoke
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
     </div>
   );
 }
 
-function KeyRow({
-  name, storageKey, placeholder, color, initials, border,
-}: {
-  name: string; storageKey: string; placeholder: string; color: string; initials: string; border?: boolean;
-}) {
-  const [value, setValue] = useState("");
-  const [saved, setSaved] = useState("");
-  const [show, setShow] = useState(false);
+/* ---------- Connectors ---------- */
+// Keys live as environment variables on the server or in Supabase Edge
+// Function secrets. The browser only ever sees booleans.
 
-  useEffect(() => {
-    const v = localStorage.getItem(storageKey) || "";
-    setValue(v);
-    setSaved(v);
-  }, [storageKey]);
+const CONNECTOR_ROWS: { key: string; label: string; desc: string }[] = [
+  { key: "listening", label: "Social listening", desc: "Chatter and sentiment across the web" },
+  { key: "creatorPerformance", label: "Creator performance", desc: "How content performs for creators in your space" },
+  { key: "youtube", label: "YouTube Data API", desc: "Video stats and comments" },
+  { key: "x", label: "X API", desc: "Posts and search" },
+  { key: "reddit", label: "Reddit Data API", desc: "Posts and comments" },
+  { key: "trends", label: "Trends", desc: "Search interest over time" },
+  { key: "llm", label: "Ad copy model", desc: "Generates ad copy from ranked hooks" },
+  { key: "image", label: "Ad imagery", desc: "Generates ad images" },
+  { key: "email", label: "Team invite email", desc: "Delivers invitation emails" },
+  { key: "adsMiddleware", label: "Ads middleware", desc: "Publishes paid campaigns to Reddit, X, and YouTube" },
+  { key: "stripe", label: "Stripe", desc: "Brand billing" },
+  { key: "paypal", label: "PayPal Payouts", desc: "Affiliate cash out" },
+  { key: "identity", label: "Identity and tax", desc: "Verification before payout" },
+];
 
-  const save = () => {
-    localStorage.setItem(storageKey, value);
-    setSaved(value);
-    toast.success("Saved!", { duration: 2000 });
-  };
-
-  const connected = saved.trim().length > 0;
+function ConnectorsTab() {
+  const status = useConnectorStatus();
+  const platform = status.data?.platform as Record<string, boolean> | undefined;
 
   return (
-    <Card className="p-5">
-      <div className="flex items-center gap-4">
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
-          style={{ background: color, border: border ? "1px solid rgba(255,255,255,0.2)" : "none" }}
-        >
-          {initials}
+    <div className="space-y-4">
+      <Card className="p-6">
+        <p className="text-sm text-[#8892A4]">
+          Integration keys are configured on the server by the platform team. They are never stored in the browser.
+          Panels that depend on an integration show {'"'}
+          {WAITING_COPY}
+          {'"'} until it is configured.
+        </p>
+      </Card>
+      {status.isLoading ? (
+        <Card className="p-6">
+          <p className="text-sm text-[#8892A4]">Loading</p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {CONNECTOR_ROWS.map((row) => {
+            const connected = platform?.[row.key] === true;
+            return (
+              <Card key={row.key} className="p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-medium text-[#F0F4FF]">{row.label}</div>
+                  <StatusBadge connected={connected} />
+                </div>
+                <div className="text-sm text-[#8892A4] mt-1">{row.desc}</div>
+              </Card>
+            );
+          })}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-2 gap-3">
-            <div className="font-medium text-[#F0F4FF]">{name}</div>
-            <StatusBadge connected={connected} />
-          </div>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <input
-                type={show ? "text" : "password"}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder={placeholder}
-                className="w-full rounded-lg px-3 py-2.5 pr-10 text-sm text-white outline-none"
-                style={{ background: "#131D2E", border: "1px solid rgba(255,255,255,0.1)" }}
-              />
-              <button
-                type="button"
-                onClick={() => setShow((s) => !s)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8892A4] hover:text-white p-1"
-                aria-label={show ? "Hide" : "Show"}
-              >
-                {show ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            <PrimaryButton onClick={save}>Save Key</PrimaryButton>
-          </div>
-        </div>
-      </div>
-    </Card>
+      )}
+    </div>
   );
 }
 
@@ -223,7 +387,7 @@ function StatusBadge({ connected }: { connected: boolean }) {
         className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md"
         style={{ background: "rgba(0,217,126,0.12)", color: "#00D97E" }}
       >
-        <Check size={12} /> Connected
+        <Check size={12} /> Configured
       </span>
     );
   }
@@ -232,408 +396,25 @@ function StatusBadge({ connected }: { connected: boolean }) {
       className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-md"
       style={{ background: "rgba(136,146,164,0.12)", color: "#8892A4" }}
     >
-      Not connected
+      Not configured
     </span>
   );
 }
 
-/* ---------- Integrations ---------- */
-
-type IntegrationDef = {
-  name: string;
-  desc: string;
-  cta: string;
-  color: string;
-  initials: string;
-  special?: "shopify" | "stripe";
-};
-
-const INTEGRATIONS: IntegrationDef[] = [
-  { name: "Shopify", desc: "Connect your store to track conversions", cta: "Connect Shopify", color: "#95BF47", initials: "SH", special: "shopify" },
-  { name: "WooCommerce", desc: "Connect your store to track conversions", cta: "Connect WooCommerce", color: "#7F54B3", initials: "WC" },
-  { name: "Stripe", desc: "Add Stripe to manage affiliate payouts", cta: "Connect Stripe", color: "#635BFF", initials: "ST", special: "stripe" },
-  { name: "PayPal", desc: "Pay creators via PayPal mass payouts", cta: "Connect PayPal", color: "#003087", initials: "PP" },
-  { name: "HubSpot", desc: "Sync creator contacts to your CRM", cta: "Connect HubSpot", color: "#FF7A59", initials: "HS" },
-  { name: "Slack", desc: "Get campaign alerts in Slack", cta: "Connect Slack", color: "#4A154B", initials: "SL" },
-];
-
-function IntegrationsTab() {
-  const [shopify, setShopify] = useState<{ url: string; connected: boolean } | null>(null);
-  const [stripe, setStripe] = useState<{ key: string; connected: boolean } | null>(null);
-  const [modal, setModal] = useState<"shopify" | "stripe" | null>(null);
-  const [shopifyUrl, setShopifyUrl] = useState("");
-  const [stripeKey, setStripeKey] = useState("");
-
-  useEffect(() => {
-    try {
-      const s = localStorage.getItem("ar_shopify");
-      if (s) setShopify(JSON.parse(s));
-    } catch {}
-    try {
-      const s = localStorage.getItem("ar_stripe");
-      if (s) setStripe(JSON.parse(s));
-    } catch {}
-  }, []);
-
-  const saveShopify = () => {
-    if (!shopifyUrl.trim()) return;
-    const data = { url: shopifyUrl.trim(), connected: true, connectedAt: Date.now() };
-    localStorage.setItem("ar_shopify", JSON.stringify(data));
-    setShopify(data);
-    setModal(null);
-    setShopifyUrl("");
-    toast.success("Shopify connected ✅");
-  };
-
-  const saveStripe = () => {
-    if (!stripeKey.trim()) return;
-    const data = { key: stripeKey.trim(), connected: true };
-    localStorage.setItem("ar_stripe", JSON.stringify(data));
-    setStripe(data);
-    setModal(null);
-    setStripeKey("");
-    toast.success("Stripe connected ✅");
-  };
-
-  return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {INTEGRATIONS.map((i) => {
-          const isShopify = i.special === "shopify";
-          const isStripe = i.special === "stripe";
-          const connected =
-            (isShopify && shopify?.connected) || (isStripe && stripe?.connected);
-
-          return (
-            <Card key={i.name} className="p-5">
-              <div className="flex items-start gap-3 mb-3">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
-                  style={{ background: i.color }}
-                >
-                  {i.initials}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-medium text-[#F0F4FF]">{i.name}</div>
-                    {connected && (
-                      <span
-                        className="text-xs font-medium px-2 py-1 rounded-md"
-                        style={{ background: "rgba(0,217,126,0.12)", color: "#00D97E" }}
-                      >
-                        Connected ✅
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm text-[#8892A4]">{i.desc}</div>
-                </div>
-              </div>
-              {connected ? (
-                <PrimaryButton
-                  onClick={() =>
-                    alert(`${i.name} connected`)
-                  }
-                >
-                  Manage →
-                </PrimaryButton>
-              ) : (
-                <PrimaryButton
-                  onClick={() => {
-                    if (isShopify) setModal("shopify");
-                    else if (isStripe) setModal("stripe");
-                    else
-                      alert(`${i.name} integration coming soon — contact support@aspenreach.com`);
-                  }}
-                >
-                  {i.cta}
-                </PrimaryButton>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-
-      {modal === "shopify" && (
-        <Modal title="Connect Shopify Store" onClose={() => setModal(null)}>
-          <Field label="Shopify store URL">
-            <TextInput
-              value={shopifyUrl}
-              onChange={setShopifyUrl}
-              placeholder="e.g. mystore.myshopify.com"
-            />
-          </Field>
-          <div className="pt-2">
-            <PrimaryButton onClick={saveShopify}>Connect Store</PrimaryButton>
-          </div>
-        </Modal>
-      )}
-
-      {modal === "stripe" && (
-        <Modal title="Connect Stripe Account" onClose={() => setModal(null)}>
-          <Field label="Stripe Publishable Key">
-            <TextInput
-              value={stripeKey}
-              onChange={setStripeKey}
-              placeholder="pk_live_..."
-            />
-          </Field>
-          <div className="pt-2">
-            <PrimaryButton onClick={saveStripe}>Connect Stripe</PrimaryButton>
-          </div>
-        </Modal>
-      )}
-    </>
-  );
-}
-
 /* ---------- Billing ---------- */
-
-type PlanId = "growth" | "scale" | "enterprise";
-
-const PLANS: {
-  id: PlanId;
-  name: string;
-  price: string;
-  features: string[];
-  highlight?: boolean;
-}[] = [
-  {
-    id: "growth",
-    name: "Growth",
-    price: "$299/mo",
-    features: [
-      "Up to 5 campaigns",
-      "500 creator searches/mo",
-      "Email outreach",
-      "Basic analytics",
-    ],
-  },
-  {
-    id: "scale",
-    name: "Scale",
-    price: "$799/mo",
-    highlight: true,
-    features: [
-      "Unlimited campaigns",
-      "5,000 searches/mo",
-      "Multi-channel outreach",
-      "Advanced analytics",
-      "Priority support",
-    ],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "Custom pricing",
-    features: [
-      "Unlimited everything",
-      "Dedicated CSM",
-      "Custom integrations",
-      "SLA guarantee",
-    ],
-  },
-];
+// Billing arrives with the payouts phase. Until Stripe is configured and the
+// organization has connected billing, this surface waits.
 
 function BillingTab() {
-  const usage = [
-    { label: "Campaigns", used: 3, max: 10 },
-    { label: "Creators in hotlist", used: 47, max: 100 },
-    { label: "Outreach emails sent", used: 2400, max: 5000 },
-  ];
-
-  const [plan, setPlan] = useState<PlanId | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("ar_plan");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.plan) setPlan(parsed.plan);
-      }
-    } catch {}
-  }, []);
-
-  const selectPlan = (id: PlanId) => {
-    const data = { plan: id, upgradedAt: Date.now() };
-    localStorage.setItem("ar_plan", JSON.stringify(data));
-    setPlan(id);
-    toast.success("Plan updated! ✅");
-    setModalOpen(false);
-  };
-
-  const currentPlanName = plan
-    ? PLANS.find((p) => p.id === plan)?.name ?? "Growth"
-    : "Growth";
+  const status = useConnectorStatus();
+  const connected = status.data ? status.data.platform.stripe && status.data.account.billing : undefined;
 
   return (
-    <div className="space-y-4">
+    <DataGate connected={connected} loading={status.isLoading} label="Stripe billing">
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <div className="text-sm text-[#8892A4]">Current plan</div>
-            <div className="text-xl font-semibold text-[#F0F4FF] flex items-center gap-2">
-              {currentPlanName} Plan
-              {plan && (
-                <span
-                  className="text-xs font-medium px-2 py-1 rounded-md"
-                  style={{ background: "rgba(0,217,126,0.12)", color: "#00D97E" }}
-                >
-                  {currentPlanName}
-                </span>
-              )}
-            </div>
-          </div>
-          <span
-            className="text-xs font-medium px-2 py-1 rounded-md"
-            style={{ background: "rgba(0,217,126,0.12)", color: "#00D97E" }}
-          >
-            Active
-          </span>
-        </div>
+        <p className="text-sm text-[#8892A4]">Billing details will appear here.</p>
       </Card>
-
-      <Card className="p-6">
-        <h3 className="font-semibold text-[#F0F4FF] mb-4">Usage this month</h3>
-        <div className="space-y-4">
-          {usage.map((u) => {
-            const pct = Math.min(100, (u.used / u.max) * 100);
-            return (
-              <div key={u.label}>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-[#F0F4FF]">{u.label}</span>
-                  <span className="text-[#8892A4]">
-                    {u.used.toLocaleString()} / {u.max.toLocaleString()}
-                  </span>
-                </div>
-                <div
-                  className="h-2 rounded-full overflow-hidden"
-                  style={{ background: "rgba(255,255,255,0.07)" }}
-                >
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${pct}%`, background: "#00D97E" }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      <div className="flex gap-3">
-        <PrimaryButton onClick={() => setModalOpen(true)}>
-          Upgrade Plan
-        </PrimaryButton>
-        <button
-          onClick={() => alert("Invoice download coming soon")}
-          className="px-4 py-2.5 rounded-lg text-sm font-semibold text-[#F0F4FF]"
-          style={{
-            background: "#131D2E",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          Download Invoice
-        </button>
-      </div>
-
-      {modalOpen && (
-        <Modal title="Choose Your Plan" onClose={() => setModalOpen(false)} wide>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {PLANS.map((p) => {
-              const isCurrent = plan === p.id;
-              return (
-                <div
-                  key={p.id}
-                  className="rounded-xl p-5 flex flex-col"
-                  style={{
-                    background: "#131D2E",
-                    border: p.highlight
-                      ? "1.5px solid #00D97E"
-                      : "1px solid rgba(255,255,255,0.1)",
-                  }}
-                >
-                  <div className="text-sm text-[#8892A4]">{p.name}</div>
-                  <div className="text-2xl font-bold text-white mt-1 mb-4">
-                    {p.price}
-                  </div>
-                  <ul className="space-y-2 text-sm text-[#F0F4FF] mb-5 flex-1">
-                    {p.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2">
-                        <Check size={14} style={{ color: "#00D97E" }} className="mt-0.5 shrink-0" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => selectPlan(p.id)}
-                    disabled={isCurrent}
-                    className="px-4 py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-                    style={{
-                      background: p.highlight ? "#00D97E" : "rgba(255,255,255,0.08)",
-                      color: p.highlight ? "#000" : "#F0F4FF",
-                      border: p.highlight ? "none" : "1px solid rgba(255,255,255,0.1)",
-                    }}
-                  >
-                    {isCurrent ? "Current Plan" : "Select Plan"}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-/* ---------- Modal ---------- */
-
-function Modal({
-  title,
-  children,
-  onClose,
-  wide,
-}: {
-  title: string;
-  children: React.ReactNode;
-  onClose: () => void;
-  wide?: boolean;
-}) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={`w-full ${wide ? "max-w-4xl" : "max-w-md"} rounded-2xl p-6 space-y-4 text-white relative`}
-        style={{
-          background: "#0C1222",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-[#8892A4] hover:text-white p-1"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
+    </DataGate>
   );
 }
 
@@ -649,9 +430,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function TextInput({
-  value, onChange, placeholder, type = "text",
+  value,
+  onChange,
+  placeholder,
+  type = "text",
 }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
 }) {
   return (
     <input
@@ -666,14 +453,19 @@ function TextInput({
 }
 
 function PrimaryButton({
-  onClick, children,
+  onClick,
+  children,
+  disabled,
 }: {
-  onClick: () => void; children: React.ReactNode;
+  onClick: () => void;
+  children: React.ReactNode;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className="px-4 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
+      disabled={disabled}
+      className="px-4 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity disabled:opacity-50"
       style={{ background: "#00D97E" }}
     >
       {children}

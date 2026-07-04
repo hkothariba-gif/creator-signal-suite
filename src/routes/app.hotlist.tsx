@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app/AppShell";
+import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +22,6 @@ const STAGES: { key: string; label: string }[] = [
   { key: "live", label: "Live / Posted" },
 ];
 
-const LIVE_PLATFORMS = new Set(["YouTube", "youtube"]);
 const PLATFORM_FILTERS = ["All", "YouTube", "Reddit", "X", "LinkedIn"];
 
 const platBadge = (p: string | null) => {
@@ -36,6 +36,7 @@ const slugify = (n: string) => encodeURIComponent(n.toLowerCase().replace(/\s+/g
 
 function HotlistPage() {
   const { user } = useAuth();
+  const status = useConnectorStatus();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
@@ -87,9 +88,22 @@ function HotlistPage() {
     }
   };
 
-  // If filtering a platform with no live integration and no rows, show CTA
-  const noLiveIntegration =
-    filter !== "All" && !LIVE_PLATFORMS.has(filter) && filtered.length === 0;
+  // Filtered platform view: if that platform's connector is not configured
+  // and no rows were saved from it, the panel waits on the connection.
+  const p = status.data?.platform;
+  const filterConnected = status.data
+    ? filter === "All"
+      ? true
+      : filter === "YouTube"
+        ? p!.youtube
+        : filter === "Reddit"
+          ? p!.reddit
+          : filter === "X"
+            ? p!.x
+            : false
+    : undefined;
+  const connected =
+    filtered.length > 0 ? true : filter === "All" ? true : filterConnected;
 
   return (
     <AppShell title="Hotlist CRM">
@@ -108,17 +122,12 @@ function HotlistPage() {
         ))}
       </div>
 
-      {loading ? (
-        <div className="text-sm text-[#8892A4] py-12 text-center">Loading…</div>
-      ) : noLiveIntegration ? (
-        <div className="text-sm text-[#8892A4] py-12 text-center">
-          No profiles to view - connect this integration to load creators.
-        </div>
-      ) : rows.length === 0 ? (
-        <div className="text-sm text-[#8892A4] py-12 text-center">
-          Your hotlist is empty. Add creators from Discovery to get started.
-        </div>
-      ) : (
+      <DataGate
+        connected={connected}
+        loading={loading || status.isLoading}
+        empty={filtered.length === 0}
+        label="Creators load once this platform is connected"
+      >
         <div className="flex gap-4 overflow-x-auto pb-4">
           {STAGES.map((col) => (
             <div
@@ -150,14 +159,17 @@ function HotlistPage() {
                       className="bg-[#131D2E] border border-white/[0.07] rounded-lg p-3.5 cursor-grab active:cursor-grabbing"
                     >
                       <div className="flex items-start gap-2.5">
-                        <img
-                          className="w-9 h-9 rounded-full bg-white/5 shrink-0"
-                          src={
-                            c.avatar_url ||
-                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.creator_name)}&backgroundColor=0C1222&radius=50`
-                          }
-                          alt={c.creator_name}
-                        />
+                        {c.avatar_url ? (
+                          <img
+                            className="w-9 h-9 rounded-full bg-white/5 shrink-0"
+                            src={c.avatar_url}
+                            alt={c.creator_name}
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-white/5 shrink-0 flex items-center justify-center text-[10px] font-bold text-[#8892A4]">
+                            {c.creator_name.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
                             <GripVertical className="w-3.5 h-3.5 text-[#4B5563]" />
@@ -215,7 +227,7 @@ function HotlistPage() {
             </div>
           ))}
         </div>
-      )}
+      </DataGate>
     </AppShell>
   );
 }

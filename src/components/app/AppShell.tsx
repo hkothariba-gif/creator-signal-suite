@@ -92,7 +92,6 @@ export function AppShell({ title, right, children }: { title: string; right?: Re
             {right}
             <button className="text-[#8892A4] hover:text-white relative">
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#00D97E] rounded-full" />
             </button>
             <button className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-[#00D97E]/50 text-[#00D97E] hover:bg-[#00D97E]/10">
               <Sparkles className="w-3.5 h-3.5" /> Upgrade

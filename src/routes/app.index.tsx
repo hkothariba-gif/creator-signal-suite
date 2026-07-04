@@ -1,66 +1,61 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell, Card, StatCard } from "@/components/app/AppShell";
+import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Plus, Search, Mail, DollarSign, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
   component: HomePage,
 });
 
-const activity: { color: string; name: string; action: string; time: string }[] = [];
-
-const topCreators = (() => {
-  try {
-    const h = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");
-    return Array.isArray(h)
-      ? h.slice(0, 3).map((c: any) => ({
-          name: c.name || "Creator",
-          platform: c.platform || "YouTube",
-          score: c.score || 80,
-          color: "#00D97E",
-        }))
-      : [];
-  } catch {
-    return [];
-  }
-})();
-
 function HomePage() {
-  const { user, update } = useAuth();
-  const [bannerDismissed, setBannerDismissed] = useState(() => {
-    try {
-      return localStorage.getItem("ar_banner_dismissed") === "true";
-    } catch {
-      return false;
-    }
+  const { user } = useAuth();
+  const status = useConnectorStatus();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  const counts = useQuery({
+    queryKey: ["home-counts", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const [c, h] = await Promise.all([
+        supabase.from("campaigns").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+        supabase.from("hotlist").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+      ]);
+      return { campaigns: c.count ?? 0, hotlist: h.count ?? 0 };
+    },
   });
 
-  useEffect(() => {
-    if (bannerDismissed) {
-      try {
-        localStorage.setItem("ar_banner_dismissed", "true");
-      } catch { /* noop */ }
-    }
-  }, [bannerDismissed]);
-
-  const [campaignsCount, hotlistCount] = (() => {
-    try {
-      const c = JSON.parse(localStorage.getItem("ar_campaigns") || "[]");
-      const h = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");
-      return [Array.isArray(c) && c.length ? c.length : 3, Array.isArray(h) && h.length ? h.length : 47];
-    } catch { return [3, 47]; }
-  })();
+  const topCreators = useQuery({
+    queryKey: ["home-top-creators", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("hotlist")
+        .select("id,creator_name,platform,score")
+        .eq("user_id", user!.id)
+        .not("score", "is", null)
+        .order("score", { ascending: false })
+        .limit(3);
+      return data ?? [];
+    },
+  });
 
   const firstName = (user?.email ?? "there").split("@")[0].split(/[._-]/)[0];
   const greeting = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-  const showSetup = user?.role === "user" && user?.onboarded === false && !bannerDismissed;
+  const showSetup = user?.onboarded === false && !bannerDismissed;
+
+  const emailReady = status.data ? status.data.platform.email : undefined;
+  const perfReady = status.data ? status.data.platform.creatorPerformance : undefined;
+  const salesReady = status.data ? status.data.account.sales : undefined;
 
   return (
     <AppShell title="Home">
       {showSetup && (
         <div className="mb-6 flex items-center gap-3 px-4 py-3 rounded-xl border border-[#00D97E]/30 bg-[#00D97E]/10 text-sm">
-          <span className="text-[#F0F4FF]">✨ Finish setting up your account</span>
+          <span className="text-[#F0F4FF]">Finish setting up your account</span>
           <Link
             to="/onboarding"
             className="ml-auto px-3 h-8 inline-flex items-center rounded-lg bg-[#00D97E] text-[#05080F] font-bold text-xs hover:bg-[#00c472]"
@@ -79,64 +74,68 @@ function HomePage() {
 
       <div className="mb-8">
         <h2 className="text-2xl font-bold">Good morning, {greeting}</h2>
-        <p className="text-[#8892A4] mt-1">Here's what's happening across your campaigns</p>
+        <p className="text-[#8892A4] mt-1">Here is what is happening across your campaigns</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Active Campaigns" value={String(campaignsCount)} trend="↑ vs last month" />
-        <StatCard label="Creators in Hotlist" value={String(hotlistCount)} trend="↑ 12 this week" />
-        <StatCard label="Pending Outreach" value="12" trend="→ no change" trendColor="muted" />
-        <StatCard label="Avg Brand-Fit Score" value="84%" trend="↑ from 79%" />
+        <StatCard label="Campaigns" value={counts.data ? String(counts.data.campaigns) : "…"} />
+        <StatCard label="Creators in Hotlist" value={counts.data ? String(counts.data.hotlist) : "…"} />
+        <DataGate connected={emailReady} empty loading={status.isLoading} label="Pending outreach">
+          <></>
+        </DataGate>
+        <DataGate connected={perfReady} empty loading={status.isLoading} label="Brand fit score">
+          <></>
+        </DataGate>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
         <Card className="lg:col-span-3 p-6">
           <h3 className="font-semibold mb-4">Recent Campaign Activity</h3>
-          {activity.length === 0 ? (
-            <p className="text-[#8892A4] text-sm py-6 text-center">No campaign activity yet. Start a campaign to see updates here.</p>
-          ) : (
-            <ul className="space-y-3">
-              {activity.map((a, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm py-2 border-b border-white/[0.04] last:border-0">
-                  <img
-                    className="creator-avatar-img sm"
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(a.name)}&backgroundColor=0C1222&radius=50`}
-                    alt={a.name}
-                  />
-                  <span className="w-2 h-2 rounded-full" style={{ background: a.color }} />
-                  <span className="font-semibold text-[#F0F4FF]">{a.name}</span>
-                  <span className="text-[#8892A4]">— {a.action}</span>
-                  <span className="ml-auto text-xs text-[#4B5563]">{a.time}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <a href="#" className="block mt-4 text-sm text-[#00D97E] hover:underline">View all activity →</a>
+          <DataGate connected={emailReady} empty loading={status.isLoading} label="Activity loads from your email connection">
+            <></>
+          </DataGate>
         </Card>
 
         <Card className="lg:col-span-2 p-6">
           <h3 className="font-semibold mb-4">Top Creators by Brand Fit</h3>
-          {topCreators.length === 0 ? (
-            <p className="text-[#8892A4] text-sm py-4 text-center">Add creators to your hotlist to see them here.</p>
-          ) : (
+          <DataGate
+            connected={perfReady}
+            loading={status.isLoading || topCreators.isLoading}
+            empty={(topCreators.data ?? []).length === 0}
+            label="Scores load from the creator performance connection"
+          >
             <ul className="space-y-4">
-              {topCreators.map((c) => (
-                <li key={c.name}>
+              {(topCreators.data ?? []).map((c) => (
+                <li key={c.id}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
-                    <span className="font-semibold">{c.name}</span>
-                    <span className="text-xs text-[#8892A4]">{c.platform}</span>
+                    <span className="font-semibold">{c.creator_name}</span>
+                    <span className="text-xs text-[#8892A4]">{c.platform ?? ""}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full" style={{ width: `${c.score}%`, background: c.color }} />
+                      <div className="h-full bg-[#00D97E]" style={{ width: `${c.score ?? 0}%` }} />
                     </div>
-                    <span className="text-xs font-bold" style={{ color: c.color }}>{c.score}%</span>
+                    <span className="text-xs font-bold text-[#00D97E]">{c.score ?? 0}%</span>
                   </div>
                 </li>
               ))}
             </ul>
-          )}
-          <a href="#" className="block mt-5 text-sm text-[#00D97E] hover:underline">View →</a>
+          </DataGate>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4">Views and Clicks</h3>
+          <DataGate connected={perfReady} empty loading={status.isLoading} label="Metrics load from the creator performance connection">
+            <></>
+          </DataGate>
+        </Card>
+        <Card className="p-6">
+          <h3 className="font-semibold mb-4">Revenue</h3>
+          <DataGate connected={salesReady} empty loading={status.isLoading} label="Revenue loads from your sales connection">
+            <></>
+          </DataGate>
         </Card>
       </div>
 
@@ -146,22 +145,6 @@ function HomePage() {
         <QuickAction to="/app/discovery" icon={<Search className="w-5 h-5" />} label="Search Creators" />
         <QuickAction to="/app/outreach" icon={<Mail className="w-5 h-5" />} label="Send Outreach" />
         <QuickAction to="/app/affiliate" icon={<DollarSign className="w-5 h-5" />} label="View Payouts" />
-      </div>
-
-      <div className="mt-8 flex items-center gap-4">
-        <button
-          onClick={() => {
-            try {
-              localStorage.removeItem("ar_banner_dismissed");
-              localStorage.setItem("ar_onboarding_step", "1");
-            } catch {}
-            update({ onboarded: false });
-            setBannerDismissed(false);
-          }}
-          className="text-xs text-[#8892A4] hover:text-[#00D97E] underline underline-offset-2"
-        >
-          Reset onboarding
-        </button>
       </div>
     </AppShell>
   );

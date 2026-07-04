@@ -93,17 +93,38 @@ function DiscoveryPage() {
     }
   };
 
-  const addToHotlist = (c: CreatorResult) => {
-    if (typeof window === "undefined") return;
-    const existing = JSON.parse(localStorage.getItem("ar_hotlist") || "[]");
-    if (existing.some((x: any) => x.id === c.id)) {
+  const addToHotlist = async (c: CreatorResult) => {
+    if (!user) {
+      toast.error("Please sign in first");
+      return;
+    }
+    const { data: existing } = await supabase
+      .from("hotlist")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("external_id", c.id)
+      .maybeSingle();
+    if (existing) {
       toast.info(`${c.name} is already in your hotlist`);
       return;
     }
-    existing.push({ ...c, stage: "Saved", addedAt: Date.now() });
-    localStorage.setItem("ar_hotlist", JSON.stringify(existing));
+    const { error } = await supabase.from("hotlist").insert({
+      user_id: user.id,
+      creator_name: c.name,
+      avatar_url: c.thumbnail ?? null,
+      external_id: c.id,
+      source: "youtube_api",
+      platform: c.platform,
+      stage: "saved",
+      profile_data: { description: c.description, thumbnail: c.thumbnail },
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(`${c.name} added to hotlist`);
   };
+
 
   const slugify = (n: string) => encodeURIComponent(n.toLowerCase().replace(/\s+/g, "-"));
 

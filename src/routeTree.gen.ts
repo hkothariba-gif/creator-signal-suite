@@ -28,6 +28,7 @@ import { Route as AppCreatorsRouteImport } from './routes/app.creators'
 import { Route as AppCommunityRouteImport } from './routes/app.community'
 import { Route as AppCampaignsRouteImport } from './routes/app.campaigns'
 import { Route as AppAffiliateRouteImport } from './routes/app.affiliate'
+import { Route as AppAdsRouteImport } from './routes/app.ads'
 import { Route as AppCampaignsIndexRouteImport } from './routes/app.campaigns.index'
 import { Route as AppCreatorsIdRouteImport } from './routes/app.creators.$id'
 import { Route as AppCampaignsIdRouteImport } from './routes/app.campaigns.$id'
@@ -127,6 +128,11 @@ const AppAffiliateRoute = AppAffiliateRouteImport.update({
   path: '/affiliate',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdsRoute = AppAdsRouteImport.update({
+  id: '/ads',
+  path: '/ads',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCampaignsIndexRoute = AppCampaignsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
+  '/app/ads': typeof AppAdsRoute
   '/app/affiliate': typeof AppAffiliateRoute
   '/app/campaigns': typeof AppCampaignsRouteWithChildren
   '/app/community': typeof AppCommunityRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
+  '/app/ads': typeof AppAdsRoute
   '/app/affiliate': typeof AppAffiliateRoute
   '/app/community': typeof AppCommunityRoute
   '/app/creators': typeof AppCreatorsRouteWithChildren
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
+  '/app/ads': typeof AppAdsRoute
   '/app/affiliate': typeof AppAffiliateRoute
   '/app/campaigns': typeof AppCampaignsRouteWithChildren
   '/app/community': typeof AppCommunityRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/signup'
+    | '/app/ads'
     | '/app/affiliate'
     | '/app/campaigns'
     | '/app/community'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/signup'
+    | '/app/ads'
     | '/app/affiliate'
     | '/app/community'
     | '/app/creators'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/signup'
+    | '/app/ads'
     | '/app/affiliate'
     | '/app/campaigns'
     | '/app/community'
@@ -433,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAffiliateRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/ads': {
+      id: '/app/ads'
+      path: '/ads'
+      fullPath: '/app/ads'
+      preLoaderRoute: typeof AppAdsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/campaigns/': {
       id: '/app/campaigns/'
       path: '/'
@@ -484,6 +503,7 @@ const AppCreatorsRouteWithChildren = AppCreatorsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppAdsRoute: typeof AppAdsRoute
   AppAffiliateRoute: typeof AppAffiliateRoute
   AppCampaignsRoute: typeof AppCampaignsRouteWithChildren
   AppCommunityRoute: typeof AppCommunityRoute
@@ -498,6 +518,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdsRoute: AppAdsRoute,
   AppAffiliateRoute: AppAffiliateRoute,
   AppCampaignsRoute: AppCampaignsRouteWithChildren,
   AppCommunityRoute: AppCommunityRoute,
@@ -526,3 +547,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

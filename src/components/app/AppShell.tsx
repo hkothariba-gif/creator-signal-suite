@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Home, Megaphone, Search, Users, Mail, DollarSign, Radio, TrendingUp,
-  Settings, LogOut, Bell, Sparkles, Layers,
+  Settings, LogOut, Bell, Sparkles, Layers, Wand2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { ReactNode } from "react";
@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/app", label: "Home", icon: Home, exact: true },
   { to: "/app/campaigns", label: "Campaigns", icon: Megaphone },
+  { to: "/app/ads", label: "Ad Studio", icon: Wand2 },
   { to: "/app/discovery", label: "Discovery", icon: Search },
   { to: "/app/hotlist", label: "Hotlist CRM", icon: Users },
   { to: "/app/outreach", label: "Outreach", icon: Mail },

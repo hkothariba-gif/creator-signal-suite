@@ -4,7 +4,7 @@ import { Hero } from "@/components/landing/Hero";
 import { PlatformRevenueTabs } from "@/components/landing/PlatformRevenueTabs";
 import { TrustBar } from "@/components/landing/TrustBar";
 import { ProblemSolution } from "@/components/landing/ProblemSolution";
-import { LinkedInRevenue } from "@/components/landing/LinkedInRevenue";
+import { AdsIntelligence } from "@/components/landing/AdsIntelligence";
 import { HeatMapSection } from "@/components/landing/HeatMapSection";
 import { PlatformCards } from "@/components/landing/PlatformCards";
 import { Pricing } from "@/components/landing/Pricing";
@@ -39,7 +39,7 @@ function Landing() {
         <PlatformRevenueTabs />
         <TrustBar />
         <ProblemSolution />
-        <LinkedInRevenue />
+        <AdsIntelligence />
         <HeatMapSection />
         <PlatformCards />
         <Pricing />

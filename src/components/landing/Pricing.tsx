@@ -1,17 +1,25 @@
 import { Check } from "lucide-react";
 import { WordStagger, FadeUp } from "./words";
 
-const tiers = [
+type Tier = {
+  name: string;
+  price: number | "Custom";
+  features: string[];
+  cta: string;
+  popular: boolean;
+};
+
+const tiers: Tier[] = [
   {
     name: "Starter",
-    price: 99,
+    price: 499,
     features: ["50 creator searches/mo", "1 active campaign", "YouTube discovery", "Email outreach templates"],
     cta: "Get Started",
     popular: false,
   },
   {
     name: "Growth",
-    price: 299,
+    price: 999,
     features: [
       "Unlimited searches",
       "5 active campaigns",
@@ -24,8 +32,8 @@ const tiers = [
     popular: true,
   },
   {
-    name: "Scale",
-    price: 799,
+    name: "Enterprise",
+    price: "Custom",
     features: [
       "Everything in Growth",
       "Admin dashboard",

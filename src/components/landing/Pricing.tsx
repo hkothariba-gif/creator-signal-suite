@@ -79,8 +79,14 @@ export function Pricing() {
 
                 <div className="font-display font-bold text-xl text-white tracking-tight">{t.name}</div>
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className="font-display font-extrabold text-5xl text-white tracking-[-0.03em]">${t.price}</span>
-                  <span className="text-brand-muted text-sm">/mo</span>
+                  {typeof t.price === "number" ? (
+                    <>
+                      <span className="font-display font-extrabold text-5xl text-white tracking-[-0.03em]">${t.price}</span>
+                      <span className="text-brand-muted text-sm">/mo</span>
+                    </>
+                  ) : (
+                    <span className="font-display font-extrabold text-5xl text-white tracking-[-0.03em]">{t.price}</span>
+                  )}
                 </div>
 
                 <ul className="mt-6 space-y-3 flex-1">

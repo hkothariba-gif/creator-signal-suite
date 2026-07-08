@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      ads: {
+        Row: {
+          body: string | null
+          created_at: string
+          created_by: string
+          cta: string | null
+          headline: string | null
+          id: string
+          image_path: string | null
+          image_prompt: string | null
+          informed_by_affiliate: boolean
+          insights: Json
+          name: string
+          organization_id: string
+          project_id: string | null
+          shared: boolean
+          status: string
+          target_platform: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          created_by: string
+          cta?: string | null
+          headline?: string | null
+          id?: string
+          image_path?: string | null
+          image_prompt?: string | null
+          informed_by_affiliate?: boolean
+          insights?: Json
+          name?: string
+          organization_id: string
+          project_id?: string | null
+          shared?: boolean
+          status?: string
+          target_platform?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          created_by?: string
+          cta?: string | null
+          headline?: string | null
+          id?: string
+          image_path?: string | null
+          image_prompt?: string | null
+          informed_by_affiliate?: boolean
+          insights?: Json
+          name?: string
+          organization_id?: string
+          project_id?: string | null
+          shared?: boolean
+          status?: string
+          target_platform?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliates: {
         Row: {
           created_at: string
@@ -337,6 +412,65 @@ export type Database = {
           },
         ]
       }
+      signals: {
+        Row: {
+          author: string | null
+          collected_at: string
+          content: string | null
+          created_at: string
+          external_id: string
+          id: string
+          kind: string
+          metrics: Json
+          organization_id: string
+          sentiment: string | null
+          source: Database["public"]["Enums"]["signal_source"]
+          title: string | null
+          topic: string | null
+          url: string | null
+        }
+        Insert: {
+          author?: string | null
+          collected_at?: string
+          content?: string | null
+          created_at?: string
+          external_id: string
+          id?: string
+          kind?: string
+          metrics?: Json
+          organization_id: string
+          sentiment?: string | null
+          source: Database["public"]["Enums"]["signal_source"]
+          title?: string | null
+          topic?: string | null
+          url?: string | null
+        }
+        Update: {
+          author?: string | null
+          collected_at?: string
+          content?: string | null
+          created_at?: string
+          external_id?: string
+          id?: string
+          kind?: string
+          metrics?: Json
+          organization_id?: string
+          sentiment?: string | null
+          source?: Database["public"]["Enums"]["signal_source"]
+          title?: string | null
+          topic?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -353,6 +487,13 @@ export type Database = {
     }
     Enums: {
       org_role: "admin" | "editor" | "reviewer"
+      signal_source:
+        | "brand24"
+        | "phyllo"
+        | "youtube"
+        | "x"
+        | "reddit"
+        | "trends"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -481,6 +622,7 @@ export const Constants = {
   public: {
     Enums: {
       org_role: ["admin", "editor", "reviewer"],
+      signal_source: ["brand24", "phyllo", "youtube", "x", "reddit", "trends"],
     },
   },
 } as const

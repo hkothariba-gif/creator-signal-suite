@@ -1,18 +1,11 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
+// Tester bypass: dashboard is viewable without an authenticated Supabase session.
+// Child routes that query Supabase will simply render empty states when there's no user.
 function AppLayout() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (loading) return;
-    if (!user) navigate({ to: "/login" });
-  }, [user, loading, navigate]);
-  if (!user) return null;
   return <Outlet />;
 }

@@ -28,6 +28,9 @@ function SignupPage() {
       return;
     }
     setBusy(true);
+    try {
+      localStorage.setItem("aspen_tester_email", email.trim());
+    } catch {}
     const { error, user: u } = await signUp(email.trim(), password, company.trim());
     setBusy(false);
     if (error) {

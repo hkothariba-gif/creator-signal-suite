@@ -8,11 +8,6 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-const CATEGORIES = [
-  "Physical Products", "SaaS / Software", "Supplements / Health", "Apparel / Fashion",
-  "Home & Living", "Finance / Crypto", "Gaming", "Education / Courses",
-  "Beauty / Skincare", "Food & Beverage",
-];
 
 function OnboardingPage() {
   const { update } = useAuth();
@@ -29,6 +24,7 @@ function OnboardingPage() {
   const [platforms, setPlatforms] = useState({ youtube: true, reddit: true, x: true, linkedin: false });
   const [modal, setModal] = useState<null | { kind: "store" | "payout"; name: string }>(null);
   const [teamModal, setTeamModal] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
 
   const next = () => setStep((s) => Math.min(6, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
@@ -67,34 +63,59 @@ function OnboardingPage() {
         <div key={step} className="animate-[fadeIn_0.3s_ease]">
           {step === 1 && (
             <>
-              <h2 className="text-[32px] font-extrabold tracking-tight">What does your brand sell?</h2>
-              <p className="mt-2 text-[#8892A4]">This helps us match you to creators whose audiences actually buy your category.</p>
-              <input
+              <h2 className="text-[32px] font-extrabold tracking-tight">Tell us about your product</h2>
+              <p className="mt-2 text-[#8892A4]">
+                The more detail you share about your product, brand, and target buyer, the better we can match you to creators whose audiences actually convert. Write freely — or upload a doc below.
+              </p>
+              <textarea
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Supplements, SaaS tools, Home goods..."
-                className="mt-8 w-full h-14 px-5 rounded-xl bg-[#131D2E] border border-white/10 text-lg focus:outline-none focus:border-[#00D97E]"
+                placeholder="Describe your product, brand, and who you're trying to reach — as much detail as you like..."
+                rows={6}
+                className="mt-8 w-full p-5 rounded-xl bg-[#131D2E] border border-white/10 text-base leading-relaxed focus:outline-none focus:border-[#00D97E] resize-y min-h-[160px]"
               />
-              <div className="mt-5 flex flex-wrap gap-2">
-                {CATEGORIES.map((c) => {
-                  const sel = category === c;
-                  return (
-                    <button
-                      key={c}
-                      onClick={() => setCategory(c)}
-                      className={`text-sm px-4 py-2 rounded-full border transition-colors ${
-                        sel
-                          ? "bg-[#00D97E]/15 border-[#00D97E] text-[#00D97E]"
-                          : "bg-white/[0.05] border-white/10 text-[#F0F4FF] hover:border-white/30"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  );
-                })}
+
+              <div className="mt-6">
+                <label
+                  htmlFor="brand-docs"
+                  className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-dashed border-white/15 bg-white/[0.03] text-sm text-[#8892A4] hover:text-white hover:border-[#00D97E]/50 cursor-pointer transition-colors"
+                >
+                  <span className="text-[#00D97E]">+</span> Attach PDFs or docs (optional)
+                </label>
+                <input
+                  id="brand-docs"
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={(e) => {
+                    const picked = Array.from(e.target.files ?? []);
+                    if (picked.length) setFiles((prev) => [...prev, ...picked]);
+                    e.target.value = "";
+                  }}
+                  className="hidden"
+                />
+                {files.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {files.map((f, i) => (
+                      <li
+                        key={`${f.name}-${i}`}
+                        className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#0C1222] border border-white/[0.07] text-sm"
+                      >
+                        <span className="truncate text-[#F0F4FF]">{f.name}</span>
+                        <button
+                          onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                          className="ml-3 text-xs text-[#8892A4] hover:text-red-400"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </>
           )}
+
 
           {step === 2 && (
             <>

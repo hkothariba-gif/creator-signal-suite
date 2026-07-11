@@ -41,7 +41,7 @@ function OnboardingPage() {
       onboarded: true,
       brand: { category, age, gender, income, notes, platforms },
     });
-    if (error) {
+    if (error && error !== "Not signed in") {
       toast.error(`Could not save profile: ${error}`);
       return;
     }

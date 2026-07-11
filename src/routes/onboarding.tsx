@@ -16,7 +16,16 @@ function OnboardingPage() {
   // profiles.onboarded holds the flag and organizations.brand_profile holds
   // the brand answers. Nothing is persisted in localStorage.
   const [step, setStep] = useState(1);
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const v = sessionStorage.getItem("ar_hero_prompt") ?? "";
+      if (v) sessionStorage.removeItem("ar_hero_prompt");
+      return v;
+    } catch {
+      return "";
+    }
+  });
   const [age, setAge] = useState("25-34");
   const [gender, setGender] = useState("Any");
   const [income, setIncome] = useState("Any");

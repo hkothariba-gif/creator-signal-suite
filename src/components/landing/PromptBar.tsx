@@ -10,9 +10,10 @@ export function PromptBar() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const submit = () => {
-    if (!productDesc.trim()) return;
+    const v = productDesc.trim();
+    if (!v) return;
     try {
-      sessionStorage.setItem("ar_hero_prompt", productDesc.trim());
+      localStorage.setItem("aspen_hero_prompt", v);
     } catch {}
     navigate({ to: "/signup" });
   };

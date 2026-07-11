@@ -8,11 +8,6 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-const CATEGORIES = [
-  "Physical Products", "SaaS / Software", "Supplements / Health", "Apparel / Fashion",
-  "Home & Living", "Finance / Crypto", "Gaming", "Education / Courses",
-  "Beauty / Skincare", "Food & Beverage",
-];
 
 function OnboardingPage() {
   const { update } = useAuth();

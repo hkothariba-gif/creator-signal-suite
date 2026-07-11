@@ -19,9 +19,7 @@ function OnboardingPage() {
   const [category, setCategory] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
-      const v = sessionStorage.getItem("ar_hero_prompt") ?? "";
-      if (v) sessionStorage.removeItem("ar_hero_prompt");
-      return v;
+      return localStorage.getItem("aspen_hero_prompt") ?? "";
     } catch {
       return "";
     }

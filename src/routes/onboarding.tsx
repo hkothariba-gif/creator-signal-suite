@@ -14,7 +14,7 @@ function OnboardingPage() {
   const navigate = useNavigate();
   // Onboarding state is saved to Supabase when the flow finishes.
   // profiles.onboarded holds the flag and organizations.brand_profile holds
-  // the brand answers. Nothing is persisted in localStorage.
+  // the brand answers. We also set localStorage flags for tester tracking.
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -45,6 +45,9 @@ function OnboardingPage() {
       toast.error(`Could not save profile: ${error}`);
       return;
     }
+    try {
+      localStorage.setItem("aspen_onboarded", "true");
+    } catch {}
     navigate({ to: "/app" });
   };
 

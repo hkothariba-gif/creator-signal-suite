@@ -11,6 +11,9 @@ export function PromptBar() {
 
   const submit = () => {
     if (!productDesc.trim()) return;
+    try {
+      sessionStorage.setItem("ar_hero_prompt", productDesc.trim());
+    } catch {}
     navigate({ to: "/signup" });
   };
 

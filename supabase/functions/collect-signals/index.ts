@@ -299,7 +299,10 @@ async function fetchTrends(query: string): Promise<RawSignal[]> {
     const res = await fetch(
       `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&data_type=RELATED_QUERIES&api_key=${key}`,
     );
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("trends", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     const rows = [...(json.related_queries?.rising ?? []), ...(json.related_queries?.top ?? [])];
     return rows
@@ -316,7 +319,8 @@ async function fetchTrends(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: { value: num(r.value) || rows.length - i, extracted_value: num(r.extracted_value) },
       }));
-  } catch {
+  } catch (err) {
+    logFail("trends", "exception", query, err);
     return [];
   }
 }

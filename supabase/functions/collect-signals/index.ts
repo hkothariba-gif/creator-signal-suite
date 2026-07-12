@@ -48,7 +48,10 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
     const s = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&order=viewCount&maxResults=10&key=${key}`,
     );
-    if (!s.ok) return [];
+    if (!s.ok) {
+      logFail("youtube", "search", query, s);
+      return [];
+    }
     const search = await s.json();
     const items = (search.items ?? []) as Array<Record<string, any>>;
     const ids = items.map((i) => i?.id?.videoId).filter(Boolean);
@@ -66,6 +69,8 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
             comments: num(v.statistics?.commentCount),
           });
         }
+      } else {
+        logFail("youtube", "videos", query, st);
       }
     }
     return items
@@ -82,7 +87,8 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: statsById.get(i.id.videoId) ?? {},
       }));
-  } catch {
+  } catch (err) {
+    logFail("youtube", "exception", query, err);
     return [];
   }
 }
@@ -101,9 +107,15 @@ async function fetchReddit(query: string): Promise<RawSignal[]> {
       },
       body: "grant_type=client_credentials",
     });
-    if (!tokRes.ok) return [];
+    if (!tokRes.ok) {
+      logFail("reddit", "token", query, tokRes);
+      return [];
+    }
     const token = (await tokRes.json()).access_token;
-    if (!token) return [];
+    if (!token) {
+      logFail("reddit", "token", query, "missing access_token");
+      return [];
+    }
     const res = await fetch(
       `https://oauth.reddit.com/search?q=${encodeURIComponent(query)}&sort=top&t=month&limit=15`,
       { headers: { Authorization: `Bearer ${token}`, "User-Agent": "aspenreach/1.0" } },

@@ -24,6 +24,23 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+function logFail(
+  source: RawSignal["source"],
+  stage: string,
+  query: string,
+  detail: unknown,
+): void {
+  const msg =
+    detail instanceof Response
+      ? `HTTP ${detail.status} ${detail.statusText}`
+      : detail instanceof Error
+      ? detail.message
+      : typeof detail === "string"
+      ? detail
+      : JSON.stringify(detail);
+  console.warn(`[collect-signals] ${source}:${stage} failed for "${query}": ${msg}`);
+}
+
 async function fetchYouTube(query: string): Promise<RawSignal[]> {
   const key = Deno.env.get("YOUTUBE_API_KEY");
   if (!key) return [];

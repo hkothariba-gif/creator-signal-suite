@@ -1,62 +1,45 @@
-## 1. New section: Ads Intelligence Engine
+## Goal
 
-Create `src/components/landing/AdsIntelligence.tsx` and place it in `src/routes/index.tsx` **immediately before** `LinkedInRevenue` (which will actually be removed — so it becomes the section right after `ProblemSolution` and before `HeatMapSection`).
+Turn the onboarding flow into the user's first real campaign so that when they land on the dashboard after signing up, the product they described (plus buyer + platforms + optional lookalike audience sheet) already appears in **Campaigns**.
 
-Purpose: show how Aspen fuses multiple live signal streams into ad creative that converts.
+## 1. Merge platforms into "Describe your ideal buyer" (Step 2), delete Step 3
 
-Layout (built with existing design tokens — no new colors):
+In `src/routes/onboarding.tsx`:
 
-- Eyebrow: "Ads Intelligence Engine"
-- Headline: "Ads built from real signals, not guesses."
-- Subline: one line explaining the fusion approach.
-- Center visual: a "signal fusion" diagram
-  - Left column: 5 signal input cards (icon + label + one-line description), stacked with staggered fade-up:
-    1. Affiliate & influencer performance
-    2. Social chatter (Reddit / X threads)
-    3. Brand posts & creator uploads
-    4. Comment sentiment & buyer intent
-    5. Organic engagement velocity
-  - Middle: an animated "Aspen Engine" node (pulsing green ring using `#00D97E`, same halo styling as hero)
-  - Right column: 3 output cards — "Ad hook", "Creative angle", "Target segment"
-  - Connect left→center→right with subtle dashed lines (SVG, `stroke-dasharray` with a slow `animate` for signal flow)
-- Bottom strip: small caption "Every draft is traceable back to the signal that inspired it."
+- Add the four platform toggles (YouTube, Reddit, X, LinkedIn) below the age/gender/income selects on Step 2, reusing the existing `PlatformCard` styling.
+- Add an **Audience lookalike sheet** upload control below the platforms (single file, accept `.csv,.xlsx,.xls,.tsv`, ~10 MB cap). Store the picked `File` in a new `lookalikeFile` state; render filename + remove button.
+- Delete the current Step 3 (platforms-only page). Renumber: total steps go from 6 → 5. Update the progress bar (`step / 5`), "Step X of 5" header, and the `next()` cap.
+- Keep all existing Step 2 state (`age`, `gender`, `income`, `notes`) and the `platforms` object.
 
-Reuse `WordStagger`, `FadeUp`, and the platform icons already in `src/components/landing/`. Motion via `framer-motion` (already used across the page). No fabricated numbers.
+## 2. Auto-create the first campaign on `finish()`
 
-## 2. Home page reorganization
+Still in `src/routes/onboarding.tsx`, extend `finish()` so after the existing `update({...})` call succeeds (or soft-succeeds for testers):
 
-Edit `src/routes/index.tsx` to this order:
+1. If `lookalikeFile` is set AND we have a real Supabase user, upload it to the new `audience-sheets` bucket at `{user.id}/{campaignId}/{filename}` and capture the storage path.
+2. Insert a row into `public.campaigns` (only when `user` is signed in — tester bypass path skips the insert, same as today's soft-success):
+   - `user_id`: `user.id`
+   - `name`: derived from the product description (first ~60 chars, fallback `"My first campaign"`)
+   - `status`: `"draft"`
+   - `product_description`: the Step 1 `category` text
+   - `platforms`: array built from the Step 2 platform toggles (`["YouTube","Reddit",...]`)
+   - `goal`: `"Brand Awareness"` (default)
+   - `target_audience` (jsonb): `{ age, gender, income, notes, platforms: [...], lookalike_sheet_path: <storage path or null>, lookalike_sheet_name: <original filename or null> }`
+3. Fire the existing `generate-search-criteria` edge function against the new row (same pattern as `CampaignDrawer.create()` in `app.campaigns.index.tsx`) so search criteria are pre-populated. Non-blocking — swallow errors, still navigate.
+4. Navigate to `/app/campaigns` (instead of `/app`) so the user immediately sees their seeded campaign. Show a toast: `"We saved your first campaign as a draft."`
 
-```text
-LandingNav
-Hero
-PlatformRevenueTabs      (covers all 4 platforms already)
-TrustBar
-ProblemSolution
-AdsIntelligence          (NEW)
-HeatMapSection
-PlatformCards
-Pricing
-FinalCTA
-LandingFooter
-```
+Login routing stays as-is (unonboarded → `/onboarding`, onboarded → `/app`), per the answered question.
 
-Removed: `LinkedInRevenue` (redundant — PlatformRevenueTabs already covers LinkedIn alongside the other platforms). Leave `LinkedInRevenue.tsx` in the repo untouched in case it's reused elsewhere; just drop the import + usage from `index.tsx`.
+## 3. Storage bucket for lookalike sheets
 
-Net effect: one section removed, one section added — same total count, tighter narrative (problem → how the engine works → proof → platforms → pricing → CTA).
+Create a private bucket `audience-sheets` via `supabase--storage_create_bucket`. Then a migration adds RLS on `storage.objects` so a user can `INSERT`/`SELECT`/`DELETE` only under their own `{auth.uid()}/…` prefix in that bucket.
 
-## 3. Pricing update
+## 4. Campaigns list already handles this
 
-Edit `src/components/landing/Pricing.tsx`:
-
-- Starter: **$499/mo** (was $99)
-- Growth: **$999/mo** (was $299), keep `popular: true`
-- Scale → rename to **Enterprise**, price becomes **"Custom"** (render the string instead of `$` + number, hide the `/mo` suffix when price is non-numeric), CTA "Contact Sales"
-
-Keep the existing feature bullets on all three tiers unless you want them refreshed — flag if so.
+`src/routes/app.campaigns.index.tsx` reads `campaigns` for the current `user_id` and renders name, platforms, goal, and `product_description` — no change needed. The seeded campaign will show under the **Draft** tab.
 
 ## Technical notes
 
-- New file only: `src/components/landing/AdsIntelligence.tsx`. All other changes are localized edits to `index.tsx` and `Pricing.tsx`.
-- `Pricing.tsx` price rendering needs a small conditional so "Custom" renders without a `$` prefix and without `/mo`.
-- No backend, DB, or route changes.
+- Platform label ↔ flag mapping: `youtube → "YouTube"`, `reddit → "Reddit"`, `x → "X"`, `linkedin → "LinkedIn"` (matches the strings `campaigns.platforms` uses today in `CampaignDrawer`).
+- Tester bypass (no Supabase session): still writes localStorage `aspen_onboarded`, still routes to `/app/campaigns`, but skips the storage upload + `campaigns` insert (RLS would reject them anyway). We can revisit persisting tester data later.
+- No new columns; reuse `campaigns.target_audience` (jsonb) as the "audience spec for this campaign" container the request calls for.
+- Files: edits to `src/routes/onboarding.tsx` only, plus one migration for the storage RLS policies.

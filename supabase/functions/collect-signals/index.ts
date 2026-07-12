@@ -211,14 +211,23 @@ async function fetchBrand24(query: string): Promise<RawSignal[]> {
     const pr = await fetch("https://api.brand24.com/v2/projects", {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
-    if (!pr.ok) return [];
+    if (!pr.ok) {
+      logFail("brand24", "projects", query, pr);
+      return [];
+    }
     const projects = await pr.json();
     const projectId = Array.isArray(projects) ? projects[0]?.id : undefined;
-    if (projectId === undefined) return [];
+    if (projectId === undefined) {
+      logFail("brand24", "projects", query, "no project id");
+      return [];
+    }
     const mr = await fetch(`https://api.brand24.com/v2/projects/${projectId}/mentions?limit=25`, {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
-    if (!mr.ok) return [];
+    if (!mr.ok) {
+      logFail("brand24", "mentions", query, mr);
+      return [];
+    }
     const json = await mr.json();
     const sentimentOf = (v: unknown) => {
       const n = num(v);
@@ -238,7 +247,8 @@ async function fetchBrand24(query: string): Promise<RawSignal[]> {
         sentiment: sentimentOf(m.sentiment),
         metrics: { reach: num(m.reach), influence: num(m.influence_score) },
       }));
-  } catch {
+  } catch (err) {
+    logFail("brand24", "exception", query, err);
     return [];
   }
 }

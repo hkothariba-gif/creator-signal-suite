@@ -19,7 +19,7 @@ export const Route = createFileRoute("/app/affiliate")({
   component: AffiliatePage,
 });
 
-const PROVIDERS = ["generic", "impact", "partnerstack", "rakuten", "cj", "amazon"] as const;
+const PROVIDERS = ["stripe", "shopify", "paddle", "lemonsqueezy", "manual"] as const;
 
 function money(minor: number, currency: string): string {
   try {
@@ -63,7 +63,7 @@ function AffiliatePage() {
   }, [load]);
 
   // ── Connect a sales provider ────────────────────────────────────────────────
-  const [provider, setProvider] = useState<(typeof PROVIDERS)[number]>("generic");
+  const [provider, setProvider] = useState<(typeof PROVIDERS)[number]>("stripe");
   const [connecting, setConnecting] = useState(false);
   const connect = async () => {
     if (!orgId) return;

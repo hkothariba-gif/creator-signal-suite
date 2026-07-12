@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { DevQuickLogin } from "@/components/DevQuickLogin";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -101,6 +102,7 @@ function LoginPage() {
             {busy ? "Signing in…" : "Sign In"}
           </button>
         </form>
+        <DevQuickLogin />
       </div>
 
       <p className="mt-6 text-sm text-[#8892A4]">

@@ -60,6 +60,35 @@ export const getAdIntelligence = createServerFn({ method: "GET" })
       .limit(500);
     if (error) throw new Error(error.message);
 
+    // Affiliate angles: links that actually converted feed generation as the
+    // "informed by affiliate performance" input. RLS scopes both reads.
+    const [{ data: daily }, { data: links }] = await Promise.all([
+      context.supabase
+        .from("affiliate_daily")
+        .select("link_id,conversions,revenue_minor")
+        .eq("organization_id", data.organizationId),
+      context.supabase
+        .from("affiliate_links")
+        .select("id,slug,label")
+        .eq("organization_id", data.organizationId),
+    ]);
+    const labelOf = new Map((links ?? []).map((l) => [l.id, l.label || l.slug]));
+    const perLink = new Map<string, { conversions: number; revenueMinor: number }>();
+    for (const row of daily ?? []) {
+      if (!row.link_id) continue;
+      const acc = perLink.get(row.link_id) ?? { conversions: 0, revenueMinor: 0 };
+      acc.conversions += Number(row.conversions);
+      acc.revenueMinor += Number(row.revenue_minor);
+      perLink.set(row.link_id, acc);
+    }
+    const affiliateAngles = [...perLink.entries()]
+      .filter(([, v]) => v.conversions > 0)
+      .map(([id, v]) => ({
+        text: (labelOf.get(id) ?? "Affiliate link") as string,
+        conversions: v.conversions,
+        revenueMinor: v.revenueMinor,
+      }));
+
     const { buildIntelligence } = await import("@/lib/intelligence");
     return buildIntelligence(
       (signals ?? []).map((s) => ({
@@ -69,6 +98,7 @@ export const getAdIntelligence = createServerFn({ method: "GET" })
         sentiment: s.sentiment,
         metrics: (s.metrics ?? {}) as Record<string, number>,
       })),
+      affiliateAngles,
     );
   });
 

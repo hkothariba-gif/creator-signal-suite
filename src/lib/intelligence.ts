@@ -18,11 +18,22 @@ export type RankedTerm = {
   sources: string[];
 };
 
+export type AffiliateAngle = {
+  text: string;
+  conversions: number;
+  revenueMinor: number;
+};
+
 export type AdIntelligence = {
   total: number;
   hooks: RankedTerm[];
   phrases: RankedTerm[];
   themes: RankedTerm[];
+  // Angles drawn from affiliate links that actually convert. Present only once
+  // affiliate performance exists, and their presence marks generated ads as
+  // informed by affiliate performance.
+  angles: RankedTerm[];
+  affiliateInformed: boolean;
   sentiment: { positive: number; neutral: number; negative: number };
 };
 
@@ -75,7 +86,10 @@ function rank(map: Map<string, Acc>, limit: number): RankedTerm[] {
     .slice(0, limit);
 }
 
-export function buildIntelligence(signals: SignalLike[]): AdIntelligence {
+export function buildIntelligence(
+  signals: SignalLike[],
+  affiliateAngles: AffiliateAngle[] = [],
+): AdIntelligence {
   const themes = new Map<string, Acc>();
   const phrases = new Map<string, Acc>();
   const hooks = new Map<string, Acc>();
@@ -120,11 +134,27 @@ export function buildIntelligence(signals: SignalLike[]): AdIntelligence {
     }
   }
 
+  // Rank affiliate angles by the revenue they carried, then conversions. The
+  // score is the revenue in major units so the strongest performers surface
+  // first alongside the signal derived terms.
+  const angles: RankedTerm[] = affiliateAngles
+    .filter((a) => a.text && a.text.trim())
+    .map((a) => ({
+      text: a.text.trim(),
+      score: Math.round((a.revenueMinor / 100) * 100) / 100,
+      count: a.conversions,
+      sources: ["affiliate"],
+    }))
+    .sort((x, y) => y.score - x.score || y.count - x.count)
+    .slice(0, 12);
+
   return {
     total: signals.length,
     hooks: rank(hooks, 12),
     phrases: rank(phrases, 15),
     themes: rank(themes, 15),
+    angles,
+    affiliateInformed: angles.length > 0,
     sentiment,
   };
 }

@@ -91,6 +91,7 @@ function AdStudioPage() {
   // ── Selection feeding generation ────────────────────────────────────────────
   const [selThemes, setSelThemes] = useState<string[]>([]);
   const [selHooks, setSelHooks] = useState<string[]>([]);
+  const [selAngles, setSelAngles] = useState<string[]>([]);
   const toggle = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
@@ -141,7 +142,7 @@ function AdStudioPage() {
           brief: brief.trim(),
           tone,
           platform,
-          themes: selThemes,
+          themes: [...selThemes, ...selAngles],
           hooks: selHooks,
         },
       });
@@ -155,9 +156,9 @@ function AdStudioPage() {
           body: copy.body,
           cta: copy.cta,
           target_platform: platform,
-          informed_by_affiliate: false,
+          informed_by_affiliate: selAngles.length > 0,
           status: "draft",
-          insights: { themes: selThemes, hooks: selHooks },
+          insights: { themes: selThemes, hooks: selHooks, angles: selAngles },
           created_by: user!.id,
         })
         .select(
@@ -350,6 +351,12 @@ function AdStudioPage() {
                     selected={selThemes}
                     onToggle={(t) => setSelThemes((a) => toggle(a, t))}
                   />
+                  <TermGroup
+                    title="Affiliate angles"
+                    terms={intel.angles}
+                    selected={selAngles}
+                    onToggle={(t) => setSelAngles((a) => toggle(a, t))}
+                  />
                 </div>
               )}
             </DataGate>
@@ -426,7 +433,7 @@ function AdStudioPage() {
               <div className="flex items-center justify-between mb-3">
                 <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold">Editor</div>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AED]/20 text-[#A78BFA] border border-[#7C3AED]/30">
-                  {AFFILIATE_LABEL}
+                  {draft.informed_by_affiliate ? "Informed by affiliate performance" : AFFILIATE_LABEL}
                 </span>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

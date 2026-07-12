@@ -19,7 +19,7 @@ export const Route = createFileRoute("/app/affiliate")({
   component: AffiliatePage,
 });
 
-const PROVIDERS = ["generic", "impact", "partnerstack", "rakuten", "cj", "amazon"] as const;
+const PROVIDERS = ["stripe", "shopify", "paddle", "lemonsqueezy", "manual"] as const;
 
 function money(minor: number, currency: string): string {
   try {

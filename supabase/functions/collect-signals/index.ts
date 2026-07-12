@@ -159,9 +159,15 @@ async function fetchX(query: string): Promise<RawSignal[]> {
       },
       body: "grant_type=client_credentials",
     });
-    if (!tokRes.ok) return [];
+    if (!tokRes.ok) {
+      logFail("x", "token", query, tokRes);
+      return [];
+    }
     const bearer = (await tokRes.json()).access_token;
-    if (!bearer) return [];
+    if (!bearer) {
+      logFail("x", "token", query, "missing access_token");
+      return [];
+    }
     const params = new URLSearchParams({
       query: `${query} -is:retweet lang:en`,
       max_results: "20",
@@ -170,7 +176,10 @@ async function fetchX(query: string): Promise<RawSignal[]> {
     const res = await fetch(`https://api.twitter.com/2/tweets/search/recent?${params}`, {
       headers: { Authorization: `Bearer ${bearer}` },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("x", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     return (json.data ?? []).map((t: any) => ({
       source: "x" as const,
@@ -189,7 +198,8 @@ async function fetchX(query: string): Promise<RawSignal[]> {
         quotes: num(t.public_metrics?.quote_count),
       },
     }));
-  } catch {
+  } catch (err) {
+    logFail("x", "exception", query, err);
     return [];
   }
 }

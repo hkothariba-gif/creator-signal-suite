@@ -1,1 +1,11 @@
 project_id = "hjxjukueextjejasaxql"
+
+# Testing: allow immediate sign-in without email confirmation so newly
+# signed-up users get a session and can complete onboarding.
+[auth]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+double_confirm_changes = false

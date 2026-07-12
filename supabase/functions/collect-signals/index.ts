@@ -120,7 +120,10 @@ async function fetchReddit(query: string): Promise<RawSignal[]> {
       `https://oauth.reddit.com/search?q=${encodeURIComponent(query)}&sort=top&t=month&limit=15`,
       { headers: { Authorization: `Bearer ${token}`, "User-Agent": "aspenreach/1.0" } },
     );
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("reddit", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     return (json.data?.children ?? [])
       .map((c: any) => c.data)
@@ -137,7 +140,8 @@ async function fetchReddit(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: { score: num(d.score), comments: num(d.num_comments), upvote_ratio: num(d.upvote_ratio) },
       }));
-  } catch {
+  } catch (err) {
+    logFail("reddit", "exception", query, err);
     return [];
   }
 }

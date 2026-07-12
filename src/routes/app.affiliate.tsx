@@ -63,7 +63,7 @@ function AffiliatePage() {
   }, [load]);
 
   // ── Connect a sales provider ────────────────────────────────────────────────
-  const [provider, setProvider] = useState<(typeof PROVIDERS)[number]>("generic");
+  const [provider, setProvider] = useState<(typeof PROVIDERS)[number]>("stripe");
   const [connecting, setConnecting] = useState(false);
   const connect = async () => {
     if (!orgId) return;

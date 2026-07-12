@@ -89,6 +89,162 @@ export type Database = {
           },
         ]
       }
+      affiliate_connections: {
+        Row: {
+          connected_by: string
+          created_at: string
+          external_account_id: string | null
+          id: string
+          organization_id: string
+          provider: Database["public"]["Enums"]["affiliate_provider"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          connected_by: string
+          created_at?: string
+          external_account_id?: string | null
+          id?: string
+          organization_id: string
+          provider: Database["public"]["Enums"]["affiliate_provider"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          connected_by?: string
+          created_at?: string
+          external_account_id?: string | null
+          id?: string
+          organization_id?: string
+          provider?: Database["public"]["Enums"]["affiliate_provider"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_daily: {
+        Row: {
+          clicks: number
+          conversions: number
+          created_at: string
+          currency: string
+          day: string
+          id: string
+          link_id: string | null
+          organization_id: string
+          revenue_minor: number
+          updated_at: string
+        }
+        Insert: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          currency?: string
+          day: string
+          id?: string
+          link_id?: string | null
+          organization_id: string
+          revenue_minor?: number
+          updated_at?: string
+        }
+        Update: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          currency?: string
+          day?: string
+          id?: string
+          link_id?: string | null
+          organization_id?: string
+          revenue_minor?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_daily_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_daily_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_links: {
+        Row: {
+          affiliate_id: string | null
+          campaign_id: string | null
+          created_at: string
+          created_by: string
+          destination_url: string
+          id: string
+          label: string | null
+          organization_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          created_by: string
+          destination_url: string
+          id?: string
+          label?: string | null
+          organization_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string | null
+          campaign_id?: string | null
+          created_at?: string
+          created_by?: string
+          destination_url?: string
+          id?: string
+          label?: string | null
+          organization_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_links_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_links_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliates: {
         Row: {
           created_at: string
@@ -486,6 +642,12 @@ export type Database = {
       shares_org_with: { Args: { target: string }; Returns: boolean }
     }
     Enums: {
+      affiliate_provider:
+        | "stripe"
+        | "shopify"
+        | "paddle"
+        | "lemonsqueezy"
+        | "manual"
       org_role: "admin" | "editor" | "reviewer"
       signal_source:
         | "brand24"
@@ -621,6 +783,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      affiliate_provider: [
+        "stripe",
+        "shopify",
+        "paddle",
+        "lemonsqueezy",
+        "manual",
+      ],
       org_role: ["admin", "editor", "reviewer"],
       signal_source: ["brand24", "phyllo", "youtube", "x", "reddit", "trends"],
     },

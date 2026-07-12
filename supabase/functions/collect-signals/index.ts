@@ -263,7 +263,10 @@ async function fetchPhyllo(query: string): Promise<RawSignal[]> {
       headers: { Authorization: `Basic ${btoa(`${id}:${secret}`)}`, "Content-Type": "application/json" },
       body: JSON.stringify({ keyword: query, limit: 15 }),
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("phyllo", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     return (json.data ?? [])
       .filter((d: any) => d.id !== undefined || d.external_id !== undefined)
@@ -283,7 +286,8 @@ async function fetchPhyllo(query: string): Promise<RawSignal[]> {
           comments: num(d.engagement?.comment_count),
         },
       }));
-  } catch {
+  } catch (err) {
+    logFail("phyllo", "exception", query, err);
     return [];
   }
 }

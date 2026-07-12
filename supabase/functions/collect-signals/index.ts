@@ -24,6 +24,23 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+function logFail(
+  source: RawSignal["source"],
+  stage: string,
+  query: string,
+  detail: unknown,
+): void {
+  const msg =
+    detail instanceof Response
+      ? `HTTP ${detail.status} ${detail.statusText}`
+      : detail instanceof Error
+      ? detail.message
+      : typeof detail === "string"
+      ? detail
+      : JSON.stringify(detail);
+  console.warn(`[collect-signals] ${source}:${stage} failed for "${query}": ${msg}`);
+}
+
 async function fetchYouTube(query: string): Promise<RawSignal[]> {
   const key = Deno.env.get("YOUTUBE_API_KEY");
   if (!key) return [];
@@ -31,7 +48,10 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
     const s = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&order=viewCount&maxResults=10&key=${key}`,
     );
-    if (!s.ok) return [];
+    if (!s.ok) {
+      logFail("youtube", "search", query, s);
+      return [];
+    }
     const search = await s.json();
     const items = (search.items ?? []) as Array<Record<string, any>>;
     const ids = items.map((i) => i?.id?.videoId).filter(Boolean);
@@ -49,6 +69,8 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
             comments: num(v.statistics?.commentCount),
           });
         }
+      } else {
+        logFail("youtube", "videos", query, st);
       }
     }
     return items
@@ -65,7 +87,8 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: statsById.get(i.id.videoId) ?? {},
       }));
-  } catch {
+  } catch (err) {
+    logFail("youtube", "exception", query, err);
     return [];
   }
 }
@@ -84,14 +107,23 @@ async function fetchReddit(query: string): Promise<RawSignal[]> {
       },
       body: "grant_type=client_credentials",
     });
-    if (!tokRes.ok) return [];
+    if (!tokRes.ok) {
+      logFail("reddit", "token", query, tokRes);
+      return [];
+    }
     const token = (await tokRes.json()).access_token;
-    if (!token) return [];
+    if (!token) {
+      logFail("reddit", "token", query, "missing access_token");
+      return [];
+    }
     const res = await fetch(
       `https://oauth.reddit.com/search?q=${encodeURIComponent(query)}&sort=top&t=month&limit=15`,
       { headers: { Authorization: `Bearer ${token}`, "User-Agent": "aspenreach/1.0" } },
     );
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("reddit", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     return (json.data?.children ?? [])
       .map((c: any) => c.data)
@@ -108,7 +140,8 @@ async function fetchReddit(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: { score: num(d.score), comments: num(d.num_comments), upvote_ratio: num(d.upvote_ratio) },
       }));
-  } catch {
+  } catch (err) {
+    logFail("reddit", "exception", query, err);
     return [];
   }
 }
@@ -126,9 +159,15 @@ async function fetchX(query: string): Promise<RawSignal[]> {
       },
       body: "grant_type=client_credentials",
     });
-    if (!tokRes.ok) return [];
+    if (!tokRes.ok) {
+      logFail("x", "token", query, tokRes);
+      return [];
+    }
     const bearer = (await tokRes.json()).access_token;
-    if (!bearer) return [];
+    if (!bearer) {
+      logFail("x", "token", query, "missing access_token");
+      return [];
+    }
     const params = new URLSearchParams({
       query: `${query} -is:retweet lang:en`,
       max_results: "20",
@@ -137,7 +176,10 @@ async function fetchX(query: string): Promise<RawSignal[]> {
     const res = await fetch(`https://api.twitter.com/2/tweets/search/recent?${params}`, {
       headers: { Authorization: `Bearer ${bearer}` },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("x", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     return (json.data ?? []).map((t: any) => ({
       source: "x" as const,
@@ -156,7 +198,8 @@ async function fetchX(query: string): Promise<RawSignal[]> {
         quotes: num(t.public_metrics?.quote_count),
       },
     }));
-  } catch {
+  } catch (err) {
+    logFail("x", "exception", query, err);
     return [];
   }
 }
@@ -168,14 +211,23 @@ async function fetchBrand24(query: string): Promise<RawSignal[]> {
     const pr = await fetch("https://api.brand24.com/v2/projects", {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
-    if (!pr.ok) return [];
+    if (!pr.ok) {
+      logFail("brand24", "projects", query, pr);
+      return [];
+    }
     const projects = await pr.json();
     const projectId = Array.isArray(projects) ? projects[0]?.id : undefined;
-    if (projectId === undefined) return [];
+    if (projectId === undefined) {
+      logFail("brand24", "projects", query, "no project id");
+      return [];
+    }
     const mr = await fetch(`https://api.brand24.com/v2/projects/${projectId}/mentions?limit=25`, {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
-    if (!mr.ok) return [];
+    if (!mr.ok) {
+      logFail("brand24", "mentions", query, mr);
+      return [];
+    }
     const json = await mr.json();
     const sentimentOf = (v: unknown) => {
       const n = num(v);
@@ -195,7 +247,8 @@ async function fetchBrand24(query: string): Promise<RawSignal[]> {
         sentiment: sentimentOf(m.sentiment),
         metrics: { reach: num(m.reach), influence: num(m.influence_score) },
       }));
-  } catch {
+  } catch (err) {
+    logFail("brand24", "exception", query, err);
     return [];
   }
 }
@@ -210,7 +263,10 @@ async function fetchPhyllo(query: string): Promise<RawSignal[]> {
       headers: { Authorization: `Basic ${btoa(`${id}:${secret}`)}`, "Content-Type": "application/json" },
       body: JSON.stringify({ keyword: query, limit: 15 }),
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("phyllo", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     return (json.data ?? [])
       .filter((d: any) => d.id !== undefined || d.external_id !== undefined)
@@ -230,7 +286,8 @@ async function fetchPhyllo(query: string): Promise<RawSignal[]> {
           comments: num(d.engagement?.comment_count),
         },
       }));
-  } catch {
+  } catch (err) {
+    logFail("phyllo", "exception", query, err);
     return [];
   }
 }
@@ -242,7 +299,10 @@ async function fetchTrends(query: string): Promise<RawSignal[]> {
     const res = await fetch(
       `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&data_type=RELATED_QUERIES&api_key=${key}`,
     );
-    if (!res.ok) return [];
+    if (!res.ok) {
+      logFail("trends", "search", query, res);
+      return [];
+    }
     const json = await res.json();
     const rows = [...(json.related_queries?.rising ?? []), ...(json.related_queries?.top ?? [])];
     return rows
@@ -259,7 +319,8 @@ async function fetchTrends(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: { value: num(r.value) || rows.length - i, extracted_value: num(r.extracted_value) },
       }));
-  } catch {
+  } catch (err) {
+    logFail("trends", "exception", query, err);
     return [];
   }
 }

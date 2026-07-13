@@ -42,8 +42,7 @@ export function DevQuickLogin() {
 
   return (
         <div className="mt-4">
-              <button type="button" onClick={quickLogin} disabled={busy} className="w-full h-10 rounded-lg text-xs font-semibold text-[#8892A4] border border-dashed border-white/15 hover:text-white hover:border-white/30 transition-colors disabled:opacity-60">{label}</button>button>
-        </div>div>
+              <button type="button" onClick={quickLogin} disabled={busy} className="w-full h-10 rounded-lg text-xs font-semibold text-[#8892A4] border border-dashed border-white/15 hover:text-white hover:border-white/30 transition-colors disabled:opacity-60">{label}</button>
+        </div>
       );
 }
-</div>

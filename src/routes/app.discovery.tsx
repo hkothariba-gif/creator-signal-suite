@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { Telescope } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { campaignText, contentRelevance, alignmentKeyword } from "@/lib/scoring";
 
 export const Route = createFileRoute("/app/discovery")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -56,33 +58,36 @@ function DiscoveryPage() {
   const [results, setResults] = useState<CreatorResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [campaignId, setCampaignId] = useState<string | undefined>(campaignParam);
+  const [campText, setCampText] = useState<string>("");
 
   const ytReady = status.data ? status.data.platform.youtube : undefined;
 
-  // Prefill query from campaign search_criteria (specified id, else most recent)
+  // Load the selected campaign (or most recent) to prefill the query and to
+  // score fit against. Runs when the chosen campaign changes.
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
       let q = supabase
         .from("campaigns")
-        .select("id,search_criteria")
+        .select("id,name,product_description,target_audience,search_criteria")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1);
-      if (campaignParam) q = q.eq("id", campaignParam);
+      if (campaignId) q = q.eq("id", campaignId);
       const { data } = await q;
       if (cancelled) return;
-      const sc = (data?.[0]?.search_criteria ?? null) as
-        | { primaryQuery?: string; searchQueries?: string[] }
-        | null;
+      const camp = data?.[0];
+      setCampText(camp ? campaignText(camp) : "");
+      const sc = (camp?.search_criteria ?? null) as { primaryQuery?: string; searchQueries?: string[] } | null;
       const pre = sc?.primaryQuery || sc?.searchQueries?.[0];
       if (pre) setQuery((cur) => cur || pre);
     })();
     return () => {
       cancelled = true;
     };
-  }, [user?.id, campaignParam]);
+  }, [user?.id, campaignId]);
 
   const handleSearch = async () => {
     if (!ytReady || !query.trim()) return;
@@ -97,6 +102,19 @@ function DiscoveryPage() {
       setLoading(false);
     }
   };
+
+  // Quick keyword fit shown right in Discovery. This is the fast client side
+  // estimate; the full LLM and channel weighted score is computed on the
+  // Hotlist once a creator is added and scored.
+  const quickFit = useMemo(() => {
+    return (c: CreatorResult): number | null => {
+      if (!campText) return null;
+      const text = [c.name, c.description].filter(Boolean).join(". ");
+      const content = contentRelevance(text, campText);
+      const align = alignmentKeyword(text, campText);
+      return Math.round(align * 0.6 + content * 0.4);
+    };
+  }, [campText]);
 
   const addToHotlist = async (c: CreatorResult) => {
     if (!user) {
@@ -121,19 +139,27 @@ function DiscoveryPage() {
       source: "youtube_api",
       platform: c.platform,
       stage: "saved",
+      campaign_id: campaignId ?? null,
       profile_data: { description: c.description, thumbnail: c.thumbnail },
     });
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success(`${c.name} added to hotlist`);
+    toast.success(
+      campaignId ? `${c.name} added to this campaign's hotlist` : `${c.name} added to hotlist`,
+    );
   };
 
   const slugify = (n: string) => encodeURIComponent(n.toLowerCase().replace(/\s+/g, "-"));
 
   return (
-    <AppShell title="Creator Discovery">
+    <AppShell title="Creator Discovery" right={<CampaignPicker value={campaignId} onChange={setCampaignId} />}>
+      {!campaignId && (
+        <p className="text-xs text-[#8892A4] mb-3">
+          Pick a campaign above to attach creators to it and see fit estimates. Without one, creators are added to your general list.
+        </p>
+      )}
       <div className="flex gap-2 mb-6">
         <input
           value={query}
@@ -159,47 +185,57 @@ function DiscoveryPage() {
       >
         {results.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {results.map((c) => (
-              <Card key={c.id} className="p-5 flex flex-col">
-                <div className="flex items-center gap-3">
-                  {c.thumbnail ? (
-                    <img
-                      src={c.thumbnail}
-                      alt={c.name}
-                      className="w-12 h-12 rounded-full bg-white/5"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-sm font-bold text-[#8892A4]">
-                      {c.name.slice(0, 2).toUpperCase()}
+            {results.map((c) => {
+              const fit = quickFit(c);
+              return (
+                <Card key={c.id} className="p-5 flex flex-col">
+                  <div className="flex items-center gap-3">
+                    {c.thumbnail ? (
+                      <img src={c.thumbnail} alt={c.name} className="w-12 h-12 rounded-full bg-white/5" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-sm font-bold text-[#8892A4]">
+                        {c.name.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-white truncate">{c.name}</h3>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF0000]/15 text-[#FF6B6B]">
+                          YouTube
+                        </span>
+                        {fit != null && (
+                          <span
+                            className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold"
+                            style={{ background: "rgba(0,217,126,0.15)", color: "#00D97E" }}
+                            title="Fast keyword fit estimate. Add to the campaign for the full score."
+                          >
+                            ~{fit}% fit
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-white truncate">{c.name}</h3>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF0000]/15 text-[#FF6B6B]">
-                      YouTube
-                    </span>
                   </div>
-                </div>
-                <p className="mt-3 text-sm text-[#8892A4] line-clamp-3 flex-1">
-                  {c.description || "No description available."}
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={() => addToHotlist(c)}
-                    className="flex-1 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-xs font-bold hover:bg-[#00D97E]/90"
-                  >
-                    Add to Hotlist
-                  </button>
-                  <Link
-                    to="/app/creators/$id"
-                    params={{ id: c.id || slugify(c.name) }}
-                    className="flex-1 h-9 inline-flex items-center justify-center rounded-lg border border-white/10 text-xs font-bold text-white hover:bg-white/5"
-                  >
-                    View Profile →
-                  </Link>
-                </div>
-              </Card>
-            ))}
+                  <p className="mt-3 text-sm text-[#8892A4] line-clamp-3 flex-1">
+                    {c.description || "No description available."}
+                  </p>
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => addToHotlist(c)}
+                      className="flex-1 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-xs font-bold hover:bg-[#00D97E]/90"
+                    >
+                      Add to Hotlist
+                    </button>
+                    <Link
+                      to="/app/creators/$id"
+                      params={{ id: c.id || slugify(c.name) }}
+                      className="flex-1 h-9 inline-flex items-center justify-center rounded-lg border border-white/10 text-xs font-bold text-white hover:bg-white/5"
+                    >
+                      View Profile →
+                    </Link>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center text-center py-12">

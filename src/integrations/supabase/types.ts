@@ -193,7 +193,7 @@ export type Database = {
           metadata?: Json
           occurred_at?: string
           organization_id: string
-          provider?: Database["public"]["Enums"]["affiliate_provider"]
+          provider: Database["public"]["Enums"]["affiliate_provider"]
           revenue_minor?: number
           type: Database["public"]["Enums"]["affiliate_event_type"]
         }
@@ -689,12 +689,11 @@ export type Database = {
     Enums: {
       affiliate_event_type: "click" | "conversion"
       affiliate_provider:
-        | "impact"
-        | "partnerstack"
-        | "rakuten"
-        | "cj"
-        | "amazon"
-        | "generic"
+        | "stripe"
+        | "shopify"
+        | "paddle"
+        | "lemonsqueezy"
+        | "manual"
       org_role: "admin" | "editor" | "reviewer"
       signal_source:
         | "brand24"
@@ -832,12 +831,11 @@ export const Constants = {
     Enums: {
       affiliate_event_type: ["click", "conversion"],
       affiliate_provider: [
-        "impact",
-        "partnerstack",
-        "rakuten",
-        "cj",
-        "amazon",
-        "generic",
+        "stripe",
+        "shopify",
+        "paddle",
+        "lemonsqueezy",
+        "manual",
       ],
       org_role: ["admin", "editor", "reviewer"],
       signal_source: ["brand24", "phyllo", "youtube", "x", "reddit", "trends"],

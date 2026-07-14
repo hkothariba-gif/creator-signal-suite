@@ -14,6 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
+      channel_connections: {
+        Row: {
+          created_at: string
+          external_account_id: string | null
+          from_address: string | null
+          id: string
+          metadata: Json
+          provider: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          external_account_id?: string | null
+          from_address?: string | null
+          id?: string
+          metadata?: Json
+          provider: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          external_account_id?: string | null
+          from_address?: string | null
+          id?: string
+          metadata?: Json
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      creator_contacts: {
+        Row: {
+          address: string
+          channel: string
+          confidence: number
+          created_at: string
+          hotlist_id: string
+          id: string
+          metadata: Json
+          source: string
+          updated_at: string
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          address: string
+          channel: string
+          confidence?: number
+          created_at?: string
+          hotlist_id: string
+          id?: string
+          metadata?: Json
+          source?: string
+          updated_at?: string
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          address?: string
+          channel?: string
+          confidence?: number
+          created_at?: string
+          hotlist_id?: string
+          id?: string
+          metadata?: Json
+          source?: string
+          updated_at?: string
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
+      outreach_messages: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          direction: string
+          error: string | null
+          external_id: string | null
+          id: string
+          metadata: Json
+          sent_at: string | null
+          sent_by: string | null
+          status: string
+          subject: string | null
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          channel: string
+          created_at?: string
+          direction: string
+          error?: string | null
+          external_id?: string | null
+          id?: string
+          metadata?: Json
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          direction?: string
+          error?: string | null
+          external_id?: string | null
+          id?: string
+          metadata?: Json
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      outreach_threads: {
+        Row: {
+          campaign_id: string | null
+          channel: string
+          created_at: string
+          hotlist_id: string
+          id: string
+          last_message_at: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          channel: string
+          created_at?: string
+          hotlist_id: string
+          id?: string
+          last_message_at?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          channel?: string
+          created_at?: string
+          hotlist_id?: string
+          id?: string
+          last_message_at?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ads: {
         Row: {
           body: string | null

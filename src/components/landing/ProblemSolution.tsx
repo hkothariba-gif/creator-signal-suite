@@ -15,8 +15,7 @@ export function ProblemSolution() {
     <section style={{ background: "#05080F", padding: "80px 0" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
         <p style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.12em", color: "#00D97E", marginBottom: "12px", textTransform: "uppercase" }}>HOW WE REACH CREATORS</p>
-        <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, color: "#F0F4FF", marginBottom: "12px", letterSpacing: "-0.02em" }}>Every channel. One platform.</h2>
-        <p style={{ fontSize: "16px", color: "#8892A4", maxWidth: "500px", margin: "0 auto 48px", lineHeight: "1.5" }}>AspenReach tries every available contact method in sequence until your creator replies.</p>
+        <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, color: "#F0F4FF", marginBottom: "48px", letterSpacing: "-0.02em" }}>Every channel. One platform.</h2>
 
         <div className="outreach-cascade-wrapper" style={{ maxWidth: "700px", margin: "0 auto", textAlign: "left" }}>
           {steps.map((step, i) => (

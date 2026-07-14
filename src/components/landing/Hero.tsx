@@ -95,15 +95,6 @@ export function Hero() {
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="eyebrow mb-6"
-        >
-          Affiliate data, social chatter, and scanners in one platform
-        </motion.div>
-
         <WordStagger
           as="h1"
           text="The right signals. The right creators. Ads that actually convert."
@@ -118,16 +109,6 @@ export function Hero() {
           className="hero-subtext-short mt-5"
         >
           Finally, run influencer marketing and paid media from one seamless base.
-        </motion.p>
-
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 1.0 }}
-          className="mt-6 text-2xl font-bold tracking-tight"
-          style={{ color: "#00D97E" }}
-        >
-          This is Aspen.
         </motion.p>
 
         <div className="mt-9">

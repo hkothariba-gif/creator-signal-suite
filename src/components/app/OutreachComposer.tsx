@@ -8,6 +8,8 @@ import {
   type Channel,
 } from "@/lib/outreach.functions";
 import { discoverCreatorContacts } from "@/lib/contact-discovery.functions";
+import { getEmailOAuthStatus } from "@/lib/email-oauth.functions";
+import { listSequences, enrollInSequence, type Sequence } from "@/lib/sequences.functions";
 
 // Compose and send an outreach message to one creator. Handles contact
 // discovery, channel selection, and the LinkedIn assisted path (opens a
@@ -41,6 +43,26 @@ export function OutreachComposer({
   const [address, setAddress] = useState("");
   const [subject, setSubject] = useState(`Partnership with ${creatorName}`);
   const [body, setBody] = useState("");
+  // Phase 4E: connected sending identity + sequence enrollment.
+  const [identity, setIdentity] = useState<string | null>(null);
+  const [sequences, setSequences] = useState<Sequence[]>([]);
+  const [sequenceId, setSequenceId] = useState<string>("");
+
+  useEffect(() => {
+    getEmailOAuthStatus()
+      .then((s) => {
+        const active = s.connections.find((c) => c.status === "active");
+        setIdentity(
+          active?.from_address
+            ? `${active.from_address} (${active.provider === "outlook" ? "Outlook" : "Gmail"})`
+            : null,
+        );
+      })
+      .catch(() => setIdentity(null));
+    listSequences()
+      .then(setSequences)
+      .catch(() => setSequences([]));
+  }, []);
 
   const refresh = async () => {
     setLoading(true);
@@ -89,6 +111,22 @@ export function OutreachComposer({
   const send = async () => {
     if (channel !== "linkedin" && !address.trim()) {
       toast.error("Add a destination address or handle first");
+      return;
+    }
+    // Sequence enrollment replaces the one-off send for email.
+    if (channel === "email" && sequenceId) {
+      setSending(true);
+      try {
+        await enrollInSequence({
+          data: { sequenceId, hotlistId, toAddress: address.trim() },
+        });
+        toast.success("Enrolled — step 1 sends within the next run");
+        onSent?.();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Enrollment failed");
+      } finally {
+        setSending(false);
+      }
       return;
     }
     if (!body.trim()) {
@@ -194,26 +232,67 @@ export function OutreachComposer({
       )}
 
       {channel === "email" && (
+        <p className="text-[11px] text-[#5A6478]">
+          Sending as{" "}
+          {identity ? (
+            <span className="text-[#00D97E]">{identity}</span>
+          ) : (
+            <>
+              the platform sender —{" "}
+              <span className="text-[#8892A4]">connect your own inbox on the Outreach page</span>
+            </>
+          )}
+        </p>
+      )}
+
+      {channel === "email" && sequences.length > 0 && (
         <div>
-          <label className="text-xs text-[#8892A4]">Subject</label>
-          <input
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
+          <label className="text-xs text-[#8892A4]">Send</label>
+          <select
+            value={sequenceId}
+            onChange={(e) => setSequenceId(e.target.value)}
             className="mt-1 w-full h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E]"
-          />
+          >
+            <option value="">One-off message</option>
+            {sequences.map((s) => (
+              <option key={s.id} value={s.id}>
+                Sequence: {s.name} ({s.steps.length} step{s.steps.length === 1 ? "" : "s"})
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
-      <div>
-        <label className="text-xs text-[#8892A4]">Message</label>
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={6}
-          placeholder={`Hi ${creatorName}, we love your content and think you'd be a great fit for…`}
-          className="mt-1 w-full px-3 py-2 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E] resize-y"
-        />
-      </div>
+      {channel === "email" && sequenceId ? (
+        <p className="text-xs text-[#8892A4]">
+          The sequence's own subject and messages will be used, personalized with the creator's
+          name. It stops automatically if they reply.
+        </p>
+      ) : (
+        <>
+          {channel === "email" && (
+            <div>
+              <label className="text-xs text-[#8892A4]">Subject</label>
+              <input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="mt-1 w-full h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E]"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="text-xs text-[#8892A4]">Message</label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+              placeholder={`Hi ${creatorName}, we love your content and think you'd be a great fit for…`}
+              className="mt-1 w-full px-3 py-2 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E] resize-y"
+            />
+          </div>
+        </>
+      )}
 
       <div className="flex gap-2 justify-end">
         {onClose && (
@@ -227,7 +306,7 @@ export function OutreachComposer({
           className="px-5 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold inline-flex items-center gap-1.5 disabled:opacity-50"
         >
           {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          {channel === "linkedin" ? "Open compose" : "Send"}
+          {channel === "linkedin" ? "Open compose" : channel === "email" && sequenceId ? "Enroll" : "Send"}
         </button>
       </div>
     </div>

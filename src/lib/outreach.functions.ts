@@ -140,40 +140,141 @@ export const getChannelConnections = createServerFn({ method: "GET" })
     return { providers: (rows ?? []).map((r) => r.provider as string) };
   });
 
+// ── Delivery metrics (Phase 4E) ──────────────────────────────────────────────
+
+export type OutreachMetrics = {
+  byChannel: Array<{
+    channel: Channel;
+    sent: number;
+    failed: number;
+    replies: number;
+    replyRate: number; // replies / threads with at least one sent message
+  }>;
+  totals: { sent: number; failed: number; replies: number; threads: number };
+};
+
+export const getOutreachMetrics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { campaignId?: string }) => data)
+  .handler(async ({ data, context }): Promise<OutreachMetrics> => {
+    let tq = context.supabase.from("outreach_threads").select("id,channel,status");
+    if (data.campaignId) tq = tq.eq("campaign_id", data.campaignId);
+    const { data: threads, error: tErr } = await tq;
+    if (tErr) throw new Error(tErr.message);
+    const threadIds = (threads ?? []).map((t) => t.id);
+
+    const rows: Array<{ thread_id: string; direction: string; channel: string; status: string }> = [];
+    if (threadIds.length) {
+      const { data: msgs, error: mErr } = await context.supabase
+        .from("outreach_messages")
+        .select("thread_id,direction,channel,status")
+        .in("thread_id", threadIds);
+      if (mErr) throw new Error(mErr.message);
+      rows.push(...((msgs ?? []) as typeof rows));
+    }
+
+    const channels: Channel[] = ["email", "x", "reddit", "linkedin"];
+    const byChannel = channels.map((channel) => {
+      const chThreads = new Set(
+        (threads ?? []).filter((t) => t.channel === channel).map((t) => t.id),
+      );
+      const chMsgs = rows.filter((m) => m.channel === channel);
+      const sent = chMsgs.filter((m) => m.direction === "outbound" && m.status === "sent").length;
+      const failed = chMsgs.filter((m) => m.direction === "outbound" && m.status === "failed").length;
+      const replies = chMsgs.filter((m) => m.direction === "inbound").length;
+      const threadsWithSend = new Set(
+        chMsgs
+          .filter((m) => m.direction === "outbound" && m.status === "sent")
+          .map((m) => m.thread_id),
+      ).size;
+      const repliedThreads = (threads ?? []).filter(
+        (t) => t.channel === channel && t.status === "replied" && chThreads.has(t.id),
+      ).length;
+      return {
+        channel,
+        sent,
+        failed,
+        replies,
+        replyRate: threadsWithSend ? Math.round((repliedThreads / threadsWithSend) * 100) : 0,
+      };
+    });
+
+    return {
+      byChannel,
+      totals: {
+        sent: byChannel.reduce((a, c) => a + c.sent, 0),
+        failed: byChannel.reduce((a, c) => a + c.failed, 0),
+        replies: byChannel.reduce((a, c) => a + c.replies, 0),
+        threads: (threads ?? []).length,
+      },
+    };
+  });
+
 // ── Sending ──────────────────────────────────────────────────────────────────
 
-type SendResult = { externalId: string | null; status: "sent" | "queued"; assistUrl?: string };
+type SendResult = {
+  externalId: string | null;
+  status: "sent" | "queued";
+  assistUrl?: string;
+  metadata?: Record<string, string>;
+};
 
-// Email via Resend, from the brand's own verified domain. CAN-SPAM footer is
-// appended automatically. Returns the provider message id for reply matching.
+// Email. Phase 4E: if the user has connected their own Gmail or Outlook, send
+// through that mailbox so mail leaves from their real address; otherwise fall
+// back to the platform Resend sender. CAN-SPAM footer is appended in every
+// case. Returns the provider message id for reply matching.
 async function sendEmail(args: {
+  userId: string;
   to: string;
   subject: string;
   body: string;
-  fromAddress: string;
 }): Promise<SendResult> {
-  const key = process.env.EMAIL_API_KEY;
-  if (!key) throw new Error("Email is not connected");
-  const from = args.fromAddress || process.env.OUTREACH_FROM_ADDRESS || "";
-  if (!from) throw new Error("No verified from-address configured");
   const unsub = process.env.OUTREACH_UNSUBSCRIBE_URL || "";
   const addr = process.env.OUTREACH_POSTAL_ADDRESS || "";
   const footer =
     `\n\n—\nYou received this because a brand is exploring a partnership with you.` +
     (unsub ? ` Unsubscribe: ${unsub}` : "") +
     (addr ? `\n${addr}` : "");
-  const html = (args.body + footer)
+  const text = args.body + footer;
+  const html = text
     .split("\n")
     .map((l) => (l.trim() ? `<p>${escapeHtml(l)}</p>` : "<br/>"))
     .join("");
+
+  // BYO inbox first.
+  const { getActiveEmailConnection, sendViaOutlook, sendViaGmail } = await import(
+    "@/lib/email-providers.server"
+  );
+  const connection = await getActiveEmailConnection(args.userId);
+  if (connection) {
+    const out =
+      connection.provider === "outlook"
+        ? await sendViaOutlook({ connection, to: args.to, subject: args.subject, html, text })
+        : await sendViaGmail({ connection, to: args.to, subject: args.subject, html, text });
+    return {
+      externalId: out.externalId,
+      status: "sent",
+      metadata: { sent_via: out.provider, from_address: out.fromAddress, ...out.metadata },
+    };
+  }
+
+  // Platform fallback: Resend.
+  const key = process.env.EMAIL_API_KEY;
+  if (!key) throw new Error("Email is not connected");
+  const from = process.env.OUTREACH_FROM_ADDRESS || "";
+  if (!from) throw new Error("No verified from-address configured");
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to: [args.to], subject: args.subject, html, text: args.body + footer }),
+    body: JSON.stringify({ from, to: [args.to], subject: args.subject, html, text }),
   });
   if (!res.ok) throw new Error(`Email send failed: ${await res.text()}`);
   const j = (await res.json()) as { id?: string };
-  return { externalId: j.id ?? null, status: "sent" };
+  return {
+    externalId: j.id ?? null,
+    status: "sent",
+    metadata: { sent_via: "resend", from_address: from },
+  };
 }
 
 // X (Twitter) DM via API v2. Requires an app-level bearer with DM scope. Note
@@ -301,10 +402,10 @@ export const sendOutreachMessage = createServerFn({ method: "POST" })
       try {
         if (data.channel === "email") {
           result = await sendEmail({
+            userId: context.userId,
             to: data.to,
             subject: data.subject ?? "Partnership opportunity",
             body: data.body,
-            fromAddress: process.env.OUTREACH_FROM_ADDRESS ?? "",
           });
         } else if (data.channel === "x") {
           result = await sendXDm({ recipientId: data.to, body: data.body });
@@ -331,6 +432,7 @@ export const sendOutreachMessage = createServerFn({ method: "POST" })
           external_id: result.externalId,
           error,
           sent_at: status === "sent" ? new Date().toISOString() : null,
+          ...(result.metadata ? { metadata: result.metadata } : {}),
         })
         .eq("id", msg.id);
 

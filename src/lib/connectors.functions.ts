@@ -21,6 +21,7 @@ export type PlatformConnectors = {
   stripe: boolean;
   paypal: boolean;
   identity: boolean;
+  enrichment: boolean;
 };
 
 export type ConnectorStatus = {
@@ -55,6 +56,7 @@ export const getConnectorStatus = createServerFn({ method: "GET" }).handler(
         stripe: present(env.STRIPE_SECRET_KEY),
         paypal: present(env.PAYPAL_CLIENT_ID, env.PAYPAL_SECRET),
         identity: present(env.IDENTITY_API_KEY),
+        enrichment: present(env.HUNTER_API_KEY) || present(env.APOLLO_API_KEY),
       },
       account: {
         adAccount: false,

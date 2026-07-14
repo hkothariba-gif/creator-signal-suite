@@ -14,6 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
+      channel_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          id: string
+          provider: string
+          refresh_token: string | null
+          scope: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          scope?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          scope?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      oauth_states: {
+        Row: {
+          created_at: string
+          id: string
+          provider: string
+          redirect_to: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider: string
+          redirect_to?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider?: string
+          redirect_to?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      outreach_sequences: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          id: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      outreach_sequence_steps: {
+        Row: {
+          body: string
+          created_at: string
+          delay_days: number
+          id: string
+          sequence_id: string
+          step_order: number
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          delay_days?: number
+          id?: string
+          sequence_id: string
+          step_order: number
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          delay_days?: number
+          id?: string
+          sequence_id?: string
+          step_order?: number
+          subject?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sequence_enrollments: {
+        Row: {
+          created_at: string
+          current_step: number
+          error: string | null
+          hotlist_id: string
+          id: string
+          next_send_at: string | null
+          sequence_id: string
+          status: string
+          thread_id: string | null
+          to_address: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_step?: number
+          error?: string | null
+          hotlist_id: string
+          id?: string
+          next_send_at?: string | null
+          sequence_id: string
+          status?: string
+          thread_id?: string | null
+          to_address: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_step?: number
+          error?: string | null
+          hotlist_id?: string
+          id?: string
+          next_send_at?: string | null
+          sequence_id?: string
+          status?: string
+          thread_id?: string | null
+          to_address?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       channel_connections: {
         Row: {
           created_at: string

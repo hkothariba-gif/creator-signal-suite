@@ -1,8 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { OutreachComposer } from "@/components/app/OutreachComposer";
+import {
+  EmailAccountsCard,
+  DeliveryMetricsPanel,
+  SequencesPanel,
+} from "@/components/app/OutreachPanels";
 import { Inbox, MessageSquare, ArrowRight, Loader2 } from "lucide-react";
 import {
   listThreads,
@@ -19,6 +25,8 @@ import {
 export const Route = createFileRoute("/app/outreach")({
   validateSearch: (search: Record<string, unknown>) => ({
     campaign: typeof search.campaign === "string" ? search.campaign : undefined,
+    connected: typeof search.connected === "string" ? search.connected : undefined,
+    email_error: typeof search.email_error === "string" ? search.email_error : undefined,
   }),
   component: OutreachPage,
 });
@@ -39,8 +47,22 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 function OutreachPage() {
-  const { campaign: campaignParam } = Route.useSearch();
+  const { campaign: campaignParam, connected, email_error } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [campaignId, setCampaignId] = useState<string | undefined>(campaignParam);
+
+  // Post-OAuth landing: surface the outcome once, then clean the URL.
+  useEffect(() => {
+    if (connected) toast.success(`${connected === "outlook" ? "Outlook" : "Gmail"} connected`);
+    if (email_error) toast.error(`Email connection failed: ${email_error.replace(/_/g, " ")}`);
+    if (connected || email_error) {
+      navigate({
+        search: (s) => ({ ...s, connected: undefined, email_error: undefined }),
+        replace: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, email_error]);
   const [threads, setThreads] = useState<OutreachThread[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<OutreachThread | null>(null);
@@ -216,6 +238,18 @@ function OutreachPage() {
           </Card>
         </div>
       )}
+
+      {/* Phase 4E: sending identity, delivery metrics, and sequences. */}
+      <h2 className="mt-8 mb-3 text-sm font-bold uppercase tracking-wider text-[#8892A4]">
+        Sending & automation
+      </h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <EmailAccountsCard />
+        <DeliveryMetricsPanel campaignId={campaignId} />
+      </div>
+      <div className="mt-4">
+        <SequencesPanel campaignId={campaignId} />
+      </div>
     </AppShell>
   );
 }

@@ -13,7 +13,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 type Found = {
   channel: "email" | "x" | "reddit" | "linkedin" | "website";
   address: string;
-  source: "youtube_description" | "website_crawl";
+  source: "youtube_description" | "website_crawl" | "hunter" | "apollo";
   confidence: number;
 };
 
@@ -92,6 +92,59 @@ async function crawlForEmail(siteUrl: string): Promise<string[]> {
   return Array.from(emails).slice(0, 3);
 }
 
+// Phase 4E paid enrichment (dormant until a key is set). Given a creator name
+// and a site domain, ask Hunter then Apollo for a verified email. Both are
+// optional adapters; organic discovery always runs first.
+async function enrichViaProviders(name: string, domain: string): Promise<Found[]> {
+  const out: Found[] = [];
+  const hunterKey = process.env.HUNTER_API_KEY;
+  const apolloKey = process.env.APOLLO_API_KEY;
+
+  if (hunterKey) {
+    try {
+      const p = new URLSearchParams({ domain, full_name: name, api_key: hunterKey });
+      const r = await fetch(`https://api.hunter.io/v2/email-finder?${p}`);
+      if (r.ok) {
+        const j = (await r.json()) as { data?: { email?: string; score?: number } };
+        if (j.data?.email) {
+          out.push({
+            channel: "email",
+            address: j.data.email.toLowerCase(),
+            source: "hunter",
+            confidence: Math.min(0.95, (j.data.score ?? 70) / 100),
+          });
+        }
+      }
+    } catch {
+      /* enrichment is best-effort */
+    }
+  }
+
+  if (!out.length && apolloKey) {
+    try {
+      const r = await fetch("https://api.apollo.io/api/v1/people/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Api-Key": apolloKey },
+        body: JSON.stringify({ name, domain, reveal_personal_emails: true }),
+      });
+      if (r.ok) {
+        const j = (await r.json()) as { person?: { email?: string } };
+        if (j.person?.email) {
+          out.push({
+            channel: "email",
+            address: j.person.email.toLowerCase(),
+            source: "apollo",
+            confidence: 0.85,
+          });
+        }
+      }
+    } catch {
+      /* enrichment is best-effort */
+    }
+  }
+  return out;
+}
+
 export const discoverCreatorContacts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { hotlistId: string }) => data)
@@ -101,7 +154,7 @@ export const discoverCreatorContacts = createServerFn({ method: "POST" })
 
       const { data: row, error } = await context.supabase
         .from("hotlist")
-        .select("id,platform,external_id,profile_data")
+        .select("id,platform,external_id,profile_data,creator_name")
         .eq("id", data.hotlistId)
         .maybeSingle();
       if (error) throw new Error(error.message);
@@ -138,6 +191,20 @@ export const discoverCreatorContacts = createServerFn({ method: "POST" })
         const emails = await crawlForEmail(site);
         for (const e of emails) {
           found.push({ channel: "email", address: e, source: "website_crawl", confidence: 0.75 });
+        }
+      }
+
+      // Paid enrichment fallback (4E): only when organic discovery produced no
+      // email, a site domain exists to anchor the lookup, and a provider key
+      // is configured. Dormant otherwise.
+      const hasEmail = found.some((f) => f.channel === "email");
+      if (!hasEmail && site && (process.env.HUNTER_API_KEY || process.env.APOLLO_API_KEY)) {
+        try {
+          const domain = new URL(site).hostname.replace(/^www\./, "");
+          const name = (row.creator_name as string) ?? "";
+          if (name && domain) found.push(...(await enrichViaProviders(name, domain)));
+        } catch {
+          /* malformed site URL */
         }
       }
 

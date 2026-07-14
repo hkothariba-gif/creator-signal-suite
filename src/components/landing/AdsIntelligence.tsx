@@ -3,17 +3,17 @@ import { TrendingUp, MessagesSquare, Megaphone, Heart, Activity, Sparkles } from
 import { WordStagger, FadeUp } from "./words";
 
 const signals = [
-  { Icon: TrendingUp, label: "Affiliate & influencer performance", desc: "Which creators actually drive conversions" },
-  { Icon: MessagesSquare, label: "Social chatter", desc: "Reddit and X threads about your category" },
-  { Icon: Megaphone, label: "Brand posts & creator uploads", desc: "What's being said and shown right now" },
-  { Icon: Heart, label: "Comment sentiment & buyer intent", desc: "How audiences react and what they want" },
-  { Icon: Activity, label: "Organic engagement velocity", desc: "What's gaining traction, in real time" },
+  { Icon: TrendingUp, label: "Affiliate & influencer performance" },
+  { Icon: MessagesSquare, label: "Social chatter" },
+  { Icon: Megaphone, label: "Brand posts & creator uploads" },
+  { Icon: Heart, label: "Comment sentiment & buyer intent" },
+  { Icon: Activity, label: "Organic engagement velocity" },
 ];
 
 const outputs = [
-  { label: "Ad hook", desc: "The line that stops the scroll" },
-  { label: "Creative angle", desc: "The story your audience is ready for" },
-  { label: "Target segment", desc: "Who to spend against, and where" },
+  { label: "Ad hook" },
+  { label: "Creative angle" },
+  { label: "Target segment" },
 ];
 
 export function AdsIntelligence() {
@@ -62,10 +62,7 @@ export function AdsIntelligence() {
                   >
                     <s.Icon className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="font-semibold text-[#F0F4FF] text-sm">{s.label}</div>
-                    <div className="text-xs text-brand-muted mt-0.5">{s.desc}</div>
-                  </div>
+                  <div className="font-semibold text-[#F0F4FF] text-sm self-center">{s.label}</div>
                 </div>
               </FadeUp>
             ))}
@@ -96,7 +93,7 @@ export function AdsIntelligence() {
                     Aspen
                   </div>
                   <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-muted">
-                    Engine
+                    Ad Engine
                   </div>
                 </div>
               </motion.div>
@@ -123,7 +120,6 @@ export function AdsIntelligence() {
                   <div className="font-display font-bold text-white text-lg mt-1 tracking-tight">
                     {o.label}
                   </div>
-                  <div className="text-sm text-brand-muted mt-1">{o.desc}</div>
                 </div>
               </FadeUp>
             ))}

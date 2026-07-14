@@ -87,14 +87,8 @@ export function PlatformRevenueTabs() {
           One platform. Four revenue channels.
         </h2>
       </FadeUp>
-      <FadeUp delay={0.16}>
-        <p className="platform-revenue-subhead">
-          Each platform has a distinct monetization strategy. AspenReach handles
-          all four.
-        </p>
-      </FadeUp>
 
-      <FadeUp delay={0.24}>
+      <FadeUp delay={0.16}>
         <div className="platform-revenue-tabs">
           {tabs.map((t, i) => (
             <button

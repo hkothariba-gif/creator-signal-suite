@@ -134,49 +134,93 @@ export type Database = {
         Row: {
           clicks: number
           conversions: number
-          created_at: string
           currency: string
           day: string
-          id: string
-          link_id: string | null
+          link_id: string
           organization_id: string
           revenue_minor: number
-          updated_at: string
         }
         Insert: {
           clicks?: number
           conversions?: number
-          created_at?: string
           currency?: string
           day: string
-          id?: string
-          link_id?: string | null
+          link_id: string
           organization_id: string
           revenue_minor?: number
-          updated_at?: string
         }
         Update: {
           clicks?: number
           conversions?: number
-          created_at?: string
           currency?: string
           day?: string
-          id?: string
-          link_id?: string | null
+          link_id?: string
           organization_id?: string
           revenue_minor?: number
-          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "affiliate_daily_link_id_fkey"
+            foreignKeyName: "affiliate_daily_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_events: {
+        Row: {
+          click_ref: string | null
+          created_at: string
+          currency: string
+          external_id: string
+          id: string
+          link_id: string | null
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+          provider: Database["public"]["Enums"]["affiliate_provider"]
+          revenue_minor: number
+          type: Database["public"]["Enums"]["affiliate_event_type"]
+        }
+        Insert: {
+          click_ref?: string | null
+          created_at?: string
+          currency?: string
+          external_id: string
+          id?: string
+          link_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+          provider?: Database["public"]["Enums"]["affiliate_provider"]
+          revenue_minor?: number
+          type: Database["public"]["Enums"]["affiliate_event_type"]
+        }
+        Update: {
+          click_ref?: string | null
+          created_at?: string
+          currency?: string
+          external_id?: string
+          id?: string
+          link_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+          provider?: Database["public"]["Enums"]["affiliate_provider"]
+          revenue_minor?: number
+          type?: Database["public"]["Enums"]["affiliate_event_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_events_link_id_fkey"
             columns: ["link_id"]
             isOneToOne: false
             referencedRelation: "affiliate_links"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "affiliate_daily_organization_id_fkey"
+            foreignKeyName: "affiliate_events_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -639,15 +683,18 @@ export type Database = {
         Args: { org: string }
         Returns: Database["public"]["Enums"]["org_role"]
       }
+      recompute_affiliate_daily: { Args: { p_org: string }; Returns: undefined }
       shares_org_with: { Args: { target: string }; Returns: boolean }
     }
     Enums: {
+      affiliate_event_type: "click" | "conversion"
       affiliate_provider:
-        | "stripe"
-        | "shopify"
-        | "paddle"
-        | "lemonsqueezy"
-        | "manual"
+        | "impact"
+        | "partnerstack"
+        | "rakuten"
+        | "cj"
+        | "amazon"
+        | "generic"
       org_role: "admin" | "editor" | "reviewer"
       signal_source:
         | "brand24"
@@ -783,12 +830,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      affiliate_event_type: ["click", "conversion"],
       affiliate_provider: [
-        "stripe",
-        "shopify",
-        "paddle",
-        "lemonsqueezy",
-        "manual",
+        "impact",
+        "partnerstack",
+        "rakuten",
+        "cj",
+        "amazon",
+        "generic",
       ],
       org_role: ["admin", "editor", "reviewer"],
       signal_source: ["brand24", "phyllo", "youtube", "x", "reddit", "trends"],

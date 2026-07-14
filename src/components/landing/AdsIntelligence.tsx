@@ -96,7 +96,7 @@ export function AdsIntelligence() {
                     Aspen
                   </div>
                   <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-muted">
-                    Engine
+                    Ad Engine
                   </div>
                 </div>
               </motion.div>

@@ -41,7 +41,6 @@ function Landing() {
         <ProblemSolution />
         <AdsIntelligence />
         <HeatMapSection />
-        <PlatformCards />
         <Pricing />
         <FinalCTA />
       </main>

@@ -62,10 +62,7 @@ export function AdsIntelligence() {
                   >
                     <s.Icon className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="font-semibold text-[#F0F4FF] text-sm">{s.label}</div>
-                    <div className="text-xs text-brand-muted mt-0.5">{s.desc}</div>
-                  </div>
+                  <div className="font-semibold text-[#F0F4FF] text-sm self-center">{s.label}</div>
                 </div>
               </FadeUp>
             ))}
@@ -123,7 +120,6 @@ export function AdsIntelligence() {
                   <div className="font-display font-bold text-white text-lg mt-1 tracking-tight">
                     {o.label}
                   </div>
-                  <div className="text-sm text-brand-muted mt-1">{o.desc}</div>
                 </div>
               </FadeUp>
             ))}

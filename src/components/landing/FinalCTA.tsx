@@ -28,9 +28,6 @@ export function FinalCTA() {
           text="Find, Onboard and Scale with Creators That Actually Align"
           className="font-display font-extrabold text-4xl md:text-6xl lg:text-[72px] tracking-[-0.04em] leading-[1.05] text-white"
         />
-        <p className="mt-6 text-brand-muted text-lg md:text-xl">
-          Stop paying for reach. Start paying for relevance.
-        </p>
 
         <form
           onSubmit={(e) => {

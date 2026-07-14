@@ -3,17 +3,17 @@ import { TrendingUp, MessagesSquare, Megaphone, Heart, Activity, Sparkles } from
 import { WordStagger, FadeUp } from "./words";
 
 const signals = [
-  { Icon: TrendingUp, label: "Affiliate & influencer performance", desc: "Which creators actually drive conversions" },
-  { Icon: MessagesSquare, label: "Social chatter", desc: "Reddit and X threads about your category" },
-  { Icon: Megaphone, label: "Brand posts & creator uploads", desc: "What's being said and shown right now" },
-  { Icon: Heart, label: "Comment sentiment & buyer intent", desc: "How audiences react and what they want" },
-  { Icon: Activity, label: "Organic engagement velocity", desc: "What's gaining traction, in real time" },
+  { Icon: TrendingUp, label: "Affiliate & influencer performance" },
+  { Icon: MessagesSquare, label: "Social chatter" },
+  { Icon: Megaphone, label: "Brand posts & creator uploads" },
+  { Icon: Heart, label: "Comment sentiment & buyer intent" },
+  { Icon: Activity, label: "Organic engagement velocity" },
 ];
 
 const outputs = [
-  { label: "Ad hook", desc: "The line that stops the scroll" },
-  { label: "Creative angle", desc: "The story your audience is ready for" },
-  { label: "Target segment", desc: "Who to spend against, and where" },
+  { label: "Ad hook" },
+  { label: "Creative angle" },
+  { label: "Target segment" },
 ];
 
 export function AdsIntelligence() {

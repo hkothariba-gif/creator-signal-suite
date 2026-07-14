@@ -6,7 +6,7 @@ import { TrustBar } from "@/components/landing/TrustBar";
 import { ProblemSolution } from "@/components/landing/ProblemSolution";
 import { AdsIntelligence } from "@/components/landing/AdsIntelligence";
 import { HeatMapSection } from "@/components/landing/HeatMapSection";
-import { PlatformCards } from "@/components/landing/PlatformCards";
+
 import { Pricing } from "@/components/landing/Pricing";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { LandingFooter } from "@/components/landing/LandingFooter";

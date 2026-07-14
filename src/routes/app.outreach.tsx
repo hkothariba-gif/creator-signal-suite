@@ -57,7 +57,11 @@ function OutreachPage() {
     if (email_error) toast.error(`Email connection failed: ${email_error.replace(/_/g, " ")}`);
     if (connected || email_error) {
       navigate({
-        search: (s) => ({ ...s, connected: undefined, email_error: undefined }),
+        search: (s: { campaign?: string; connected?: string; email_error?: string }) => ({
+          ...s,
+          connected: undefined,
+          email_error: undefined,
+        }),
         replace: true,
       });
     }

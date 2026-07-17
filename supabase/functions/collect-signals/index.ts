@@ -6,8 +6,10 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+type SourceName = "brand24" | "phyllo" | "youtube" | "x" | "reddit" | "trends";
+
 type RawSignal = {
-  source: "brand24" | "phyllo" | "youtube" | "x" | "reddit" | "trends";
+  source: SourceName;
   external_id: string;
   kind: string;
   topic: string | null;
@@ -19,39 +21,53 @@ type RawSignal = {
   metrics: Record<string, number>;
 };
 
+type FetchStatus = { source: SourceName; ok: boolean; count: number; reason?: string };
+type FetchResult = { signals: RawSignal[]; status: FetchStatus };
+
 const num = (v: unknown): number => {
   const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : 0;
   return Number.isFinite(n) ? n : 0;
 };
 
-function logFail(
-  source: RawSignal["source"],
-  stage: string,
-  query: string,
-  detail: unknown,
-): void {
-  const msg =
-    detail instanceof Response
-      ? `HTTP ${detail.status} ${detail.statusText}`
-      : detail instanceof Error
-      ? detail.message
-      : typeof detail === "string"
-      ? detail
-      : JSON.stringify(detail);
-  console.warn(`[collect-signals] ${source}:${stage} failed for "${query}": ${msg}`);
+async function httpFailReason(source: SourceName, stage: string, res: Response): Promise<string> {
+  let body = "";
+  try {
+    body = await res.text();
+  } catch {
+    // ignore
+  }
+  console.error(`[${source}] request failed: ${res.status} ${res.statusText}`, body);
+  return `${stage} http ${res.status} ${res.statusText}`;
 }
 
-async function fetchYouTube(query: string): Promise<RawSignal[]> {
+function skip(source: SourceName, envVar: string): FetchResult {
+  console.warn(`[${source}] skipped: ${envVar} not set`);
+  return { signals: [], status: { source, ok: false, count: 0, reason: `skipped: ${envVar} not set` } };
+}
+
+function threw(source: SourceName, err: unknown): FetchResult {
+  console.error(`[${source}] threw:`, err);
+  const reason = err instanceof Error ? `exception: ${err.message}` : "exception";
+  return { signals: [], status: { source, ok: false, count: 0, reason } };
+}
+
+function ok(source: SourceName, signals: RawSignal[]): FetchResult {
+  return { signals, status: { source, ok: true, count: signals.length } };
+}
+
+function failed(source: SourceName, reason: string): FetchResult {
+  return { signals: [], status: { source, ok: false, count: 0, reason } };
+}
+
+async function fetchYouTube(query: string): Promise<FetchResult> {
+  const source: SourceName = "youtube";
   const key = Deno.env.get("YOUTUBE_API_KEY");
-  if (!key) return [];
+  if (!key) return skip(source, "YOUTUBE_API_KEY");
   try {
     const s = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&order=viewCount&maxResults=10&key=${key}`,
     );
-    if (!s.ok) {
-      logFail("youtube", "search", query, s);
-      return [];
-    }
+    if (!s.ok) return failed(source, await httpFailReason(source, "search", s));
     const search = await s.json();
     const items = (search.items ?? []) as Array<Record<string, any>>;
     const ids = items.map((i) => i?.id?.videoId).filter(Boolean);
@@ -70,10 +86,10 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
           });
         }
       } else {
-        logFail("youtube", "videos", query, st);
+        await httpFailReason(source, "videos", st);
       }
     }
-    return items
+    const signals = items
       .filter((i) => i?.id?.videoId)
       .map((i) => ({
         source: "youtube" as const,
@@ -87,16 +103,18 @@ async function fetchYouTube(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: statsById.get(i.id.videoId) ?? {},
       }));
+    return ok(source, signals);
   } catch (err) {
-    logFail("youtube", "exception", query, err);
-    return [];
+    return threw(source, err);
   }
 }
 
-async function fetchReddit(query: string): Promise<RawSignal[]> {
+async function fetchReddit(query: string): Promise<FetchResult> {
+  const source: SourceName = "reddit";
   const id = Deno.env.get("REDDIT_CLIENT_ID");
   const secret = Deno.env.get("REDDIT_SECRET");
-  if (!id || !secret) return [];
+  if (!id) return skip(source, "REDDIT_CLIENT_ID");
+  if (!secret) return skip(source, "REDDIT_SECRET");
   try {
     const tokRes = await fetch("https://www.reddit.com/api/v1/access_token", {
       method: "POST",
@@ -107,25 +125,19 @@ async function fetchReddit(query: string): Promise<RawSignal[]> {
       },
       body: "grant_type=client_credentials",
     });
-    if (!tokRes.ok) {
-      logFail("reddit", "token", query, tokRes);
-      return [];
-    }
+    if (!tokRes.ok) return failed(source, await httpFailReason(source, "token", tokRes));
     const token = (await tokRes.json()).access_token;
     if (!token) {
-      logFail("reddit", "token", query, "missing access_token");
-      return [];
+      console.error(`[${source}] request failed: token response missing access_token`);
+      return failed(source, "token missing access_token");
     }
     const res = await fetch(
       `https://oauth.reddit.com/search?q=${encodeURIComponent(query)}&sort=top&t=month&limit=15`,
       { headers: { Authorization: `Bearer ${token}`, "User-Agent": "aspenreach/1.0" } },
     );
-    if (!res.ok) {
-      logFail("reddit", "search", query, res);
-      return [];
-    }
+    if (!res.ok) return failed(source, await httpFailReason(source, "search", res));
     const json = await res.json();
-    return (json.data?.children ?? [])
+    const signals = (json.data?.children ?? [])
       .map((c: any) => c.data)
       .filter((d: any) => d && d.id)
       .map((d: any) => ({
@@ -140,16 +152,18 @@ async function fetchReddit(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: { score: num(d.score), comments: num(d.num_comments), upvote_ratio: num(d.upvote_ratio) },
       }));
+    return ok(source, signals);
   } catch (err) {
-    logFail("reddit", "exception", query, err);
-    return [];
+    return threw(source, err);
   }
 }
 
-async function fetchX(query: string): Promise<RawSignal[]> {
+async function fetchX(query: string): Promise<FetchResult> {
+  const source: SourceName = "x";
   const key = Deno.env.get("X_API_KEY");
   const secret = Deno.env.get("X_API_SECRET");
-  if (!key || !secret) return [];
+  if (!key) return skip(source, "X_API_KEY");
+  if (!secret) return skip(source, "X_API_SECRET");
   try {
     const tokRes = await fetch("https://api.twitter.com/oauth2/token", {
       method: "POST",
@@ -159,14 +173,11 @@ async function fetchX(query: string): Promise<RawSignal[]> {
       },
       body: "grant_type=client_credentials",
     });
-    if (!tokRes.ok) {
-      logFail("x", "token", query, tokRes);
-      return [];
-    }
+    if (!tokRes.ok) return failed(source, await httpFailReason(source, "token", tokRes));
     const bearer = (await tokRes.json()).access_token;
     if (!bearer) {
-      logFail("x", "token", query, "missing access_token");
-      return [];
+      console.error(`[${source}] request failed: token response missing access_token`);
+      return failed(source, "token missing access_token");
     }
     const params = new URLSearchParams({
       query: `${query} -is:retweet lang:en`,
@@ -176,12 +187,9 @@ async function fetchX(query: string): Promise<RawSignal[]> {
     const res = await fetch(`https://api.twitter.com/2/tweets/search/recent?${params}`, {
       headers: { Authorization: `Bearer ${bearer}` },
     });
-    if (!res.ok) {
-      logFail("x", "search", query, res);
-      return [];
-    }
+    if (!res.ok) return failed(source, await httpFailReason(source, "search", res));
     const json = await res.json();
-    return (json.data ?? []).map((t: any) => ({
+    const signals = (json.data ?? []).map((t: any) => ({
       source: "x" as const,
       external_id: t.id,
       kind: "post",
@@ -198,42 +206,37 @@ async function fetchX(query: string): Promise<RawSignal[]> {
         quotes: num(t.public_metrics?.quote_count),
       },
     }));
+    return ok(source, signals);
   } catch (err) {
-    logFail("x", "exception", query, err);
-    return [];
+    return threw(source, err);
   }
 }
 
-async function fetchBrand24(query: string): Promise<RawSignal[]> {
+async function fetchBrand24(query: string): Promise<FetchResult> {
+  const source: SourceName = "brand24";
   const key = Deno.env.get("BRAND24_API_KEY");
-  if (!key) return [];
+  if (!key) return skip(source, "BRAND24_API_KEY");
   try {
     const pr = await fetch("https://api.brand24.com/v2/projects", {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
-    if (!pr.ok) {
-      logFail("brand24", "projects", query, pr);
-      return [];
-    }
+    if (!pr.ok) return failed(source, await httpFailReason(source, "projects", pr));
     const projects = await pr.json();
     const projectId = Array.isArray(projects) ? projects[0]?.id : undefined;
     if (projectId === undefined) {
-      logFail("brand24", "projects", query, "no project id");
-      return [];
+      console.error(`[${source}] request failed: no project id in projects response`);
+      return failed(source, "no project id");
     }
     const mr = await fetch(`https://api.brand24.com/v2/projects/${projectId}/mentions?limit=25`, {
       headers: { Authorization: `Bearer ${key}`, Accept: "application/json" },
     });
-    if (!mr.ok) {
-      logFail("brand24", "mentions", query, mr);
-      return [];
-    }
+    if (!mr.ok) return failed(source, await httpFailReason(source, "mentions", mr));
     const json = await mr.json();
     const sentimentOf = (v: unknown) => {
       const n = num(v);
       return n > 0 ? "positive" : n < 0 ? "negative" : "neutral";
     };
-    return (json.results ?? [])
+    const signals = (json.results ?? [])
       .filter((m: any) => m.id !== undefined)
       .map((m: any) => ({
         source: "brand24" as const,
@@ -247,28 +250,27 @@ async function fetchBrand24(query: string): Promise<RawSignal[]> {
         sentiment: sentimentOf(m.sentiment),
         metrics: { reach: num(m.reach), influence: num(m.influence_score) },
       }));
+    return ok(source, signals);
   } catch (err) {
-    logFail("brand24", "exception", query, err);
-    return [];
+    return threw(source, err);
   }
 }
 
-async function fetchPhyllo(query: string): Promise<RawSignal[]> {
+async function fetchPhyllo(query: string): Promise<FetchResult> {
+  const source: SourceName = "phyllo";
   const id = Deno.env.get("PHYLLO_CLIENT_ID");
   const secret = Deno.env.get("PHYLLO_SECRET");
-  if (!id || !secret) return [];
+  if (!id) return skip(source, "PHYLLO_CLIENT_ID");
+  if (!secret) return skip(source, "PHYLLO_SECRET");
   try {
     const res = await fetch("https://api.insights.getphyllo.com/v1/social/creators/contents/search", {
       method: "POST",
       headers: { Authorization: `Basic ${btoa(`${id}:${secret}`)}`, "Content-Type": "application/json" },
       body: JSON.stringify({ keyword: query, limit: 15 }),
     });
-    if (!res.ok) {
-      logFail("phyllo", "search", query, res);
-      return [];
-    }
+    if (!res.ok) return failed(source, await httpFailReason(source, "search", res));
     const json = await res.json();
-    return (json.data ?? [])
+    const signals = (json.data ?? [])
       .filter((d: any) => d.id !== undefined || d.external_id !== undefined)
       .map((d: any) => ({
         source: "phyllo" as const,
@@ -286,26 +288,24 @@ async function fetchPhyllo(query: string): Promise<RawSignal[]> {
           comments: num(d.engagement?.comment_count),
         },
       }));
+    return ok(source, signals);
   } catch (err) {
-    logFail("phyllo", "exception", query, err);
-    return [];
+    return threw(source, err);
   }
 }
 
-async function fetchTrends(query: string): Promise<RawSignal[]> {
+async function fetchTrends(query: string): Promise<FetchResult> {
+  const source: SourceName = "trends";
   const key = Deno.env.get("TRENDS_API_KEY");
-  if (!key) return [];
+  if (!key) return skip(source, "TRENDS_API_KEY");
   try {
     const res = await fetch(
       `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(query)}&data_type=RELATED_QUERIES&api_key=${key}`,
     );
-    if (!res.ok) {
-      logFail("trends", "search", query, res);
-      return [];
-    }
+    if (!res.ok) return failed(source, await httpFailReason(source, "search", res));
     const json = await res.json();
     const rows = [...(json.related_queries?.rising ?? []), ...(json.related_queries?.top ?? [])];
-    return rows
+    const signals = rows
       .filter((r: any) => typeof r.query === "string")
       .map((r: any, i: number) => ({
         source: "trends" as const,
@@ -319,24 +319,36 @@ async function fetchTrends(query: string): Promise<RawSignal[]> {
         sentiment: null,
         metrics: { value: num(r.value) || rows.length - i, extracted_value: num(r.extracted_value) },
       }));
+    return ok(source, signals);
   } catch (err) {
-    logFail("trends", "exception", query, err);
-    return [];
+    return threw(source, err);
   }
 }
 
-async function collectAll(query: string): Promise<RawSignal[]> {
-  const settled = await Promise.allSettled([
-    fetchYouTube(query),
-    fetchReddit(query),
-    fetchX(query),
-    fetchBrand24(query),
-    fetchPhyllo(query),
-    fetchTrends(query),
-  ]);
-  const out: RawSignal[] = [];
-  for (const r of settled) if (r.status === "fulfilled") out.push(...r.value);
-  return out;
+async function collectAll(query: string): Promise<{ signals: RawSignal[]; statuses: FetchStatus[] }> {
+  const fetchers: Array<{ source: SourceName; run: () => Promise<FetchResult> }> = [
+    { source: "youtube", run: () => fetchYouTube(query) },
+    { source: "reddit", run: () => fetchReddit(query) },
+    { source: "x", run: () => fetchX(query) },
+    { source: "brand24", run: () => fetchBrand24(query) },
+    { source: "phyllo", run: () => fetchPhyllo(query) },
+    { source: "trends", run: () => fetchTrends(query) },
+  ];
+  const settled = await Promise.allSettled(fetchers.map((f) => f.run()));
+  const signals: RawSignal[] = [];
+  const statuses: FetchStatus[] = [];
+  settled.forEach((r, i) => {
+    const source = fetchers[i].source;
+    if (r.status === "fulfilled") {
+      signals.push(...r.value.signals);
+      statuses.push(r.value.status);
+    } else {
+      console.error(`[${source}] threw:`, r.reason);
+      const reason = r.reason instanceof Error ? `exception: ${r.reason.message}` : "exception";
+      statuses.push({ source, ok: false, count: 0, reason });
+    }
+  });
+  return { signals, statuses };
 }
 
 Deno.serve(async (req) => {
@@ -375,6 +387,9 @@ Deno.serve(async (req) => {
 
   let stored = 0;
   const perOrg: Record<string, number> = {};
+  // Aggregate per-source status across all orgs/topics: sum counts, keep the
+  // first non-empty reason so callers see why a source produced zero rows.
+  const summaryMap = new Map<SourceName, FetchStatus>();
   for (const org of orgs ?? []) {
     // Topics come from what the organization already tracks. Distinct stored
     // topics first, then the brand category, then the organization name.
@@ -393,7 +408,17 @@ Deno.serve(async (req) => {
     }
 
     for (const topic of [...topics].slice(0, 5)) {
-      const raw = await collectAll(topic);
+      const { signals: raw, statuses } = await collectAll(topic);
+      for (const st of statuses) {
+        const prev = summaryMap.get(st.source);
+        if (!prev) {
+          summaryMap.set(st.source, { ...st });
+        } else {
+          prev.count += st.count;
+          if (st.ok) prev.ok = true;
+          if (!prev.reason && st.reason) prev.reason = st.reason;
+        }
+      }
       if (raw.length === 0) continue;
       const rows = raw.map((r) => ({ ...r, organization_id: org.id }));
       const { data: up } = await supabase
@@ -406,8 +431,12 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, stored, organizations: Object.keys(perOrg).length }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  const sources = [...summaryMap.values()].map((s) =>
+    s.reason && s.ok ? { source: s.source, ok: s.ok, count: s.count } : s,
+  );
+
+  return new Response(
+    JSON.stringify({ ok: true, stored, organizations: Object.keys(perOrg).length, sources }),
+    { status: 200, headers: { "Content-Type": "application/json" } },
+  );
 });

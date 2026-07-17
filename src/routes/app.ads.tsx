@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
+import { AuthenticAdStudio } from "@/components/app/AuthenticAdStudio";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -265,6 +266,19 @@ function AdStudioPage() {
           Signals rank the hooks, phrases, and themes that earn attention, then feed copy and imagery.
         </p>
       </div>
+
+      {/* ── Phase 5A: grounded generation from real audience language ── */}
+      {orgId && (
+        <div className="mb-6">
+          <AuthenticAdStudio
+            organizationId={orgId}
+            brand={user?.company_name ?? user?.organization?.name ?? "the brand"}
+            canEdit={canEdit}
+            llmReady={llmReady}
+            onGenerated={() => void loadAds()}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6">
         {/* ── Left: signals and intelligence ── */}

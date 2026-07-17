@@ -135,6 +135,137 @@ export const generateAdCopy = createServerFn({ method: "POST" })
     return copy;
   });
 
+// ── Phase 5A: authentic (grounded) ad generation ─────────────────────────────
+
+export type AuthenticAdResult = {
+  adId: string;
+  headline: string;
+  body: string;
+  cta: string;
+  passed: boolean;
+  gates: { swap: { pass: boolean; reason: string }; groundedness: { pass: boolean; reason: string } };
+  sourcesUsed: Array<{ kind: string; author: string | null; quote: string }>;
+};
+
+export const generateAuthenticAd = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { organizationId: string; campaignId: string; platform: string; brand: string }) => data,
+  )
+  .handler(async ({ data, context }): Promise<AuthenticAdResult> => {
+    if (!data.organizationId || !data.campaignId) {
+      throw new Error("organizationId and campaignId are required");
+    }
+    await assertCanEdit(context.supabase, data.organizationId);
+    if (!process.env.LLM_API_KEY) throw new Error("Connect the LLM key to generate ads");
+
+    const { data: campaign, error } = await context.supabase
+      .from("campaigns")
+      .select("id,name,product_description,brand_beliefs,proof_points,never_say")
+      .eq("id", data.campaignId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!campaign) throw new Error("Campaign not found");
+    if (!campaign.brand_beliefs?.trim()) {
+      throw new Error(
+        "Write the campaign belief doc first — beliefs are what make the copy impossible to swap",
+      );
+    }
+
+    // The grounding corpus: strongest audience comments, spoken-word excerpts,
+    // and everything that actually converted.
+    const { data: corpus, error: cErr } = await context.supabase
+      .from("ad_corpus")
+      .select("id,kind,author,content,metrics")
+      .eq("campaign_id", data.campaignId);
+    if (cErr) throw new Error(cErr.message);
+    const rows = corpus ?? [];
+    if (rows.length < 3) {
+      throw new Error("Collect the grounding corpus first (need at least 3 real quotes)");
+    }
+    const score = (m: unknown) => {
+      const mm = (m ?? {}) as Record<string, number>;
+      return Number(mm.likes ?? 0) + Number(mm.ups ?? 0) + Number(mm.conversions ?? 0) * 10;
+    };
+    const pick = [
+      ...rows
+        .filter((r) => r.kind === "comment")
+        .sort((a, b) => score(b.metrics) - score(a.metrics))
+        .slice(0, 12),
+      ...rows.filter((r) => r.kind === "transcript").slice(0, 4),
+      ...rows.filter((r) => r.kind === "conversion_phrase").slice(0, 4),
+    ];
+    const sources = pick.map((r, i) => ({
+      ref: i + 1,
+      id: r.id as string,
+      kind: r.kind as string,
+      author: r.author as string | null,
+      content: r.content as string,
+    }));
+
+    const { generateAuthenticCopy } = await import("@/lib/ad-generation.server");
+    const result = await generateAuthenticCopy({
+      brand: data.brand || "the brand",
+      platform: data.platform || "reddit",
+      productDescription: campaign.product_description ?? campaign.name,
+      beliefs: campaign.brand_beliefs,
+      proofPoints: campaign.proof_points ?? "",
+      neverSay: campaign.never_say ?? "",
+      sources,
+    });
+    if (!result) throw new Error("Generation is not configured or returned nothing");
+
+    const cited = sources.filter((s) => result.citations.includes(s.ref));
+    const sourcesUsed = (cited.length ? cited : sources.slice(0, 5)).map((s) => ({
+      kind: s.kind,
+      author: s.author,
+      quote: s.content.slice(0, 200),
+    }));
+    const passed = result.gates.swap.pass && result.gates.groundedness.pass;
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: ad, error: insErr } = await supabaseAdmin
+      .from("ads")
+      .insert({
+        organization_id: data.organizationId,
+        campaign_id: data.campaignId,
+        name: result.copy.headline ? result.copy.headline.slice(0, 60) : "Authentic ad",
+        headline: result.copy.headline,
+        body: result.copy.body,
+        cta: result.copy.cta,
+        target_platform: data.platform,
+        informed_by_affiliate: cited.some((s) => s.kind === "conversion_phrase"),
+        status: "draft",
+        insights: { echo_phrases: result.echoPhrases },
+        provenance: {
+          mode: "authentic",
+          corpus: (cited.length ? cited : sources.slice(0, 5)).map((s) => ({
+            id: s.id,
+            kind: s.kind,
+            author: s.author,
+            quote: s.content.slice(0, 200),
+          })),
+          gates: result.gates,
+          attempts: result.attempts,
+          beliefs_used: true,
+        },
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
+    if (insErr) throw new Error(insErr.message);
+
+    return {
+      adId: ad.id,
+      headline: result.copy.headline,
+      body: result.copy.body,
+      cta: result.copy.cta,
+      passed,
+      gates: result.gates,
+      sourcesUsed,
+    };
+  });
+
 // ── Generate ad imagery, store it, attach it to an existing ad ───────────────
 
 export const generateAdImage = createServerFn({ method: "POST" })

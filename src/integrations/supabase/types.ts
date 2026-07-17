@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_corpus: {
+        Row: {
+          author: string | null
+          campaign_id: string
+          collected_at: string
+          content: string
+          external_id: string
+          hotlist_id: string | null
+          id: string
+          kind: string
+          metrics: Json
+          source: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          author?: string | null
+          campaign_id: string
+          collected_at?: string
+          content: string
+          external_id: string
+          hotlist_id?: string | null
+          id?: string
+          kind: string
+          metrics?: Json
+          source: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          author?: string | null
+          campaign_id?: string
+          collected_at?: string
+          content?: string
+          external_id?: string
+          hotlist_id?: string | null
+          id?: string
+          kind?: string
+          metrics?: Json
+          source?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       channel_tokens: {
         Row: {
           access_token: string
@@ -185,6 +230,7 @@ export type Database = {
       ads: {
         Row: {
           body: string | null
+          campaign_id: string | null
           created_at: string
           created_by: string
           cta: string | null
@@ -197,6 +243,7 @@ export type Database = {
           name: string
           organization_id: string
           project_id: string | null
+          provenance: Json
           shared: boolean
           status: string
           target_platform: string | null
@@ -204,6 +251,7 @@ export type Database = {
         }
         Insert: {
           body?: string | null
+          campaign_id?: string | null
           created_at?: string
           created_by: string
           cta?: string | null
@@ -216,6 +264,7 @@ export type Database = {
           name?: string
           organization_id: string
           project_id?: string | null
+          provenance?: Json
           shared?: boolean
           status?: string
           target_platform?: string | null
@@ -223,6 +272,7 @@ export type Database = {
         }
         Update: {
           body?: string | null
+          campaign_id?: string | null
           created_at?: string
           created_by?: string
           cta?: string | null
@@ -235,6 +285,7 @@ export type Database = {
           name?: string
           organization_id?: string
           project_id?: string | null
+          provenance?: Json
           shared?: boolean
           status?: string
           target_platform?: string | null
@@ -483,8 +534,11 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          brand_beliefs: string | null
           brief: string | null
           budget: string | null
+          never_say: string | null
+          proof_points: string | null
           created_at: string
           end_date: string | null
           goal: string | null
@@ -499,6 +553,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          brand_beliefs?: string | null
           brief?: string | null
           budget?: string | null
           created_at?: string
@@ -506,6 +561,8 @@ export type Database = {
           goal?: string | null
           id?: string
           name: string
+          never_say?: string | null
+          proof_points?: string | null
           platforms?: string[] | null
           product_description?: string | null
           search_criteria?: Json | null
@@ -515,6 +572,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          brand_beliefs?: string | null
           brief?: string | null
           budget?: string | null
           created_at?: string
@@ -522,6 +580,8 @@ export type Database = {
           goal?: string | null
           id?: string
           name?: string
+          never_say?: string | null
+          proof_points?: string | null
           platforms?: string[] | null
           product_description?: string | null
           search_criteria?: Json | null

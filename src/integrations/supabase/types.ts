@@ -14,174 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      channel_tokens: {
-        Row: {
-          access_token: string
-          created_at: string
-          id: string
-          provider: string
-          refresh_token: string | null
-          scope: string | null
-          token_expires_at: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          access_token: string
-          created_at?: string
-          id?: string
-          provider: string
-          refresh_token?: string | null
-          scope?: string | null
-          token_expires_at?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          access_token?: string
-          created_at?: string
-          id?: string
-          provider?: string
-          refresh_token?: string | null
-          scope?: string | null
-          token_expires_at?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      oauth_states: {
-        Row: {
-          created_at: string
-          id: string
-          provider: string
-          redirect_to: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          provider: string
-          redirect_to?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          provider?: string
-          redirect_to?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      outreach_sequences: {
-        Row: {
-          campaign_id: string | null
-          created_at: string
-          id: string
-          name: string
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          campaign_id?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          campaign_id?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      outreach_sequence_steps: {
-        Row: {
-          body: string
-          created_at: string
-          delay_days: number
-          id: string
-          sequence_id: string
-          step_order: number
-          subject: string | null
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          delay_days?: number
-          id?: string
-          sequence_id: string
-          step_order: number
-          subject?: string | null
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          delay_days?: number
-          id?: string
-          sequence_id?: string
-          step_order?: number
-          subject?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      sequence_enrollments: {
-        Row: {
-          created_at: string
-          current_step: number
-          error: string | null
-          hotlist_id: string
-          id: string
-          next_send_at: string | null
-          sequence_id: string
-          status: string
-          thread_id: string | null
-          to_address: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          current_step?: number
-          error?: string | null
-          hotlist_id: string
-          id?: string
-          next_send_at?: string | null
-          sequence_id: string
-          status?: string
-          thread_id?: string | null
-          to_address: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          current_step?: number
-          error?: string | null
-          hotlist_id?: string
-          id?: string
-          next_send_at?: string | null
-          sequence_id?: string
-          status?: string
-          thread_id?: string | null
-          to_address?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       ads: {
         Row: {
           body: string | null
@@ -568,6 +400,42 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          id: string
+          provider: string
+          refresh_token: string | null
+          scope: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          scope?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          scope?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       creator_contacts: {
         Row: {
           address: string
@@ -718,6 +586,30 @@ export type Database = {
           },
         ]
       }
+      oauth_states: {
+        Row: {
+          created_at: string
+          id: string
+          provider: string
+          redirect_to: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider: string
+          redirect_to?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider?: string
+          redirect_to?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -832,6 +724,85 @@ export type Database = {
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "outreach_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outreach_sequence_steps: {
+        Row: {
+          body: string
+          created_at: string
+          delay_days: number
+          id: string
+          sequence_id: string
+          step_order: number
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          delay_days?: number
+          id?: string
+          sequence_id: string
+          step_order: number
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          delay_days?: number
+          id?: string
+          sequence_id?: string
+          step_order?: number
+          subject?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_sequence_steps_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "outreach_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outreach_sequences: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          id: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_sequences_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -975,6 +946,73 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sequence_enrollments: {
+        Row: {
+          created_at: string
+          current_step: number
+          error: string | null
+          hotlist_id: string
+          id: string
+          next_send_at: string | null
+          sequence_id: string
+          status: string
+          thread_id: string | null
+          to_address: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_step?: number
+          error?: string | null
+          hotlist_id: string
+          id?: string
+          next_send_at?: string | null
+          sequence_id: string
+          status?: string
+          thread_id?: string | null
+          to_address: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_step?: number
+          error?: string | null
+          hotlist_id?: string
+          id?: string
+          next_send_at?: string | null
+          sequence_id?: string
+          status?: string
+          thread_id?: string | null
+          to_address?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sequence_enrollments_hotlist_id_fkey"
+            columns: ["hotlist_id"]
+            isOneToOne: false
+            referencedRelation: "hotlist"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sequence_enrollments_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "outreach_sequences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sequence_enrollments_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "outreach_threads"
             referencedColumns: ["id"]
           },
         ]

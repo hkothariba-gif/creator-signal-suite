@@ -184,10 +184,18 @@ function CampaignDetailPage() {
               onClick={async () => {
                 setFinding(true);
                 try {
-                  const r = await findCreatorsForCampaign({ data: { campaignId: id } });
+                  const r = (await findCreatorsForCampaign({ data: { campaignId: id } })) as DiscoveryRun;
+                  setLastRun(r);
                   toast.success(`Added ${r.added} creator${r.added === 1 ? "" : "s"} (${r.skipped} already saved)`);
                   hotlist.refetch();
                 } catch (e) {
+                  setLastRun({
+                    added: 0,
+                    skipped: 0,
+                    total: 0,
+                    sources: [{ source: "discovery", ok: false, count: 0, reason: e instanceof Error ? e.message : "unknown error" }],
+                    ranAt: new Date().toISOString(),
+                  });
                   toast.error(e instanceof Error ? e.message : "Failed to find creators");
                 } finally {
                   setFinding(false);

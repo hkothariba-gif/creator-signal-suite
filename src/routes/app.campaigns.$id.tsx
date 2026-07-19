@@ -8,7 +8,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { findCreatorsForCampaign } from "@/lib/discover-creators.functions";
+import { findCreatorsForCampaign, type SourceStatus } from "@/lib/discover-creators.functions";
+
+type DiscoveryRun = {
+  added: number;
+  skipped: number;
+  total: number;
+  sources: SourceStatus[];
+  ranAt: string;
+};
 
 export const Route = createFileRoute("/app/campaigns/$id")({
   component: CampaignDetailPage,

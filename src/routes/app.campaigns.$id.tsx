@@ -39,6 +39,7 @@ function CampaignDetailPage() {
   const { user } = useAuth();
   const status = useConnectorStatus();
   const [finding, setFinding] = useState(false);
+  const [lastRun, setLastRun] = useState<DiscoveryRun | null>(null);
 
   const campaign = useQuery({
     queryKey: ["campaign", id, user?.id],

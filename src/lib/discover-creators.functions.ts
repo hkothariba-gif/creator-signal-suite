@@ -63,8 +63,8 @@ export const findCreatorsForCampaign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { campaignId: string }) => data)
   .handler(async ({ data, context }) => {
-    const key = process.env.YOUTUBE_API_KEY;
-    if (!key) throw new Error("YOUTUBE_API_KEY is not configured on the server");
+    const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
+    if (!key) throw new Error("YouTube API key is not configured on the server (set YOUTUBE_API_KEY or YOU_TUBE_API)");
 
     const { data: camp, error: cErr } = await context.supabase
       .from("campaigns")

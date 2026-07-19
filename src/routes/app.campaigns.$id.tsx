@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { findCreatorsForCampaign } from "@/lib/discover-creators.functions";
 
 export const Route = createFileRoute("/app/campaigns/$id")({
   component: CampaignDetailPage,
@@ -27,6 +30,7 @@ function CampaignDetailPage() {
   const { id } = useParams({ from: "/app/campaigns/$id" });
   const { user } = useAuth();
   const status = useConnectorStatus();
+  const [finding, setFinding] = useState(false);
 
   const campaign = useQuery({
     queryKey: ["campaign", id, user?.id],
@@ -164,9 +168,29 @@ function CampaignDetailPage() {
 
       {/* Hotlist */}
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <h3 className="text-lg font-bold text-[#F0F4FF]">Hotlist from this Campaign</h3>
-          <Link to="/app/hotlist" search={{ campaign: undefined }} className="text-sm text-[#00D97E] hover:underline">View all →</Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                setFinding(true);
+                try {
+                  const r = await findCreatorsForCampaign({ data: { campaignId: id } });
+                  toast.success(`Added ${r.added} creator${r.added === 1 ? "" : "s"} (${r.skipped} already saved)`);
+                  hotlist.refetch();
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Failed to find creators");
+                } finally {
+                  setFinding(false);
+                }
+              }}
+              disabled={finding}
+              className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00D97E]/90 disabled:opacity-50"
+            >
+              <Sparkles className="w-4 h-4" /> {finding ? "Searching…" : "Find creators"}
+            </button>
+            <Link to="/app/hotlist" search={{ campaign: undefined }} className="text-sm text-[#00D97E] hover:underline">View all →</Link>
+          </div>
         </div>
         <DataGate
           connected={true}

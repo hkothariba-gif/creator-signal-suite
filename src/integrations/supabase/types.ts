@@ -57,7 +57,22 @@ export type Database = {
           url?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ad_corpus_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_corpus_hotlist_id_fkey"
+            columns: ["hotlist_id"]
+            isOneToOne: false
+            referencedRelation: "hotlist"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ads: {
         Row: {
@@ -124,6 +139,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ads_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ads_organization_id_fkey"
             columns: ["organization_id"]
@@ -369,15 +391,15 @@ export type Database = {
           brand_beliefs: string | null
           brief: string | null
           budget: string | null
-          never_say: string | null
-          proof_points: string | null
           created_at: string
           end_date: string | null
           goal: string | null
           id: string
           name: string
+          never_say: string | null
           platforms: string[] | null
           product_description: string | null
+          proof_points: string | null
           search_criteria: Json | null
           start_date: string | null
           status: string
@@ -394,9 +416,9 @@ export type Database = {
           id?: string
           name: string
           never_say?: string | null
-          proof_points?: string | null
           platforms?: string[] | null
           product_description?: string | null
+          proof_points?: string | null
           search_criteria?: Json | null
           start_date?: string | null
           status?: string
@@ -413,9 +435,9 @@ export type Database = {
           id?: string
           name?: string
           never_say?: string | null
-          proof_points?: string | null
           platforms?: string[] | null
           product_description?: string | null
+          proof_points?: string | null
           search_criteria?: Json | null
           start_date?: string | null
           status?: string

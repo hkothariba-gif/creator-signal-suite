@@ -209,6 +209,57 @@ function CampaignDetailPage() {
             <Link to="/app/hotlist" search={{ campaign: undefined }} className="text-sm text-[#00D97E] hover:underline">View all →</Link>
           </div>
         </div>
+        {lastRun ? (
+          <div className="mb-4 p-4 rounded-lg border border-white/[0.07] bg-[#131D2E]">
+            <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+              <div className="text-sm font-semibold text-[#F0F4FF]">
+                Last discovery run
+                <span className="ml-2 text-xs font-normal text-[#8892A4]">
+                  {new Date(lastRun.ranAt).toLocaleString()} · {lastRun.total} candidate{lastRun.total === 1 ? "" : "s"} · {lastRun.added} added · {lastRun.skipped} already saved
+                </span>
+              </div>
+              <button
+                onClick={() => setLastRun(null)}
+                className="text-xs text-[#8892A4] hover:text-white"
+              >
+                Dismiss
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-left text-[#8892A4]">
+                    <th className="font-semibold py-1.5 pr-3">Source</th>
+                    <th className="font-semibold py-1.5 pr-3">Status</th>
+                    <th className="font-semibold py-1.5 pr-3">Count</th>
+                    <th className="font-semibold py-1.5">Reason</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[#F0F4FF]">
+                  {lastRun.sources.map((s, i) => (
+                    <tr key={`${s.source}-${i}`} className="border-t border-white/[0.05]">
+                      <td className="py-1.5 pr-3 font-mono text-[11px] text-[#F0F4FF]/90">{s.source}</td>
+                      <td className="py-1.5 pr-3">
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          style={
+                            s.ok
+                              ? { color: "#00D97E", background: "rgba(0,217,126,0.12)" }
+                              : { color: "#FF6B6B", background: "rgba(255,107,107,0.12)" }
+                          }
+                        >
+                          {s.ok ? "OK" : "FAIL"}
+                        </span>
+                      </td>
+                      <td className="py-1.5 pr-3 tabular-nums">{s.count}</td>
+                      <td className="py-1.5 text-[#8892A4]">{s.reason ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : null}
         <DataGate
           connected={true}
           loading={hotlist.isLoading}

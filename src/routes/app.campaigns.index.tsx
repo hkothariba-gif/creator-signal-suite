@@ -28,7 +28,9 @@ const platColor = (p: string) =>
 
 function CampaignsPage() {
   const { user } = useAuth();
-  const [tab, setTab] = useState<"active" | "draft" | "completed" | "all">("active");
+  // Default to "all": new campaigns start as drafts, and landing on an empty
+  // Active tab made people think creation had failed.
+  const [tab, setTab] = useState<"active" | "draft" | "completed" | "all">("all");
   const [drawer, setDrawer] = useState(false);
   const [intel, setIntel] = useState<{ id: string; name: string } | null>(null);
   const [rows, setRows] = useState<Campaign[]>([]);
@@ -51,6 +53,16 @@ function CampaignsPage() {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  const setStatus = async (c: Campaign, status: "active" | "draft" | "completed") => {
+    const { error } = await supabase.from("campaigns").update({ status }).eq("id", c.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(status === "active" ? `${c.name} is live` : `${c.name} → ${status}`);
+    await refresh();
+  };
 
   const counts = {
     active: rows.filter((c) => c.status === "active").length,
@@ -102,6 +114,22 @@ function CampaignsPage() {
                 </div>
                 <div className="md:col-span-3 flex items-center justify-end gap-3">
                   <StatusBadge s={c.status} />
+                  {c.status === "draft" && (
+                    <button
+                      onClick={() => setStatus(c, "active")}
+                      className="text-xs font-bold px-2.5 h-7 rounded-lg bg-[#00D97E] text-[#05080F]"
+                    >
+                      Activate
+                    </button>
+                  )}
+                  {c.status === "active" && (
+                    <button
+                      onClick={() => setStatus(c, "completed")}
+                      className="text-xs px-2.5 h-7 rounded-lg border border-white/10 text-[#8892A4] hover:text-white"
+                    >
+                      Complete
+                    </button>
+                  )}
                   {c.budget ? <span className="text-sm text-[#8892A4]">{c.budget}</span> : null}
                   <button onClick={() => setIntel({ id: c.id, name: c.name })} className="text-sm text-[#8892A4] hover:text-white">Intel</button>
                   <Link to="/app/campaigns/$id" params={{ id: c.id }} className="text-sm text-[#00D97E] hover:underline">Open →</Link>

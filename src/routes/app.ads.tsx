@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { AdsLibrary } from "@/components/app/AdsLibrary";
+import { CampaignDrawer } from "@/routes/app.campaigns.index";
 import { AuthenticAdStudio } from "@/components/app/AuthenticAdStudio";
 import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
@@ -56,6 +57,7 @@ function AdStudioPage() {
   // ── V3 campaign-first shell state ──
   const [adsCampaignId, setAdsCampaignId] = useState<string | undefined>(undefined);
   const [adsTab, setAdsTab] = useState<"generate" | "library" | "intelligence">("generate");
+  const [showNewCampaign, setShowNewCampaign] = useState(false);
 
   // ── Signals and intelligence ───────────────────────────────────────────────
   const [query, setQuery] = useState("");
@@ -276,10 +278,13 @@ function AdStudioPage() {
 
       {/* ── V3: campaign-first shell ── */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <CampaignPicker value={adsCampaignId} onChange={setAdsCampaignId} />
-        <Link to="/app/campaigns" className="text-xs text-[#00D97E] hover:underline">
+        <CampaignPicker key={adsCampaignId ?? "none"} value={adsCampaignId} onChange={setAdsCampaignId} />
+        <button
+          onClick={() => setShowNewCampaign(true)}
+          className="text-xs font-bold text-[#00D97E] hover:underline"
+        >
           + New campaign
-        </Link>
+        </button>
         {adsCampaignId && (
           <div className="flex gap-1.5 ml-auto">
             {(["generate", "library", "intelligence"] as const).map((t) => (
@@ -296,6 +301,18 @@ function AdStudioPage() {
           </div>
         )}
       </div>
+
+      {showNewCampaign && (
+        <CampaignDrawer
+          onClose={() => setShowNewCampaign(false)}
+          onCreated={(id) => {
+            if (id) {
+              setAdsCampaignId(id);
+              setAdsTab("generate");
+            }
+          }}
+        />
+      )}
 
       {!adsCampaignId ? (
         <Card className="p-10 text-center">

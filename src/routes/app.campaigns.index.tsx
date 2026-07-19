@@ -156,7 +156,13 @@ function StatusBadge({ s }: { s: string }) {
   return <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: v.bg, color: v.color }}>{v.label}</span>;
 }
 
-function CampaignDrawer({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+export function CampaignDrawer({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (createdId?: string) => void;
+}) {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [product, setProduct] = useState("");
@@ -229,7 +235,7 @@ function CampaignDrawer({ onClose, onCreated }: { onClose: () => void; onCreated
     }
 
     setSaving(false);
-    onCreated();
+    onCreated(inserted.id);
     onClose();
   };
 

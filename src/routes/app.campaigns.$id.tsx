@@ -179,35 +179,52 @@ function CampaignDetailPage() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <h3 className="text-lg font-bold text-[#F0F4FF]">Hotlist from this Campaign</h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={async () => {
-                setFinding(true);
-                try {
-                  const r = (await findCreatorsForCampaign({ data: { campaignId: id } })) as DiscoveryRun;
-                  setLastRun(r);
-                  toast.success(`Added ${r.added} creator${r.added === 1 ? "" : "s"} (${r.skipped} already saved)`);
-                  hotlist.refetch();
-                } catch (e) {
-                  setLastRun({
-                    added: 0,
-                    skipped: 0,
-                    total: 0,
-                    sources: [{ source: "discovery", ok: false, count: 0, reason: e instanceof Error ? e.message : "unknown error" }],
-                    ranAt: new Date().toISOString(),
-                  });
-                  toast.error(e instanceof Error ? e.message : "Failed to find creators");
-                } finally {
-                  setFinding(false);
-                }
-              }}
-              disabled={finding}
-              className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00D97E]/90 disabled:opacity-50"
-            >
-              <Sparkles className="w-4 h-4" /> {finding ? "Searching…" : "Find creators"}
-            </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex rounded-lg overflow-hidden border border-white/[0.07]">
+              <button
+                onClick={async () => {
+                  setFinding(true);
+                  try {
+                    const r = (await findCreatorsForCampaign({ data: { campaignId: id } })) as DiscoveryRun;
+                    setLastRun(r);
+                    toast.success(`Added ${r.added} creator${r.added === 1 ? "" : "s"} (${r.skipped} already saved)`);
+                    hotlist.refetch();
+                  } catch (e) {
+                    setLastRun({
+                      added: 0,
+                      skipped: 0,
+                      total: 0,
+                      sources: [{ source: "discovery", ok: false, count: 0, reason: e instanceof Error ? e.message : "unknown error" }],
+                      ranAt: new Date().toISOString(),
+                    });
+                    toast.error(e instanceof Error ? e.message : "Failed to find creators");
+                  } finally {
+                    setFinding(false);
+                  }
+                }}
+                disabled={finding}
+                className="inline-flex items-center gap-1.5 px-3 h-9 bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00D97E]/90 disabled:opacity-50"
+              >
+                <Sparkles className="w-4 h-4" /> {finding ? "Searching…" : "Find creators · YouTube"}
+              </button>
+              <button
+                onClick={() => toast.info("X (Twitter) discovery is coming soon")}
+                className="px-3 h-9 bg-[#131D2E] text-[#8892A4] text-sm font-semibold hover:text-[#F0F4FF] border-l border-white/[0.07]"
+                title="X (Twitter) — coming soon"
+              >
+                X
+              </button>
+              <button
+                onClick={() => toast.info("LinkedIn discovery is coming soon")}
+                className="px-3 h-9 bg-[#131D2E] text-[#8892A4] text-sm font-semibold hover:text-[#F0F4FF] border-l border-white/[0.07]"
+                title="LinkedIn — coming soon"
+              >
+                LinkedIn
+              </button>
+            </div>
             <Link to="/app/hotlist" search={{ campaign: undefined }} className="text-sm text-[#00D97E] hover:underline">View all →</Link>
           </div>
+
         </div>
         {lastRun ? (
           <div className="mb-4 p-4 rounded-lg border border-white/[0.07] bg-[#131D2E]">

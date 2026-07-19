@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { findCreatorsForCampaign } from "@/lib/discover-creators.functions";
 
 export const Route = createFileRoute("/app/campaigns/$id")({
   component: CampaignDetailPage,

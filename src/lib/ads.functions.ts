@@ -143,14 +143,25 @@ export type AuthenticAdResult = {
   body: string;
   cta: string;
   passed: boolean;
-  gates: { swap: { pass: boolean; reason: string }; groundedness: { pass: boolean; reason: string } };
+  gates: {
+    swap: { pass: boolean; reason: string };
+    groundedness: { pass: boolean; reason: string };
+    platformFit: { pass: boolean; reason: string };
+  };
   sourcesUsed: Array<{ kind: string; author: string | null; quote: string }>;
+  styleId: string | null;
 };
 
 export const generateAuthenticAd = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { organizationId: string; campaignId: string; platform: string; brand: string }) => data,
+    (data: {
+      organizationId: string;
+      campaignId: string;
+      platform: string;
+      brand: string;
+      styleId?: string;
+    }) => data,
   )
   .handler(async ({ data, context }): Promise<AuthenticAdResult> => {
     if (!data.organizationId || !data.campaignId) {
@@ -204,6 +215,9 @@ export const generateAuthenticAd = createServerFn({ method: "POST" })
     }));
 
     const { generateAuthenticCopy } = await import("@/lib/ad-generation.server");
+    const { getPlaybook, getStyle } = await import("@/lib/ad-playbooks");
+    const playbook = getPlaybook(data.platform || "reddit");
+    const style = data.styleId ? getStyle(data.styleId) : undefined;
     const result = await generateAuthenticCopy({
       brand: data.brand || "the brand",
       platform: data.platform || "reddit",
@@ -212,6 +226,15 @@ export const generateAuthenticAd = createServerFn({ method: "POST" })
       proofPoints: campaign.proof_points ?? "",
       neverSay: campaign.never_say ?? "",
       sources,
+      styleRecipe: style ? `${style.label}: ${style.recipe}` : undefined,
+      styleCaution: style?.caution,
+      playbookRules: [
+        `Audience mindset: ${playbook.audienceMindset}`,
+        `Do: ${playbook.rules.join("; ")}`,
+        `Avoid: ${playbook.avoid.join("; ")}`,
+        playbook.benchmarks,
+      ].join("\n"),
+      limits: playbook.limits,
     });
     if (!result) throw new Error("Generation is not configured or returned nothing");
 
@@ -221,7 +244,8 @@ export const generateAuthenticAd = createServerFn({ method: "POST" })
       author: s.author,
       quote: s.content.slice(0, 200),
     }));
-    const passed = result.gates.swap.pass && result.gates.groundedness.pass;
+    const passed =
+      result.gates.swap.pass && result.gates.groundedness.pass && result.gates.platformFit.pass;
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: ad, error: insErr } = await supabaseAdmin
@@ -248,6 +272,8 @@ export const generateAuthenticAd = createServerFn({ method: "POST" })
           gates: result.gates,
           attempts: result.attempts,
           beliefs_used: true,
+          style: style?.id ?? null,
+          playbook: playbook.platform,
         },
         created_by: context.userId,
       })
@@ -263,6 +289,7 @@ export const generateAuthenticAd = createServerFn({ method: "POST" })
       passed,
       gates: result.gates,
       sourcesUsed,
+      styleId: style?.id ?? null,
     };
   });
 

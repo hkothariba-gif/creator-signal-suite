@@ -2,10 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Sparkles, ShieldCheck, ShieldAlert, Quote, RefreshCw, Save } from "lucide-react";
 import { Card } from "@/components/app/AppShell";
+import { AdPreviewFrame } from "@/components/app/AdPreviewFrame";
 import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { collectAdCorpus, listAdCorpus, type AdCorpusRow } from "@/lib/ad-corpus.functions";
 import { generateAuthenticAd, type AuthenticAdResult } from "@/lib/ads.functions";
+import { AD_STYLES } from "@/lib/ad-playbooks";
 
 // Phase 5A: Authentic Ads. Copy is generated only from real language — audience
 // comments, creators' spoken words, conversion-backed phrases — plus the
@@ -45,7 +47,8 @@ export function AuthenticAdStudio({
   const [collecting, setCollecting] = useState(false);
 
   // Generation
-  const [platform, setPlatform] = useState<"reddit" | "x" | "youtube">("reddit");
+  const [platform, setPlatform] = useState<"reddit" | "x" | "youtube" | "linkedin">("reddit");
+  const [styleId, setStyleId] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<AuthenticAdResult | null>(null);
 
@@ -126,7 +129,7 @@ export function AuthenticAdStudio({
     setResult(null);
     try {
       const res = await generateAuthenticAd({
-        data: { organizationId, campaignId, platform, brand },
+        data: { organizationId, campaignId, platform, brand, styleId: styleId || undefined },
       });
       setResult(res);
       if (res.passed) toast.success("Ad generated and passed both gates");
@@ -262,6 +265,45 @@ export function AuthenticAdStudio({
             )}
 
             {canEdit && (
+              <div className="pt-1">
+                <label className="text-xs text-[#8892A4]">Ad style</label>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => setStyleId("")}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${
+                      styleId === "" ? "bg-[#00D97E] text-[#05080F]" : "bg-white/[0.05] text-[#8892A4] hover:text-white"
+                    }`}
+                  >
+                    Engine's pick
+                  </button>
+                  {AD_STYLES.map((s) => {
+                    const recommended = s.bestOn.includes(platform);
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => setStyleId(s.id)}
+                        title={`${s.recipe}\n\n⚠ ${s.caution}`}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${
+                          styleId === s.id
+                            ? "bg-[#00D97E] text-[#05080F]"
+                            : recommended
+                              ? "bg-white/[0.08] text-[#F0F4FF]/80 hover:text-white"
+                              : "bg-white/[0.03] text-[#5A6478] hover:text-white"
+                        }`}
+                      >
+                        {s.emoji} {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-1 text-[10px] text-[#5A6478]">
+                  Styles shape structure and delivery; the substance still comes from your corpus and
+                  beliefs. Brighter chips fit {platform} best.
+                </p>
+              </div>
+            )}
+
+            {canEdit && (
               <div className="flex items-center gap-2 pt-1">
                 <select
                   value={platform}
@@ -271,6 +313,7 @@ export function AuthenticAdStudio({
                   <option value="reddit">Reddit</option>
                   <option value="x">X</option>
                   <option value="youtube">YouTube</option>
+                  <option value="linkedin">LinkedIn</option>
                 </select>
                 <button
                   onClick={generate}
@@ -292,8 +335,9 @@ export function AuthenticAdStudio({
             {result && (
               <div className="rounded-lg border border-white/[0.07] p-3 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {(["swap", "groundedness"] as const).map((g) => {
+                  {(["swap", "groundedness", "platformFit"] as const).map((g) => {
                     const gate = result.gates[g];
+                    const label = g === "swap" ? "Swap test" : g === "groundedness" ? "Grounded" : "Platform fit";
                     return (
                       <span
                         key={g}
@@ -303,19 +347,30 @@ export function AuthenticAdStudio({
                         }`}
                       >
                         {gate.pass ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                        {g === "swap" ? "Swap test" : "Grounded"}
+                        {label}
                       </span>
                     );
                   })}
+                  {result.styleId && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] text-[#8892A4]">
+                      {AD_STYLES.find((s) => s.id === result.styleId)?.emoji}{" "}
+                      {AD_STYLES.find((s) => s.id === result.styleId)?.label}
+                    </span>
+                  )}
                 </div>
-                <p className="text-sm font-bold text-[#F0F4FF]">{result.headline}</p>
-                <p className="text-xs text-[#F0F4FF]/85">{result.body}</p>
-                {result.cta && <p className="text-xs font-semibold text-[#00D97E]">{result.cta}</p>}
+                <AdPreviewFrame
+                  platform={platform}
+                  brand={brand}
+                  headline={result.headline}
+                  body={result.body}
+                  cta={result.cta}
+                />
                 {!result.passed && (
                   <p className="text-[10px] text-[#FF6B6B]">
                     {[
                       !result.gates.swap.pass ? result.gates.swap.reason : "",
                       !result.gates.groundedness.pass ? result.gates.groundedness.reason : "",
+                      !result.gates.platformFit.pass ? result.gates.platformFit.reason : "",
                     ]
                       .filter(Boolean)
                       .join(" · ")}

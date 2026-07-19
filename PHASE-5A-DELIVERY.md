@@ -1,5 +1,11 @@
 # Phase 5A — Authentic Ads Engine — Delivery Notes (built 2026-07-15)
 
+> **v2 addendum (2026-07-17): Ads Engine v2.** Added on top of 5A, no migration needed:
+> - `src/lib/ad-playbooks.ts` — evidence-backed platform playbooks (LinkedIn 95:5/memorable-over-clickable + char limits; X conversational; Reddit community-fit/no-hard-sell; YouTube ABCD + skip window) and **10 structural style filters** (Deadpan, Irreverent, Absurdist, Straight offer, Storyteller, Voice of the fan, Receipts, Contrarian, Educator, Launch energy). Styles are structural recipes, not tone adjectives — substance still comes from corpus + belief doc. Evidence: Google/Kantar ABCD (+30% sales likelihood), Binet & Field (emotional ≈2x rational), Kantar/Oracle humor research (brand must center the joke), B2B Institute (71% formulaic ads fail), uploaded 2023–2026 benchmark report.
+> - **Third gate: platform fit** — LLM judge now tests swap + groundedness + platform practice, plus programmatic character-limit checks. Style + playbook stored in ad provenance.
+> - `src/components/app/AdPreviewFrame.tsx` — platform-true preview mockups (LinkedIn/X/Reddit/YouTube shells). Style picker + LinkedIn platform option added to the Authentic Ads panel.
+> - Design-tool decision: copy + AI imagery + previews for now; full canvas editor deferred post-MVP.
+
 Grounded ad generation: copy is written only from real audience comments,
 creators' spoken words, conversion-backed phrases (Phase 2), and a campaign
 **belief doc** — never from tone adjectives. Every ad stores provenance ("why

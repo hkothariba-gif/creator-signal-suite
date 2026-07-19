@@ -95,7 +95,7 @@ export type AuthenticCopy = {
   copy: AdCopy;
   citations: number[]; // refs of the sources actually used
   echoPhrases: string[]; // verbatim audience phrases carried into the copy
-  gates: { swap: GateResult; groundedness: GateResult };
+  gates: { swap: GateResult; groundedness: GateResult; platformFit: GateResult };
   attempts: number;
 };
 
@@ -144,25 +144,35 @@ async function judgeCopy(input: {
   sources: GroundedSource[];
   beliefs: string;
   productDescription: string;
-}): Promise<{ swap: GateResult; groundedness: GateResult } | null> {
+  platformRules: string;
+  styleCaution: string;
+}): Promise<{ swap: GateResult; groundedness: GateResult; platformFit: GateResult } | null> {
   const system =
-    "You are a strict advertising reviewer. Evaluate the ad against two tests and return strict JSON only: " +
-    '{"swap_pass": boolean, "swap_reason": string, "grounded_pass": boolean, "grounded_reason": string}. ' +
+    "You are a strict advertising reviewer. Evaluate the ad against three tests and return strict JSON only: " +
+    '{"swap_pass": boolean, "swap_reason": string, "grounded_pass": boolean, "grounded_reason": string, ' +
+    '"platform_pass": boolean, "platform_reason": string}. ' +
     "SWAP TEST: fail if a direct competitor could ship this ad unchanged — generic praise, " +
     "interchangeable adjectives, no phrasing traceable to this brand's sources or beliefs. " +
     "GROUNDED TEST: fail if any factual claim, quote, or specific in the ad cannot be traced to " +
-    "the numbered sources or the brand beliefs. Vague superlatives count as ungrounded.";
+    "the numbered sources or the brand beliefs. Vague superlatives count as ungrounded. " +
+    "PLATFORM TEST: fail if the ad violates the platform practices provided (wrong register for the " +
+    "community, formula the evidence says fails, character limits exceeded, style caution ignored).";
   const user = [
     `AD:\nHeadline: ${input.copy.headline}\nBody: ${input.copy.body}\nCTA: ${input.copy.cta}`,
     `BRAND BELIEFS:\n${input.beliefs}`,
     `PRODUCT:\n${input.productDescription}`,
+    `PLATFORM PRACTICES:\n${input.platformRules}`,
+    input.styleCaution ? `STYLE CAUTION:\n${input.styleCaution}` : "",
     `SOURCES:\n${sourcesBlock(input.sources)}`,
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
   const j = await llmJson(system, user);
   if (!j) return null;
   return {
     swap: { pass: j.swap_pass === true, reason: firstString(j.swap_reason) || "" },
     groundedness: { pass: j.grounded_pass === true, reason: firstString(j.grounded_reason) || "" },
+    platformFit: { pass: j.platform_pass === true, reason: firstString(j.platform_reason) || "" },
   };
 }
 
@@ -174,9 +184,15 @@ export async function generateAuthenticCopy(input: {
   proofPoints: string;
   neverSay: string;
   sources: GroundedSource[];
+  styleRecipe?: string;
+  styleCaution?: string;
+  playbookRules?: string;
+  limits?: { headlineMax: number; bodyMax: number };
 }): Promise<AuthenticCopy | null> {
   if (!process.env.LLM_API_KEY) return null;
 
+  const headlineMax = input.limits?.headlineMax || 60;
+  const bodyMax = input.limits?.bodyMax || 0;
   const system =
     "You write advertising copy that is strictly grounded in verbatim source material: real audience " +
     "comments, a creator's actual spoken words, and phrases proven to convert. Rules: " +
@@ -185,15 +201,22 @@ export async function generateAuthenticCopy(input: {
     "marketing adjectives (avoid words like innovative, seamless, game-changing, revolutionary). " +
     "(3) Never write anything listed under NEVER SAY. " +
     "(4) The result must be something only this brand could publish — if a competitor could run it unchanged, rewrite. " +
+    "(5) Follow the PLATFORM PRACTICES and the STYLE RECIPE exactly — the style controls structure and delivery, " +
+    "while the sources and beliefs control substance. " +
     'Return strict JSON only: {"headline": string, "body": string, "cta": string, ' +
     '"citations": number[], "echo_phrases": string[]} where citations are the source numbers you drew from ' +
     "and echo_phrases are the verbatim audience phrases you carried into the copy. " +
-    "Headline under 60 characters. Body two or three sentences. CTA under 24 characters. No hyphens or dashes.";
+    `${headlineMax > 0 ? `Headline under ${headlineMax} characters. ` : "No headline needed (single-post format) — put the post text in body and leave headline empty. "}` +
+    `${bodyMax > 0 ? `Body under ${bodyMax} characters. ` : "Body two or three sentences. "}` +
+    "CTA under 24 characters. No hyphens or dashes.";
 
   const baseUser = [
     `Brand: ${input.brand}`,
     `Target platform: ${input.platform}`,
     `Product: ${input.productDescription}`,
+    input.playbookRules ? `PLATFORM PRACTICES (evidence-backed):\n${input.playbookRules}` : "",
+    input.styleRecipe ? `STYLE RECIPE (structure to follow):\n${input.styleRecipe}` : "",
+    input.styleCaution ? `STYLE CAUTION:\n${input.styleCaution}` : "",
     `BRAND BELIEFS (specific positions this brand holds):\n${input.beliefs}`,
     input.proofPoints ? `PROOF (decisions/facts that back the beliefs):\n${input.proofPoints}` : "",
     input.neverSay ? `NEVER SAY:\n${input.neverSay}` : "",
@@ -227,6 +250,8 @@ export async function generateAuthenticCopy(input: {
       sources: input.sources,
       beliefs: input.beliefs,
       productDescription: input.productDescription,
+      platformRules: input.playbookRules ?? "",
+      styleCaution: input.styleCaution ?? "",
     });
     // If the judge itself is unavailable, fail closed with an explicit reason
     // rather than shipping unreviewed copy.
@@ -238,16 +263,33 @@ export async function generateAuthenticCopy(input: {
         gates: {
           swap: { pass: false, reason: "Review unavailable" },
           groundedness: { pass: false, reason: "Review unavailable" },
+          platformFit: { pass: false, reason: "Review unavailable" },
         },
         attempts: attempt,
       };
     }
-    if (gates.swap.pass && gates.groundedness.pass) {
+    // Hard character-limit check is programmatic, not judged.
+    if (input.limits) {
+      if (input.limits.headlineMax > 0 && copy.headline.length > input.limits.headlineMax) {
+        gates.platformFit = {
+          pass: false,
+          reason: `Headline over the ${input.limits.headlineMax}-character platform limit`,
+        };
+      }
+      if (input.limits.bodyMax > 0 && copy.body.length > input.limits.bodyMax) {
+        gates.platformFit = {
+          pass: false,
+          reason: `Body over the ${input.limits.bodyMax}-character platform limit`,
+        };
+      }
+    }
+    if (gates.swap.pass && gates.groundedness.pass && gates.platformFit.pass) {
       return { copy, citations, echoPhrases, gates, attempts: attempt };
     }
     feedback = [
       !gates.swap.pass ? `Swap test failed: ${gates.swap.reason}` : "",
       !gates.groundedness.pass ? `Groundedness failed: ${gates.groundedness.reason}` : "",
+      !gates.platformFit.pass ? `Platform fit failed: ${gates.platformFit.reason}` : "",
     ]
       .filter(Boolean)
       .join(" ");

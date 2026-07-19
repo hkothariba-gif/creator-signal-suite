@@ -10,8 +10,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type AdCorpusRow = {
   id: string;
-  kind: "comment" | "transcript" | "conversion_phrase";
-  source: "youtube" | "reddit" | "affiliate";
+  kind: "comment" | "transcript" | "conversion_phrase" | "brand_doc";
+  source: "youtube" | "reddit" | "affiliate" | "document";
   author: string | null;
   content: string;
   url: string | null;

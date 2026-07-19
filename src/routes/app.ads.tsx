@@ -20,6 +20,10 @@ import { RefreshCw, Wand2, Image as ImageIcon, Save, Share2, Loader2 } from "luc
 
 export const Route = createFileRoute("/app/ads")({
   component: AdStudioPage,
+  validateSearch: (search: Record<string, unknown>): { campaign?: string } => ({
+    campaign:
+      typeof search.campaign === "string" && search.campaign ? search.campaign : undefined,
+  }),
 });
 
 type AdRow = {
@@ -55,7 +59,8 @@ function AdStudioPage() {
   const imageReady = p ? p.image : undefined;
 
   // ── V3 campaign-first shell state ──
-  const [adsCampaignId, setAdsCampaignId] = useState<string | undefined>(undefined);
+  const { campaign: campaignParam } = Route.useSearch();
+  const [adsCampaignId, setAdsCampaignId] = useState<string | undefined>(campaignParam);
   const [adsTab, setAdsTab] = useState<"generate" | "library" | "intelligence">("generate");
   const [showNewCampaign, setShowNewCampaign] = useState(false);
 
@@ -251,15 +256,16 @@ function AdStudioPage() {
     return (
       <AppShell title="Ad Studio">
         <Card className="p-8 text-center">
-          <h2 className="text-lg font-bold text-white">Set up your brand first</h2>
+          <h2 className="text-lg font-bold text-white">Create your first campaign</h2>
           <p className="mt-2 text-sm text-[#8892A4]">
-            Ad Studio works inside a brand organization. Finish onboarding to create one.
+            Ads are built for a product, on a campaign. Finish the quick setup and your first
+            campaign lands right back here.
           </p>
           <Link
             to="/onboarding"
             className="mt-4 inline-block px-5 py-2 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold"
           >
-            Go to onboarding
+            Finish setup
           </Link>
         </Card>
       </AppShell>
@@ -324,6 +330,7 @@ function AdStudioPage() {
         </Card>
       ) : adsTab === "generate" && orgId ? (
         <AuthenticAdStudio
+          key={adsCampaignId}
           organizationId={orgId}
           brand={user?.company_name ?? user?.organization?.name ?? "the brand"}
           canEdit={canEdit}

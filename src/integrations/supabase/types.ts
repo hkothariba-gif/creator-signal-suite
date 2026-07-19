@@ -386,6 +386,53 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_docs: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          error: string | null
+          excerpt_count: number
+          file_name: string
+          id: string
+          processed_at: string | null
+          status: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          error?: string | null
+          excerpt_count?: number
+          file_name: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          error?: string | null
+          excerpt_count?: number
+          file_name?: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_docs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           brand_beliefs: string | null

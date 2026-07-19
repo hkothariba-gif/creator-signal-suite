@@ -3,22 +3,27 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { processBrandDoc } from "@/lib/brand-docs.functions";
 import { YouTubeIcon, RedditIcon, XIcon, LinkedInIcon } from "@/components/landing/icons";
 
 export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
-const TOTAL_STEPS = 5;
-const MAX_LOOKALIKE_BYTES = 10 * 1024 * 1024;
+// v3-5: onboarding is plain account setup that ends in the user's first
+// campaign. Product first: we ask about the product and its buyer, then create
+// the campaign and land in the Ads Center. No store or payout steps and no
+// summary screen; those connections live in Settings once they exist.
+
+const TOTAL_STEPS = 2;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 function OnboardingPage() {
   const { user, update } = useAuth();
   const navigate = useNavigate();
-  // Onboarding state is saved to Supabase when the flow finishes.
-  // profiles.onboarded holds the flag and organizations.brand_profile holds
-  // the brand answers. finish() also seeds the user's first campaign so it
-  // appears immediately on the Campaigns dashboard.
+  // profiles.onboarded holds the completion flag and organizations.brand_profile
+  // keeps the answers. finish() creates the first campaign, uploads any brand
+  // docs against it, and opens the Ads Center on that campaign.
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -34,8 +39,6 @@ function OnboardingPage() {
   const [notes, setNotes] = useState("");
   const [platforms, setPlatforms] = useState({ youtube: true, reddit: true, x: true, linkedin: false });
   const [lookalikeFile, setLookalikeFile] = useState<File | null>(null);
-  const [modal, setModal] = useState<null | { kind: "store" | "payout"; name: string }>(null);
-  const [teamModal, setTeamModal] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,8 +54,8 @@ function OnboardingPage() {
     return out;
   };
 
-  const seedFirstCampaign = async () => {
-    if (!user) return; // tester bypass: no session, skip DB writes
+  const seedFirstCampaign = async (): Promise<string | null> => {
+    if (!user) return null; // tester bypass: no session, skip DB writes
     const desc = category.trim();
     const name = (desc.split("\n")[0] || "My first campaign").slice(0, 60) || "My first campaign";
     const platformsArr = platformLabels();
@@ -82,7 +85,7 @@ function OnboardingPage() {
 
     if (error || !inserted) {
       console.error("seed campaign failed", error);
-      return;
+      return null;
     }
 
     // Upload lookalike sheet (best-effort) and patch the campaign.
@@ -97,6 +100,31 @@ function OnboardingPage() {
         await supabase.from("campaigns").update({ target_audience: audience }).eq("id", inserted.id);
       } else {
         console.error("lookalike upload failed", up.error);
+      }
+    }
+
+    // Upload brand docs against the campaign (best-effort). Extraction into the
+    // grounding corpus runs server-side; failures never block onboarding.
+    for (const f of files) {
+      try {
+        const safeName = f.name.replace(/[^\w.\-]+/g, "_");
+        const path = `${user.id}/${inserted.id}/${Date.now()}-${safeName}`;
+        const up = await supabase.storage
+          .from("brand-docs")
+          .upload(path, f, { upsert: false, contentType: f.type || undefined });
+        if (up.error) continue;
+        const { data: doc } = await supabase
+          .from("brand_docs")
+          .insert({ user_id: user.id, campaign_id: inserted.id, file_name: f.name, storage_path: path })
+          .select("id")
+          .single();
+        if (doc) {
+          processBrandDoc({ data: { docId: doc.id } }).catch(() => {
+            // Extraction needs the LLM key; the doc stays listed for a retry later.
+          });
+        }
+      } catch (e) {
+        console.error("brand doc upload failed", e);
       }
     }
 
@@ -124,6 +152,8 @@ function OnboardingPage() {
     } catch (e) {
       console.error("generate-search-criteria failed", e);
     }
+
+    return inserted.id;
   };
 
   const finish = async () => {
@@ -141,10 +171,17 @@ function OnboardingPage() {
     try {
       localStorage.setItem("aspen_onboarded", "true");
     } catch {}
-    await seedFirstCampaign();
-    toast.success("We saved your first campaign as a draft.");
+    const campaignId = await seedFirstCampaign();
     setSubmitting(false);
-    navigate({ to: "/app/campaigns" });
+    if (campaignId) {
+      toast.success("Your first campaign is ready.");
+      navigate({ to: "/app/ads", search: { campaign: campaignId } });
+    } else if (user) {
+      toast.error("Could not create your campaign. You can create one from the Campaigns page.");
+      navigate({ to: "/app/campaigns" });
+    } else {
+      navigate({ to: "/app/campaigns" });
+    }
   };
 
   return (
@@ -171,7 +208,8 @@ function OnboardingPage() {
             <>
               <h2 className="text-[32px] font-extrabold tracking-tight">Tell us about your product</h2>
               <p className="mt-2 text-[#8892A4]">
-                The more detail you share about your product, brand, and target buyer, the better we can match you to creators whose audiences actually convert. Write freely — or upload a doc below.
+                Everything here becomes your first campaign: creator matching, audience scoring, and
+                the ads you build all read from it. Write freely, or attach a doc below.
               </p>
               <textarea
                 value={category}
@@ -186,17 +224,24 @@ function OnboardingPage() {
                   htmlFor="brand-docs"
                   className="flex items-center justify-center gap-2 w-full h-12 rounded-xl border border-dashed border-white/15 bg-white/[0.03] text-sm text-[#8892A4] hover:text-white hover:border-[#00D97E]/50 cursor-pointer transition-colors"
                 >
-                  <span className="text-[#00D97E]">+</span> Attach PDFs or docs (optional)
+                  <span className="text-[#00D97E]">+</span> Attach product or brand docs (.pdf, .txt, .md — optional)
                 </label>
                 <input
                   id="brand-docs"
                   type="file"
                   multiple
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept=".pdf,.txt,.md"
                   onChange={(e) => {
                     const picked = Array.from(e.target.files ?? []);
-                    if (picked.length) setFiles((prev) => [...prev, ...picked]);
                     e.target.value = "";
+                    const kept = picked.filter((f) => {
+                      if (f.size > MAX_UPLOAD_BYTES) {
+                        toast.error(`${f.name} is too large (max 10MB)`);
+                        return false;
+                      }
+                      return true;
+                    });
+                    if (kept.length) setFiles((prev) => [...prev, ...kept]);
                   }}
                   className="hidden"
                 />
@@ -218,10 +263,14 @@ function OnboardingPage() {
                     ))}
                   </ul>
                 )}
+                {files.length > 0 && (
+                  <p className="mt-2 text-xs text-[#8892A4]">
+                    We pull real excerpts from these into your campaign's ad corpus.
+                  </p>
+                )}
               </div>
             </>
           )}
-
 
           {step === 2 && (
             <>
@@ -293,7 +342,7 @@ function OnboardingPage() {
                     const picked = e.target.files?.[0];
                     e.target.value = "";
                     if (!picked) return;
-                    if (picked.size > MAX_LOOKALIKE_BYTES) {
+                    if (picked.size > MAX_UPLOAD_BYTES) {
                       toast.error("File too large (max 10MB).");
                       return;
                     }
@@ -313,91 +362,19 @@ function OnboardingPage() {
                   </div>
                 )}
               </div>
-            </>
-          )}
 
-          {step === 3 && (
-            <>
-              <h2 className="text-[32px] font-extrabold tracking-tight">Connect your store or tracking</h2>
-              <p className="mt-2 text-[#8892A4]">Link your sales platform so AspenReach can attribute conversions from creator campaigns.</p>
-              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-3">
-                {["Shopify","WooCommerce","Stripe","PayPal","BigCommerce","Custom Webhook"].map((p) => (
-                  <div key={p} className="bg-[#0C1222] border border-white/[0.07] rounded-xl p-5 text-center">
-                    <div className="w-10 h-10 mx-auto rounded-lg bg-white/5 flex items-center justify-center text-[#00D97E] font-bold">
-                      {p[0]}
-                    </div>
-                    <div className="mt-3 font-semibold text-sm">{p}</div>
-                    <button onClick={() => setModal({ kind: "store", name: p })} className="mt-3 text-xs text-[#00D97E] hover:underline">Connect →</button>
-                  </div>
-                ))}
-              </div>
-              <button onClick={next} className="block mx-auto mt-6 text-sm text-[#8892A4] hover:text-white">Skip this step →</button>
-            </>
-          )}
-
-          {step === 4 && (
-            <>
-              <h2 className="text-[32px] font-extrabold tracking-tight">How will you pay your creators?</h2>
-              <p className="mt-2 text-[#8892A4]">AspenReach handles contracts, invoicing, and payouts automatically.</p>
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-3">
-                {[
-                  { icon: "🏦", name: "Direct Bank Transfer", sub: "ACH or SWIFT from your business account" },
-                  { icon: "S", name: "Stripe Connect", sub: "Instant payouts to creator Stripe accounts", color: "#7C3AED" },
-                  { icon: "W", name: "Wise Business", sub: "International multi-currency payouts", color: "#00B9FF" },
-                ].map((m) => (
-                  <button
-                    key={m.name}
-                    onClick={() => setModal({ kind: "payout", name: m.name })}
-                    className="text-left bg-[#0C1222] border border-white/[0.07] rounded-xl p-6 hover:border-[#00D97E]/30 transition-colors"
-                  >
-                    <div className="text-2xl mb-3" style={{ color: (m as any).color }}>{m.icon}</div>
-                    <div className="font-semibold">{m.name}</div>
-                    <div className="text-xs text-[#8892A4] mt-1">{m.sub}</div>
-                  </button>
-                ))}
-              </div>
-              <button onClick={next} className="block mx-auto mt-6 text-sm text-[#8892A4] hover:text-white">I'll set this up later →</button>
-            </>
-          )}
-
-          {step === 5 && (
-            <>
-              <h2 className="text-[32px] font-extrabold tracking-tight">Your workspace is ready 🎉</h2>
-              <p className="mt-2 text-[#8892A4]">Here's a summary of what we've set up for you.</p>
-              <div className="mt-8 p-8 rounded-2xl bg-[#0C1222] border border-[#00D97E]/20 space-y-4">
-                <SummaryRow label="Product" value={(category.trim() || "Not specified").slice(0, 80)} />
-                <SummaryRow label="Target Buyer" value={`${age} / ${gender} / ${income}`} />
-                <div>
-                  <div className="text-xs uppercase text-[#8892A4] font-semibold mb-2">Platforms</div>
-                  <div className="flex flex-wrap gap-2">
-                    {platforms.youtube && <Badge color="#FF0000">YouTube</Badge>}
-                    {platforms.reddit && <Badge color="#FF4500">Reddit</Badge>}
-                    {platforms.x && <Badge color="#FFFFFF" text="#1A1A1A">X</Badge>}
-                    {platforms.linkedin && <Badge color="#0A66C2">LinkedIn</Badge>}
-                    {!platforms.youtube && !platforms.reddit && !platforms.x && !platforms.linkedin && (
-                      <span className="text-xs text-[#8892A4]">No platforms selected</span>
-                    )}
-                  </div>
-                </div>
-                <SummaryRow
-                  label="Lookalike sheet"
-                  value={lookalikeFile ? lookalikeFile.name : <span className="flex items-center gap-2"><Dot color="#8892A4" /> None</span>}
-                />
-                <SummaryRow label="Store" value={<span className="flex items-center gap-2"><Dot color="#F59E0B" /> Not connected</span>} />
-                <SummaryRow label="Payouts" value={<span className="flex items-center gap-2"><Dot color="#F59E0B" /> Not configured</span>} />
-              </div>
-
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <div className="mt-10">
                 <button
                   onClick={finish}
                   disabled={submitting}
-                  className="flex-1 h-12 rounded-lg bg-[#00D97E] hover:bg-[#00c472] text-[#05080F] font-bold disabled:opacity-60"
+                  className="w-full h-12 rounded-lg bg-[#00D97E] hover:bg-[#00c472] text-[#05080F] font-bold disabled:opacity-60"
                 >
-                  {submitting ? "Setting up…" : "Go to your dashboard →"}
+                  {submitting ? "Creating your campaign…" : "Create your first campaign →"}
                 </button>
-                <button onClick={() => setTeamModal(true)} className="flex-1 h-12 rounded-lg border border-white/15 text-[#F0F4FF] hover:bg-white/5 font-semibold">
-                  Invite a teammate
-                </button>
+                <p className="mt-3 text-center text-xs text-[#8892A4]">
+                  You'll land in the Ads Center with this campaign selected. Connect your store and
+                  payouts later from Settings.
+                </p>
               </div>
             </>
           )}
@@ -414,38 +391,6 @@ function OnboardingPage() {
             </button>
           </div>
         )}
-      </div>
-
-      {modal && (
-        <Modal onClose={() => setModal(null)}>
-          <h3 className="text-xl font-bold">{modal.name}</h3>
-          <p className="mt-3 text-sm text-[#8892A4]">Waiting for API connection</p>
-          <p className="mt-2 text-xs text-[#8892A4]">
-            The {modal.name} connector is not configured yet. This step will light up once the integration is live. You can skip it and connect later from Settings.
-          </p>
-          <button onClick={() => setModal(null)} className="mt-6 w-full h-11 rounded-lg bg-[#00D97E] text-[#05080F] font-bold">Got it</button>
-        </Modal>
-      )}
-
-      {teamModal && (
-        <Modal onClose={() => setTeamModal(false)}>
-          <h3 className="text-xl font-bold">Invite teammates</h3>
-          <p className="mt-3 text-sm text-[#8892A4]">Once you finish setup, open Settings and use the Team tab to invite teammates as admin, editor, or reviewer.</p>
-          <button onClick={() => setTeamModal(false)} className="mt-6 w-full h-11 rounded-lg bg-[#00D97E] text-[#05080F] font-bold">Got it</button>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        className="w-full max-w-[440px] p-8 rounded-2xl bg-[#0C1222] border border-white/10"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
       </div>
     </div>
   );
@@ -480,25 +425,4 @@ function PlatformCard({ selected, onClick, icon, name, sub, selStyle }: {
       <div className="text-xs text-[#8892A4] mt-0.5">{sub}</div>
     </button>
   );
-}
-
-function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between text-sm gap-4">
-      <span className="text-[#8892A4] shrink-0">{label}</span>
-      <span className="font-semibold text-[#F0F4FF] text-right truncate">{value}</span>
-    </div>
-  );
-}
-
-function Badge({ color, text = "white", children }: { color: string; text?: string; children: React.ReactNode }) {
-  return (
-    <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: color, color: text }}>
-      {children}
-    </span>
-  );
-}
-
-function Dot({ color }: { color: string }) {
-  return <span className="inline-block w-2 h-2 rounded-full" style={{ background: color }} />;
 }

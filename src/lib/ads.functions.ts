@@ -205,6 +205,7 @@ export const generateAuthenticAd = createServerFn({ method: "POST" })
         .slice(0, 12),
       ...rows.filter((r) => r.kind === "transcript").slice(0, 4),
       ...rows.filter((r) => r.kind === "conversion_phrase").slice(0, 4),
+      ...rows.filter((r) => r.kind === "brand_doc").slice(0, 4),
     ];
     const sources = pick.map((r, i) => ({
       ref: i + 1,

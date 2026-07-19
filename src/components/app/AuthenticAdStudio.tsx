@@ -1,11 +1,28 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Sparkles, ShieldCheck, ShieldAlert, Quote, RefreshCw, Save } from "lucide-react";
+import {
+  Loader2,
+  Sparkles,
+  ShieldCheck,
+  ShieldAlert,
+  Quote,
+  RefreshCw,
+  Save,
+  FileText,
+  Trash2,
+} from "lucide-react";
 import { Card } from "@/components/app/AppShell";
 import { AdPreviewFrame } from "@/components/app/AdPreviewFrame";
 import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { collectAdCorpus, listAdCorpus, type AdCorpusRow } from "@/lib/ad-corpus.functions";
+import {
+  listBrandDocs,
+  processBrandDoc,
+  deleteBrandDoc,
+  type BrandDocRow,
+  type ProcessBrandDocResult,
+} from "@/lib/brand-docs.functions";
 import { generateAuthenticAd, type AuthenticAdResult } from "@/lib/ads.functions";
 import { AD_STYLES } from "@/lib/ad-playbooks";
 
@@ -18,7 +35,10 @@ const KIND_LABEL: Record<string, string> = {
   comment: "Audience comments",
   transcript: "Creator spoken content",
   conversion_phrase: "Converted phrases",
+  brand_doc: "Brand doc excerpts",
 };
+
+const MAX_BRAND_DOC_BYTES = 10 * 1024 * 1024;
 
 export function AuthenticAdStudio({
   organizationId,
@@ -51,6 +71,12 @@ export function AuthenticAdStudio({
   const [corpus, setCorpus] = useState<AdCorpusRow[]>([]);
   const [collecting, setCollecting] = useState(false);
 
+  // Brand docs
+  const [docs, setDocs] = useState<BrandDocRow[]>([]);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [processingDocId, setProcessingDocId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<ProcessBrandDocResult["suggestions"] | null>(null);
+
   // Generation
   const [platform, setPlatform] = useState<"reddit" | "x" | "youtube" | "linkedin">("reddit");
   const [styleId, setStyleId] = useState<string>("");
@@ -65,20 +91,25 @@ export function AuthenticAdStudio({
       setProof("");
       setNeverSay("");
       setCorpus([]);
+      setDocs([]);
+      setSuggestions(null);
       return;
     }
-    const [{ data: c }, rows] = await Promise.all([
+    setSuggestions(null);
+    const [{ data: c }, rows, docRows] = await Promise.all([
       supabase
         .from("campaigns")
         .select("brand_beliefs,proof_points,never_say")
         .eq("id", campaignId)
         .maybeSingle(),
       listAdCorpus({ data: { campaignId } }),
+      listBrandDocs({ data: { campaignId } }).catch(() => [] as BrandDocRow[]),
     ]);
     setBeliefs(c?.brand_beliefs ?? "");
     setProof(c?.proof_points ?? "");
     setNeverSay(c?.never_say ?? "");
     setCorpus(rows);
+    setDocs(docRows);
     setBeliefsLoaded(true);
   }, [campaignId]);
 
@@ -126,6 +157,110 @@ export function AuthenticAdStudio({
     } finally {
       setCollecting(false);
     }
+  };
+
+  // Guards async doc work against campaign switches: results for campaign A
+  // must never land in campaign B's panels or belief doc fields.
+  const campaignIdRef = useRef(campaignId);
+  campaignIdRef.current = campaignId;
+
+  const refreshDocsAndCorpus = async (cid: string) => {
+    const [rows, docRows] = await Promise.all([
+      listAdCorpus({ data: { campaignId: cid } }),
+      listBrandDocs({ data: { campaignId: cid } }).catch(() => [] as BrandDocRow[]),
+    ]);
+    if (campaignIdRef.current !== cid) return;
+    setCorpus(rows);
+    setDocs(docRows);
+  };
+
+  const extractDoc = async (docId: string) => {
+    if (!campaignId) return;
+    const cid = campaignId;
+    setProcessingDocId(docId);
+    try {
+      const res = await processBrandDoc({ data: { docId } });
+      if (campaignIdRef.current !== cid) return;
+      toast.success(
+        res.excerptsInserted > 0
+          ? `Pulled ${res.excerptsInserted} excerpts into the corpus`
+          : "Processed, but found nothing quotable",
+      );
+      const hasSuggestions =
+        res.suggestions.beliefs.length > 0 ||
+        res.suggestions.proofPoints.length > 0 ||
+        res.suggestions.neverSay.length > 0;
+      setSuggestions(hasSuggestions ? res.suggestions : null);
+      await refreshDocsAndCorpus(cid);
+    } catch (e) {
+      if (campaignIdRef.current !== cid) return;
+      toast.error(e instanceof Error ? e.message : "Extraction failed");
+      await refreshDocsAndCorpus(cid);
+    } finally {
+      setProcessingDocId(null);
+    }
+  };
+
+  const uploadDoc = async (file: File) => {
+    if (!campaignId) return;
+    const cid = campaignId;
+    if (file.size > MAX_BRAND_DOC_BYTES) {
+      toast.error("File too large (max 10MB)");
+      return;
+    }
+    setUploadingDoc(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) throw new Error("Sign in to upload documents");
+      const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${uid}/${cid}/${Date.now()}-${safeName}`;
+      const up = await supabase.storage
+        .from("brand-docs")
+        .upload(path, file, { upsert: false, contentType: file.type || undefined });
+      if (up.error) throw new Error(up.error.message);
+      const { data: row, error } = await supabase
+        .from("brand_docs")
+        .insert({
+          user_id: uid,
+          campaign_id: cid,
+          file_name: file.name,
+          storage_path: path,
+        })
+        .select("id")
+        .single();
+      if (error || !row) throw new Error(error?.message ?? "Could not record the upload");
+      if (campaignIdRef.current === cid) {
+        setDocs(await listBrandDocs({ data: { campaignId: cid } }));
+        await extractDoc(row.id);
+      }
+    } catch (e) {
+      if (campaignIdRef.current === cid) {
+        toast.error(e instanceof Error ? e.message : "Upload failed");
+      }
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
+  const removeDoc = async (docId: string) => {
+    if (!campaignId) return;
+    const cid = campaignId;
+    try {
+      await deleteBrandDoc({ data: { docId } });
+      if (campaignIdRef.current !== cid) return;
+      toast.success("Document and its excerpts removed");
+      await refreshDocsAndCorpus(cid);
+    } catch (e) {
+      if (campaignIdRef.current !== cid) return;
+      toast.error(e instanceof Error ? e.message : "Could not remove");
+    }
+  };
+
+  const appendLines = (current: string, lines: string[]): string => {
+    const fresh = lines.filter((l) => !current.includes(l));
+    if (fresh.length === 0) return current;
+    return [current.trim(), ...fresh].filter(Boolean).join("\n");
   };
 
   const generate = async () => {
@@ -223,6 +358,128 @@ export function AuthenticAdStudio({
                 Save belief doc
               </button>
             )}
+
+            {/* Brand docs (v3-4) */}
+            <div className="pt-2 space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#8892A4]">
+                Brand docs
+              </h3>
+              <p className="text-[10px] text-[#5A6478]">
+                Upload product or brand material (PDF or text). We pull verbatim excerpts into the
+                grounding corpus and suggest belief doc lines you can apply.
+              </p>
+              {docs.length > 0 && (
+                <div className="space-y-1.5">
+                  {docs.map((d) => (
+                    <div
+                      key={d.id}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#05080F] border border-white/[0.07] text-[11px]"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#5A6478] shrink-0" />
+                      <span className="truncate text-[#F0F4FF]/85">{d.file_name}</span>
+                      <span
+                        title={d.error ?? undefined}
+                        className={`ml-auto shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                          d.status === "processed"
+                            ? "bg-[#00D97E]/15 text-[#00D97E]"
+                            : d.status === "failed"
+                              ? "bg-[#FF6B6B]/15 text-[#FF6B6B]"
+                              : "bg-white/5 text-[#8892A4]"
+                        }`}
+                      >
+                        {d.status === "processed" ? `${d.excerpt_count} excerpts` : d.status}
+                      </span>
+                      {canEdit && (
+                        <>
+                          <button
+                            onClick={() => extractDoc(d.id)}
+                            disabled={processingDocId !== null}
+                            title="Extract excerpts again"
+                            className="shrink-0 text-[#8892A4] hover:text-white disabled:opacity-40"
+                          >
+                            {processingDocId === d.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => removeDoc(d.id)}
+                            disabled={processingDocId !== null}
+                            title="Remove document and its excerpts"
+                            className="shrink-0 text-[#8892A4] hover:text-[#FF6B6B] disabled:opacity-40"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {canEdit && (
+                <>
+                  <label
+                    htmlFor="brand-doc-upload"
+                    className={`flex items-center justify-center gap-1.5 h-9 rounded-lg border border-dashed border-white/15 bg-white/[0.02] text-[11px] text-[#8892A4] hover:text-white hover:border-[#00D97E]/50 cursor-pointer transition-colors ${
+                      uploadingDoc ? "opacity-50 pointer-events-none" : ""
+                    }`}
+                  >
+                    {uploadingDoc ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <span className="text-[#00D97E]">+</span>
+                    )}
+                    {uploadingDoc ? "Uploading and extracting" : "Upload a brand doc (.pdf, .txt, .md)"}
+                  </label>
+                  <input
+                    id="brand-doc-upload"
+                    type="file"
+                    accept=".pdf,.txt,.md"
+                    onChange={(e) => {
+                      const picked = e.target.files?.[0];
+                      e.target.value = "";
+                      if (picked) void uploadDoc(picked);
+                    }}
+                    className="hidden"
+                  />
+                </>
+              )}
+
+              {suggestions && canEdit && (
+                <div className="rounded-lg border border-[#00D97E]/20 bg-[#00D97E]/[0.04] p-3 space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#00D97E]">
+                    Suggested from your doc
+                  </p>
+                  {(
+                    [
+                      ["Beliefs", suggestions.beliefs, () => setBeliefs((v) => appendLines(v, suggestions.beliefs))],
+                      ["Proof", suggestions.proofPoints, () => setProof((v) => appendLines(v, suggestions.proofPoints))],
+                      ["Never say", suggestions.neverSay, () => setNeverSay((v) => appendLines(v, suggestions.neverSay))],
+                    ] as const
+                  ).map(([label, items, apply]) =>
+                    items.length === 0 ? null : (
+                      <div key={label}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-semibold text-[#8892A4]">{label}</span>
+                          <button onClick={apply} className="text-[10px] font-bold text-[#00D97E] hover:underline">
+                            Add to field
+                          </button>
+                        </div>
+                        {items.map((s, i) => (
+                          <p key={i} className="text-[11px] text-[#F0F4FF]/70 border-l-2 border-[#00D97E]/30 pl-2 mt-1">
+                            {s}
+                          </p>
+                        ))}
+                      </div>
+                    ),
+                  )}
+                  <p className="text-[10px] text-[#5A6478]">
+                    Review, apply what fits, then save the belief doc.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Corpus + generation */}

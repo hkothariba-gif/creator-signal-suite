@@ -30,6 +30,7 @@ function CampaignDetailPage() {
   const { id } = useParams({ from: "/app/campaigns/$id" });
   const { user } = useAuth();
   const status = useConnectorStatus();
+  const [finding, setFinding] = useState(false);
 
   const campaign = useQuery({
     queryKey: ["campaign", id, user?.id],

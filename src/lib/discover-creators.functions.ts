@@ -10,25 +10,53 @@ type SearchCriteria = {
   keywords?: string[];
 };
 
-async function searchChannels(query: string, key: string) {
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=channel&maxResults=10&key=${key}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`YouTube search failed (${res.status}): ${body.slice(0, 200)}`);
+export type SourceStatus = {
+  source: string;
+  ok: boolean;
+  count: number;
+  reason?: string;
+};
+
+async function searchChannels(
+  query: string,
+  key: string,
+): Promise<{
+  status: SourceStatus;
+  items: Array<{ id: string; name: string; description: string; thumbnail?: string }>;
+}> {
+  const source = `youtube:${query}`;
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=channel&maxResults=10&key=${key}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      return {
+        status: { source, ok: false, count: 0, reason: `HTTP ${res.status}: ${body.slice(0, 160)}` },
+        items: [],
+      };
+    }
+    const json = (await res.json()) as {
+      items?: Array<{
+        id: { channelId: string };
+        snippet: { channelTitle: string; description: string; thumbnails?: { default?: { url?: string } } };
+      }>;
+    };
+    const items = (json.items ?? []).map((i) => ({
+      id: i.id.channelId,
+      name: i.snippet.channelTitle,
+      description: i.snippet.description,
+      thumbnail: i.snippet.thumbnails?.default?.url,
+    }));
+    return {
+      status: { source, ok: true, count: items.length, reason: items.length === 0 ? "no results" : undefined },
+      items,
+    };
+  } catch (err) {
+    return {
+      status: { source, ok: false, count: 0, reason: err instanceof Error ? err.message : "unknown error" },
+      items: [],
+    };
   }
-  const json = (await res.json()) as {
-    items?: Array<{
-      id: { channelId: string };
-      snippet: { channelTitle: string; description: string; thumbnails?: { default?: { url?: string } } };
-    }>;
-  };
-  return (json.items ?? []).map((i) => ({
-    id: i.id.channelId,
-    name: i.snippet.channelTitle,
-    description: i.snippet.description,
-    thumbnail: i.snippet.thumbnails?.default?.url,
-  }));
 }
 
 export const findCreatorsForCampaign = createServerFn({ method: "POST" })
@@ -55,16 +83,29 @@ export const findCreatorsForCampaign = createServerFn({ method: "POST" })
       ),
     ).slice(0, 5);
 
-    if (queries.length === 0) throw new Error("This campaign has no search criteria yet");
+    const sources: SourceStatus[] = [];
+
+    if (queries.length === 0) {
+      return {
+        added: 0,
+        skipped: 0,
+        total: 0,
+        sources: [{ source: "youtube", ok: false, count: 0, reason: "campaign has no search criteria yet" }],
+        ranAt: new Date().toISOString(),
+      };
+    }
 
     const seen = new Map<string, { id: string; name: string; description: string; thumbnail?: string }>();
     for (const q of queries) {
-      const found = await searchChannels(q, key);
-      for (const c of found) if (!seen.has(c.id)) seen.set(c.id, c);
+      const { status, items } = await searchChannels(q, key);
+      sources.push(status);
+      for (const c of items) if (!seen.has(c.id)) seen.set(c.id, c);
     }
 
     const candidates = Array.from(seen.values());
-    if (candidates.length === 0) return { added: 0, skipped: 0, total: 0 };
+    if (candidates.length === 0) {
+      return { added: 0, skipped: 0, total: 0, sources, ranAt: new Date().toISOString() };
+    }
 
     const { data: existing } = await context.supabase
       .from("hotlist")
@@ -95,5 +136,11 @@ export const findCreatorsForCampaign = createServerFn({ method: "POST" })
       if (iErr) throw new Error(iErr.message);
     }
 
-    return { added: toInsert.length, skipped: existingIds.size, total: candidates.length };
+    return {
+      added: toInsert.length,
+      skipped: existingIds.size,
+      total: candidates.length,
+      sources,
+      ranAt: new Date().toISOString(),
+    };
   });

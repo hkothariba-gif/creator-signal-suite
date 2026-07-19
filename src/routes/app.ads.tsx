@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
+import { AdsLibrary } from "@/components/app/AdsLibrary";
 import { AuthenticAdStudio } from "@/components/app/AuthenticAdStudio";
+import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +52,10 @@ function AdStudioPage() {
     : undefined;
   const llmReady = p ? p.llm : undefined;
   const imageReady = p ? p.image : undefined;
+
+  // ── V3 campaign-first shell state ──
+  const [adsCampaignId, setAdsCampaignId] = useState<string | undefined>(undefined);
+  const [adsTab, setAdsTab] = useState<"generate" | "library" | "intelligence">("generate");
 
   // ── Signals and intelligence ───────────────────────────────────────────────
   const [query, setQuery] = useState("");
@@ -260,27 +266,68 @@ function AdStudioPage() {
 
   return (
     <AppShell title="Ad Studio">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">Ad intelligence and creation</h2>
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold">Ads Center</h2>
         <p className="text-[#8892A4] mt-1">
-          Signals rank the hooks, phrases, and themes that earn attention, then feed copy and imagery.
+          Build ads for a product, on a campaign — grounded in real audience language and your
+          creator marketing data.
         </p>
       </div>
 
-      {/* ── Phase 5A: grounded generation from real audience language ── */}
-      {orgId && (
-        <div className="mb-6">
-          <AuthenticAdStudio
-            organizationId={orgId}
-            brand={user?.company_name ?? user?.organization?.name ?? "the brand"}
-            canEdit={canEdit}
-            llmReady={llmReady}
-            onGenerated={() => void loadAds()}
-          />
-        </div>
-      )}
+      {/* ── V3: campaign-first shell ── */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <CampaignPicker value={adsCampaignId} onChange={setAdsCampaignId} />
+        <Link to="/app/campaigns" className="text-xs text-[#00D97E] hover:underline">
+          + New campaign
+        </Link>
+        {adsCampaignId && (
+          <div className="flex gap-1.5 ml-auto">
+            {(["generate", "library", "intelligence"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setAdsTab(t)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold capitalize ${
+                  adsTab === t ? "bg-[#00D97E] text-[#05080F]" : "bg-white/[0.05] text-[#8892A4] hover:text-white"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6">
+      {!adsCampaignId ? (
+        <Card className="p-10 text-center">
+          <h3 className="text-lg font-bold text-[#F0F4FF]">Pick a campaign to build ads for</h3>
+          <p className="mt-1 text-sm text-[#8892A4] max-w-md mx-auto">
+            Its product, audience, belief doc, corpus, and affiliate data flow in automatically —
+            or create a new campaign to start from scratch.
+          </p>
+        </Card>
+      ) : adsTab === "generate" && orgId ? (
+        <AuthenticAdStudio
+          organizationId={orgId}
+          brand={user?.company_name ?? user?.organization?.name ?? "the brand"}
+          canEdit={canEdit}
+          llmReady={llmReady}
+          onGenerated={() => void loadAds()}
+          campaignId={adsCampaignId}
+        />
+      ) : adsTab === "library" && orgId ? (
+        <AdsLibrary
+          organizationId={orgId}
+          campaignId={adsCampaignId}
+          brand={user?.company_name ?? user?.organization?.name ?? "the brand"}
+          canEdit={canEdit}
+        />
+      ) : null}
+
+      <div
+        className={`grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6 ${
+          adsCampaignId && adsTab === "intelligence" ? "" : "hidden"
+        }`}
+      >
         {/* ── Left: signals and intelligence ── */}
         <div className="space-y-6">
           <Card className="p-5">

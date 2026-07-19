@@ -26,14 +26,19 @@ export function AuthenticAdStudio({
   canEdit,
   llmReady,
   onGenerated,
+  campaignId: controlledCampaignId,
 }: {
   organizationId: string;
   brand: string;
   canEdit: boolean;
   llmReady: boolean | undefined;
   onGenerated?: () => void;
+  campaignId?: string; // controlled by the Ads Center shell when provided
 }) {
-  const [campaignId, setCampaignId] = useState<string | undefined>(undefined);
+  const [internalCampaignId, setInternalCampaignId] = useState<string | undefined>(undefined);
+  const campaignId = controlledCampaignId ?? internalCampaignId;
+  const setCampaignId = setInternalCampaignId;
+  const controlled = controlledCampaignId !== undefined;
 
   // Belief doc
   const [beliefs, setBeliefs] = useState("");
@@ -159,7 +164,7 @@ export function AuthenticAdStudio({
             actually converted — plus what your brand believes. No tone adjectives, ever.
           </p>
         </div>
-        <CampaignPicker value={campaignId} onChange={setCampaignId} />
+        {!controlled && <CampaignPicker value={campaignId} onChange={setCampaignId} />}
       </div>
 
       {!campaignId ? (

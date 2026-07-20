@@ -20,7 +20,7 @@ export async function fetchYouTubeComments(
   channelId: string,
   maxVideos = 3,
 ): Promise<CorpusItem[]> {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
   if (!key || !channelId) return [];
   const out: CorpusItem[] = [];
   try {
@@ -80,7 +80,7 @@ export async function fetchYouTubeTranscriptExcerpts(
   keywords: string[],
   maxVideos = 2,
 ): Promise<CorpusItem[]> {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
   if (!key || !channelId) return [];
   const out: CorpusItem[] = [];
   try {

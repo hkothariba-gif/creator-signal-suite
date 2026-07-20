@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { CampaignPicker } from "@/components/app/CampaignPicker";
-import { Telescope } from "lucide-react";
+import { Telescope, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { campaignText, contentRelevance, alignmentKeyword } from "@/lib/scoring";
@@ -29,7 +29,7 @@ interface CreatorResult {
 const searchYouTubeChannels = createServerFn({ method: "GET" })
   .inputValidator((data: { query: string }) => data)
   .handler(async ({ data }): Promise<CreatorResult[]> => {
-    const key = process.env.YOUTUBE_API_KEY;
+    const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
     if (!key) return [];
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(data.query)}&type=channel&maxResults=12&key=${key}`,
@@ -60,6 +60,7 @@ function DiscoveryPage() {
   const [searched, setSearched] = useState(false);
   const [campaignId, setCampaignId] = useState<string | undefined>(campaignParam);
   const [campText, setCampText] = useState<string>("");
+  const [detail, setDetail] = useState<CreatorResult | null>(null);
 
   const ytReady = status.data ? status.data.platform.youtube : undefined;
 
@@ -151,7 +152,7 @@ function DiscoveryPage() {
     );
   };
 
-  const slugify = (n: string) => encodeURIComponent(n.toLowerCase().replace(/\s+/g, "-"));
+  const slugify = (n: string) => n.toLowerCase().replace(/\s+/g, "-");
 
   return (
     <AppShell title="Creator Discovery" right={<CampaignPicker value={campaignId} onChange={setCampaignId} />}>
@@ -188,7 +189,11 @@ function DiscoveryPage() {
             {results.map((c) => {
               const fit = quickFit(c);
               return (
-                <Card key={c.id} className="p-5 flex flex-col">
+                <Card
+                  key={c.id}
+                  className="p-5 flex flex-col cursor-pointer hover:border-[#00D97E]/40 transition-colors"
+                  onClick={() => setDetail(c)}
+                >
                   <div className="flex items-center gap-3">
                     {c.thumbnail ? (
                       <img src={c.thumbnail} alt={c.name} className="w-12 h-12 rounded-full bg-white/5" />
@@ -220,7 +225,10 @@ function DiscoveryPage() {
                   </p>
                   <div className="mt-4 flex gap-2">
                     <button
-                      onClick={() => addToHotlist(c)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToHotlist(c);
+                      }}
                       className="flex-1 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-xs font-bold hover:bg-[#00D97E]/90"
                     >
                       Add to Hotlist
@@ -228,6 +236,7 @@ function DiscoveryPage() {
                     <Link
                       to="/app/creators/$id"
                       params={{ id: c.id || slugify(c.name) }}
+                      onClick={(e) => e.stopPropagation()}
                       className="flex-1 h-9 inline-flex items-center justify-center rounded-lg border border-white/10 text-xs font-bold text-white hover:bg-white/5"
                     >
                       View Profile →
@@ -247,6 +256,84 @@ function DiscoveryPage() {
           </div>
         )}
       </DataGate>
+
+      {/* Creator detail modal. Discovery results are not saved rows yet, so
+          the detail view shows what the search returned; metrics stay in the
+          dev phase placeholder pattern until the creator is saved and scored. */}
+      {detail && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setDetail(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0C1222] p-6 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end -mt-2 -mr-2">
+              <button
+                onClick={() => setDetail(null)}
+                className="p-1.5 rounded-lg text-[#8892A4] hover:text-white hover:bg-white/5"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center gap-4">
+              {detail.thumbnail ? (
+                <img src={detail.thumbnail} alt={detail.name} className="w-16 h-16 rounded-full bg-white/5 border border-white/10" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-lg font-bold text-[#8892A4]">
+                  {detail.name.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <h2 className="text-xl font-bold text-white truncate">{detail.name}</h2>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF0000]/15 text-[#FF6B6B]">
+                    {detail.platform}
+                  </span>
+                  {quickFit(detail) != null && (
+                    <span
+                      className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      style={{ background: "rgba(0,217,126,0.15)", color: "#00D97E" }}
+                    >
+                      ~{quickFit(detail)}% fit
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <h3 className="text-sm font-bold text-[#F0F4FF] mb-1">About</h3>
+              <p className="text-sm text-[#8892A4] leading-relaxed">
+                {detail.description || "No description available."}
+              </p>
+            </div>
+            <div className="mt-4">
+              <h3 className="text-sm font-bold text-[#F0F4FF] mb-1">Platform Metrics</h3>
+              <p className="text-sm text-[#8892A4]">
+                Metrics load once this creator is saved to your hotlist and scored.
+              </p>
+            </div>
+            <div className="mt-6 flex gap-2">
+              <button
+                onClick={() => {
+                  addToHotlist(detail);
+                }}
+                className="flex-1 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00D97E]/90"
+              >
+                Add to Hotlist
+              </button>
+              <Link
+                to="/app/creators/$id"
+                params={{ id: detail.id || slugify(detail.name) }}
+                className="flex-1 h-10 inline-flex items-center justify-center rounded-lg border border-white/10 text-sm font-bold text-white hover:bg-white/5"
+              >
+                View Profile →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

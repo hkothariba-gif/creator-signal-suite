@@ -25,10 +25,15 @@ function OnboardingPage() {
   // keeps the answers. finish() creates the first campaign, uploads any brand
   // docs against it, and opens the Ads Center on that campaign.
   const [step, setStep] = useState(1);
+  // The landing hero prompt is consumed once: it prefills the brief on the
+  // visit right after signup, then the key is removed so stale text from an
+  // earlier session never reappears on a fresh onboarding run.
   const [category, setCategory] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
-      return localStorage.getItem("aspen_hero_prompt") ?? "";
+      const v = localStorage.getItem("aspen_hero_prompt") ?? "";
+      localStorage.removeItem("aspen_hero_prompt");
+      return v;
     } catch {
       return "";
     }

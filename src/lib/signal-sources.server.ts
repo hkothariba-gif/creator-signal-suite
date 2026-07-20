@@ -24,7 +24,7 @@ const num = (v: unknown): number => {
 // ── YouTube Data API v3 ──────────────────────────────────────────────────────
 
 async function fetchYouTube(query: string): Promise<RawSignal[]> {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
   if (!key) return [];
   try {
     const searchRes = await fetch(

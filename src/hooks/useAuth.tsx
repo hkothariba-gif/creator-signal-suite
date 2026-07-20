@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureOrganization } from "@/lib/orgs.functions";
 
 export type PlatformFlags = {
   youtube: boolean;
@@ -101,6 +102,10 @@ async function hydrateUser(supaUser: User): Promise<AuthUser> {
       .from("organization_members")
       .select("role, organizations(id, name, brand_profile)")
       .eq("user_id", supaUser.id)
+      // Earliest membership wins, matching the order ensureOrganization uses,
+      // so reads and writes agree on which organization is primary.
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
       .limit(1)
       .maybeSingle(),
   ]);
@@ -197,6 +202,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const nextCompany = patch.company_name ?? user.company_name;
 
+    // Organization work runs before the profiles write so a failure can never
+    // strand the user marked onboarded without an organization.
+    if (patch.brand !== undefined) {
+      const merged: BrandProfile = { ...(user.brand ?? {}), ...patch.brand };
+      const brandJson = {
+        category: merged.category ?? null,
+        age: merged.age ?? null,
+        gender: merged.gender ?? null,
+        income: merged.income ?? null,
+        notes: merged.notes ?? null,
+        platforms: platformsToArray(merged.platforms),
+      };
+      if (!user.organization) {
+        // Creation happens server side with the service role so live RLS
+        // drift cannot block it. The function is idempotent.
+        try {
+          await ensureOrganization({
+            data: { name: nextCompany || user.email, brand: brandJson },
+          });
+        } catch (e) {
+          return { error: e instanceof Error ? e.message : "Could not create organization" };
+        }
+      } else {
+        const { error } = await supabase
+          .from("organizations")
+          .update({ brand_profile: brandJson })
+          .eq("id", user.organization.id);
+        if (error) return { error: error.message };
+      }
+    }
+
     if (patch.onboarded !== undefined || patch.company_name !== undefined) {
       const { error } = await supabase
         .from("profiles")
@@ -205,36 +241,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...(patch.company_name !== undefined ? { company_name: patch.company_name } : {}),
         })
         .eq("id", user.id);
-      if (error) return { error: error.message };
-    }
-
-    if (patch.brand !== undefined) {
-      let orgId = user.organization?.id ?? null;
-      if (!orgId) {
-        // First write creates the organization. The database trigger makes
-        // the creator its admin.
-        const { data: org, error: orgError } = await supabase
-          .from("organizations")
-          .insert({ name: nextCompany || user.email, created_by: user.id })
-          .select("id")
-          .single();
-        if (orgError || !org) return { error: orgError?.message ?? "Could not create organization" };
-        orgId = org.id;
-      }
-      const merged: BrandProfile = { ...(user.brand ?? {}), ...patch.brand };
-      const { error } = await supabase
-        .from("organizations")
-        .update({
-          brand_profile: {
-            category: merged.category ?? null,
-            age: merged.age ?? null,
-            gender: merged.gender ?? null,
-            income: merged.income ?? null,
-            notes: merged.notes ?? null,
-            platforms: platformsToArray(merged.platforms),
-          },
-        })
-        .eq("id", orgId);
       if (error) return { error: error.message };
     }
 

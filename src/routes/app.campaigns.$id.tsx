@@ -25,6 +25,8 @@ export const Route = createFileRoute("/app/campaigns/$id")({
 type Campaign = Tables<"campaigns">;
 type HotlistRow = Tables<"hotlist">;
 
+const slugify = (n: string) => n.toLowerCase().replace(/\s+/g, "-");
+
 const platColor = (p: string) =>
   p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : p === "LinkedIn" ? "#0A66C2" : "#7C3AED";
 
@@ -284,9 +286,11 @@ function CampaignDetailPage() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(hotlist.data ?? []).map((h) => (
-              <div
+              <Link
                 key={h.id}
-                className="flex items-center gap-3 p-3 rounded-lg border border-white/[0.07] bg-[#131D2E]"
+                to="/app/creators/$id"
+                params={{ id: h.external_id ?? slugify(h.creator_name) }}
+                className="flex items-center gap-3 p-3 rounded-lg border border-white/[0.07] bg-[#131D2E] hover:border-[#00D97E]/40 transition-colors"
               >
                 {h.avatar_url ? (
                   <img src={h.avatar_url} alt="" className="w-10 h-10 rounded-full bg-white/5" />
@@ -305,7 +309,7 @@ function CampaignDetailPage() {
                     <div className="text-sm font-bold text-[#00D97E]">{h.score}</div>
                   </div>
                 ) : null}
-              </div>
+              </Link>
             ))}
           </div>
         </DataGate>

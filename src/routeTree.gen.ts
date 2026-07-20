@@ -29,6 +29,7 @@ import { Route as AppCommunityRouteImport } from './routes/app.community'
 import { Route as AppCampaignsRouteImport } from './routes/app.campaigns'
 import { Route as AppAffiliateRouteImport } from './routes/app.affiliate'
 import { Route as AppAdsRouteImport } from './routes/app.ads'
+import { Route as AppCreatorsIndexRouteImport } from './routes/app.creators.index'
 import { Route as AppCampaignsIndexRouteImport } from './routes/app.campaigns.index'
 import { Route as AppCreatorsIdRouteImport } from './routes/app.creators.$id'
 import { Route as AppCampaignsIdRouteImport } from './routes/app.campaigns.$id'
@@ -133,6 +134,11 @@ const AppAdsRoute = AppAdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCreatorsIndexRoute = AppCreatorsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppCreatorsRoute,
+} as any)
 const AppCampaignsIndexRoute = AppCampaignsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/app/campaigns/$id': typeof AppCampaignsIdRoute
   '/app/creators/$id': typeof AppCreatorsIdRoute
   '/app/campaigns/': typeof AppCampaignsIndexRoute
+  '/app/creators/': typeof AppCreatorsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -184,7 +191,6 @@ export interface FileRoutesByTo {
   '/app/ads': typeof AppAdsRoute
   '/app/affiliate': typeof AppAffiliateRoute
   '/app/community': typeof AppCommunityRoute
-  '/app/creators': typeof AppCreatorsRouteWithChildren
   '/app/discovery': typeof AppDiscoveryRoute
   '/app/expansion': typeof AppExpansionRoute
   '/app/hotlist': typeof AppHotlistRoute
@@ -196,6 +202,7 @@ export interface FileRoutesByTo {
   '/app/campaigns/$id': typeof AppCampaignsIdRoute
   '/app/creators/$id': typeof AppCreatorsIdRoute
   '/app/campaigns': typeof AppCampaignsIndexRoute
+  '/app/creators': typeof AppCreatorsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -222,6 +229,7 @@ export interface FileRoutesById {
   '/app/campaigns/$id': typeof AppCampaignsIdRoute
   '/app/creators/$id': typeof AppCreatorsIdRoute
   '/app/campaigns/': typeof AppCampaignsIndexRoute
+  '/app/creators/': typeof AppCreatorsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -249,6 +257,7 @@ export interface FileRouteTypes {
     | '/app/campaigns/$id'
     | '/app/creators/$id'
     | '/app/campaigns/'
+    | '/app/creators/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -260,7 +269,6 @@ export interface FileRouteTypes {
     | '/app/ads'
     | '/app/affiliate'
     | '/app/community'
-    | '/app/creators'
     | '/app/discovery'
     | '/app/expansion'
     | '/app/hotlist'
@@ -272,6 +280,7 @@ export interface FileRouteTypes {
     | '/app/campaigns/$id'
     | '/app/creators/$id'
     | '/app/campaigns'
+    | '/app/creators'
   id:
     | '__root__'
     | '/'
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/app/campaigns/$id'
     | '/app/creators/$id'
     | '/app/campaigns/'
+    | '/app/creators/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -452,6 +462,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/creators/': {
+      id: '/app/creators/'
+      path: '/'
+      fullPath: '/app/creators/'
+      preLoaderRoute: typeof AppCreatorsIndexRouteImport
+      parentRoute: typeof AppCreatorsRoute
+    }
     '/app/campaigns/': {
       id: '/app/campaigns/'
       path: '/'
@@ -492,10 +509,12 @@ const AppCampaignsRouteWithChildren = AppCampaignsRoute._addFileChildren(
 
 interface AppCreatorsRouteChildren {
   AppCreatorsIdRoute: typeof AppCreatorsIdRoute
+  AppCreatorsIndexRoute: typeof AppCreatorsIndexRoute
 }
 
 const AppCreatorsRouteChildren: AppCreatorsRouteChildren = {
   AppCreatorsIdRoute: AppCreatorsIdRoute,
+  AppCreatorsIndexRoute: AppCreatorsIndexRoute,
 }
 
 const AppCreatorsRouteWithChildren = AppCreatorsRoute._addFileChildren(

@@ -160,7 +160,7 @@ export const discoverCreatorContacts = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       if (!row) throw new Error("Creator not found");
 
-      const key = process.env.YOUTUBE_API_KEY;
+      const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
       const found: Found[] = [];
 
       // Start from any links already stored on the profile, then enrich from

@@ -149,7 +149,7 @@ export const collectAdCorpus = createServerFn({ method: "POST" })
     return {
       inserted,
       byKind,
-      needsYouTubeKey: !process.env.YOUTUBE_API_KEY,
+      needsYouTubeKey: !(process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API),
       needsRedditKey: !(process.env.REDDIT_CLIENT_ID && process.env.REDDIT_SECRET),
       creatorsScanned: ytCreators.length,
     };

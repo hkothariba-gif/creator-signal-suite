@@ -78,7 +78,7 @@ export function PlatformRevenueTabs() {
   const c = content[tab.id];
 
   return (
-    <section className="platform-revenue-section">
+    <section id="platforms" className="platform-revenue-section">
       <FadeUp delay={0}>
         <p className="platform-revenue-eyebrow">YOUR REVENUE PLAYBOOK</p>
       </FadeUp>

@@ -38,7 +38,7 @@ const platBadge = (p: string | null) => {
   return { bg: "rgba(255,255,255,0.1)", color: "#FFFFFF" };
 };
 
-const slugify = (n: string) => encodeURIComponent(n.toLowerCase().replace(/\s+/g, "-"));
+const slugify = (n: string) => n.toLowerCase().replace(/\s+/g, "-");
 
 function HotlistPage() {
   const { user } = useAuth();

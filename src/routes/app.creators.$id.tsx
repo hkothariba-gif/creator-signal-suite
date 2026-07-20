@@ -16,6 +16,14 @@ export const Route = createFileRoute("/app/creators/$id")({
 
 type Row = Tables<"hotlist">;
 
+const STAGES: { key: string; label: string }[] = [
+  { key: "saved", label: "Saved" },
+  { key: "contacted", label: "Contacted" },
+  { key: "negotiating", label: "Negotiating" },
+  { key: "contracted", label: "Contracted" },
+  { key: "live", label: "Live / Posted" },
+];
+
 const platColor = (p: string | null | undefined) => {
   const v = (p ?? "").toLowerCase();
   return v === "youtube" ? "#FF0000" : v === "reddit" ? "#FF4500" : v === "x" ? "#1A1A1A" : v === "linkedin" ? "#0A66C2" : "#7C3AED";
@@ -65,6 +73,19 @@ function CreatorProfilePage() {
   const addHotlist = async () => {
     if (!user || !row) return;
     toast.success("Already in your hotlist!");
+  };
+
+  const moveTo = async (stage: string) => {
+    if (!row) return;
+    const prev = row;
+    setRow({ ...row, stage });
+    const { error } = await supabase.from("hotlist").update({ stage }).eq("id", row.id);
+    if (error) {
+      toast.error(error.message);
+      setRow(prev);
+    } else {
+      toast.success(`Moved to ${STAGES.find((s) => s.key === stage)?.label ?? stage}`);
+    }
   };
 
   if (loading) {
@@ -183,6 +204,28 @@ function CreatorProfilePage() {
               <Star className="w-4 h-4" /> In Hotlist
             </button>
           </div>
+        </div>
+      </Card>
+
+      <Card className="p-6 mb-6">
+        <h3 className="text-lg font-bold text-[#F0F4FF] mb-3">Stage</h3>
+        <div className="flex gap-2 flex-wrap">
+          {STAGES.map((s) => {
+            const active = (row.stage ?? "saved").toLowerCase() === s.key;
+            return (
+              <button
+                key={s.key}
+                onClick={() => !active && moveTo(s.key)}
+                className={
+                  active
+                    ? "px-3 h-8 rounded-full text-xs font-bold bg-[#00D97E] text-[#05080F]"
+                    : "px-3 h-8 rounded-full text-xs font-bold border border-white/10 text-[#8892A4] hover:text-white hover:border-[#00D97E]/50"
+                }
+              >
+                {s.label}
+              </button>
+            );
+          })}
         </div>
       </Card>
 

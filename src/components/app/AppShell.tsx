@@ -4,7 +4,8 @@ import {
   Settings, LogOut, Bell, Sparkles, Layers, Wand2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { X } from "lucide-react";
 
 const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/app", label: "Home", icon: Home, exact: true },
@@ -39,6 +40,8 @@ export function AppShell({ title, right, children }: { title: string; right?: Re
   const { user, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
@@ -91,10 +94,28 @@ export function AppShell({ title, right, children }: { title: string; right?: Re
           <h1 className="text-[18px] font-semibold text-[#F0F4FF]">{title}</h1>
           <div className="flex items-center gap-3">
             {right}
-            <button className="text-[#8892A4] hover:text-white relative">
-              <Bell className="w-5 h-5" />
-            </button>
-            <button className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-[#00D97E]/50 text-[#00D97E] hover:bg-[#00D97E]/10">
+            <div className="relative">
+              <button
+                onClick={() => setNotificationsOpen((v) => !v)}
+                aria-label="Notifications"
+                className="text-[#8892A4] hover:text-white relative block"
+              >
+                <Bell className="w-5 h-5" />
+              </button>
+              {notificationsOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setNotificationsOpen(false)} />
+                  <div className="absolute right-0 top-9 z-40 w-72 rounded-xl border border-white/10 bg-[#0C1222] shadow-xl p-4">
+                    <div className="text-sm font-bold text-[#F0F4FF]">Notifications</div>
+                    <p className="mt-3 text-sm text-[#8892A4]">No notifications yet.</p>
+                  </div>
+                </>
+              )}
+            </div>
+            <button
+              onClick={() => setUpgradeOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-[#00D97E]/50 text-[#00D97E] hover:bg-[#00D97E]/10"
+            >
               <Sparkles className="w-3.5 h-3.5" /> Upgrade
             </button>
             <div className="w-8 h-8 rounded-full bg-[#00D97E] text-[#05080F] flex items-center justify-center text-xs font-bold">
@@ -102,17 +123,55 @@ export function AppShell({ title, right, children }: { title: string; right?: Re
             </div>
           </div>
         </header>
+
+        {upgradeOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={() => setUpgradeOpen(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0C1222] p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between">
+                <h2 className="text-xl font-bold text-[#F0F4FF]">Upgrade</h2>
+                <button
+                  onClick={() => setUpgradeOpen(false)}
+                  className="p-1.5 rounded-lg text-[#8892A4] hover:text-white hover:bg-white/5"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-[#8892A4]">
+                Paid plans are coming soon. Everything is included free while AspenReach is in beta.
+              </p>
+              <div className="mt-5 rounded-xl border border-[#00D97E]/30 bg-[#00D97E]/5 p-4">
+                <div className="text-sm font-bold text-[#00D97E]">Beta</div>
+                <div className="mt-1 text-xs text-[#8892A4]">
+                  Full access to discovery, campaigns, the Ad Studio, and outreach.
+                </div>
+              </div>
+              <button
+                onClick={() => setUpgradeOpen(false)}
+                className="mt-5 w-full h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:brightness-110"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        )}
         <main className="flex-1 p-8 overflow-x-hidden">{children}</main>
       </div>
     </div>
   );
 }
 
-export function Card({ children, className = "", style }: { children: ReactNode; className?: string; style?: React.CSSProperties }) {
+export function Card({ children, className = "", style, onClick }: { children: ReactNode; className?: string; style?: React.CSSProperties; onClick?: () => void }) {
   return (
     <div
       className={`bg-[#0C1222] border border-white/[0.07] rounded-xl ${className}`}
       style={style}
+      onClick={onClick}
     >
       {children}
     </div>

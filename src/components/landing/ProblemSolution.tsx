@@ -12,7 +12,7 @@ const steps = [
 
 export function ProblemSolution() {
   return (
-    <section style={{ background: "#05080F", padding: "80px 0" }}>
+    <section id="features" style={{ background: "#05080F", padding: "80px 0" }}>
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
         <p style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.12em", color: "#00D97E", marginBottom: "12px", textTransform: "uppercase" }}>HOW WE REACH CREATORS</p>
         <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, color: "#F0F4FF", marginBottom: "48px", letterSpacing: "-0.02em" }}>Every channel. One platform.</h2>

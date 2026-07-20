@@ -46,7 +46,9 @@ export const getConnectorStatus = createServerFn({ method: "GET" }).handler(
         email: present(env.EMAIL_API_KEY),
         listening: present(env.BRAND24_API_KEY),
         creatorPerformance: present(env.PHYLLO_CLIENT_ID, env.PHYLLO_SECRET),
-        youtube: present(env.YOUTUBE_API_KEY),
+        // The live secret is named YOU_TUBE_API; accept either name so status
+        // matches what discovery actually uses.
+        youtube: present(env.YOUTUBE_API_KEY) || present(env.YOU_TUBE_API),
         x: present(env.X_API_KEY, env.X_API_SECRET),
         reddit: present(env.REDDIT_CLIENT_ID, env.REDDIT_SECRET),
         trends: present(env.TRENDS_API_KEY),

@@ -25,7 +25,7 @@ const num = (v: unknown): number => {
 
 // Channel statistics plus recent upload engagement, when a YouTube key exists.
 async function fetchYouTubeStats(channelId: string): Promise<ChannelStats | null> {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
   if (!key) return null;
   try {
     const cr = await fetch(
@@ -146,7 +146,7 @@ export const scoreCampaignCreators = createServerFn({ method: "POST" })
         !stats &&
         (r.platform ?? "").toLowerCase() === "youtube" &&
         r.external_id &&
-        process.env.YOUTUBE_API_KEY
+        (process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API)
       ) {
         stats = await fetchYouTubeStats(r.external_id);
       }

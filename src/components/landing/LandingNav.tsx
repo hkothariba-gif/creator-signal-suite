@@ -20,6 +20,17 @@ export function LandingNav() {
     { href: "#pricing", label: "Pricing" },
   ];
 
+  // The router intercepts plain hash links and resets scroll to the top, so
+  // anchor navigation scrolls explicitly instead of relying on the browser.
+  const scrollToAnchor = (e: { preventDefault: () => void }, href: string) => {
+    if (!href.startsWith("#")) return;
+    const el = document.querySelector(href);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <header
       className="fixed inset-x-0 top-0 z-50 transition-all duration-300"
@@ -41,7 +52,12 @@ export function LandingNav() {
 
         <div className="hidden md:flex items-center gap-8">
           {links.map((l) => (
-            <a key={l.href} href={l.href} className="text-sm text-slate-300 hover:text-white transition-colors">
+            <a
+              key={l.href}
+              href={l.href}
+              onClick={(e) => scrollToAnchor(e, l.href)}
+              className="text-sm text-slate-300 hover:text-white transition-colors"
+            >
               {l.label}
             </a>
           ))}
@@ -56,6 +72,7 @@ export function LandingNav() {
           </Link>
           <a
             href="#cta"
+            onClick={(e) => scrollToAnchor(e, "#cta")}
             className="inline-flex items-center rounded-full bg-brand-green hover:bg-brand-green-dark text-white text-sm font-semibold px-5 py-2.5 transition-all hover:scale-[1.02]"
           >
             Get Early Access
@@ -74,7 +91,10 @@ export function LandingNav() {
             <a
               key={l.href}
               href={l.href}
-              onClick={() => setOpen(false)}
+              onClick={(e) => {
+                setOpen(false);
+                scrollToAnchor(e, l.href);
+              }}
               className="text-white text-2xl font-semibold"
             >
               {l.label}
@@ -89,7 +109,10 @@ export function LandingNav() {
           </Link>
           <a
             href="#cta"
-            onClick={() => setOpen(false)}
+            onClick={(e) => {
+              setOpen(false);
+              scrollToAnchor(e, "#cta");
+            }}
             className="rounded-full bg-brand-green text-white font-semibold px-8 py-3 mt-2"
           >
             Get Early Access

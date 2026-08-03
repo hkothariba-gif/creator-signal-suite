@@ -58,9 +58,13 @@ export function DataGate({ connected, empty, loading, label, className, children
   return <>{children}</>;
 }
 
+// The `datagate-panel` hook lets the Aspen pages repaint this placeholder for a
+// cream surface without every call site passing a variant — see the
+// `.aspen-scope .datagate-panel` block in src/styles.css. The dark utilities
+// below stay the default for /admin and the not-yet-redesigned screens.
 function panelClass(extra?: string) {
   return [
-    "flex flex-col items-center justify-center rounded-xl border border-white/[0.07] bg-[#0C1222] px-6 py-10 text-center",
+    "datagate-panel flex flex-col items-center justify-center rounded-xl border border-white/[0.07] bg-[#0C1222] px-6 py-10 text-center",
     extra ?? "",
   ].join(" ");
 }

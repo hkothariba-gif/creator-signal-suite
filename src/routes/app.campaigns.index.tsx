@@ -1,13 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AppShell, Card } from "@/components/app/AppShell";
-import { Plus, X } from "lucide-react";
 import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
 import { DataGate } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
+
+/* CAMPAIGNS — the `v.isCampaigns` block of src/aspen/AspenApp.tsx, on the live
+   hooks the dark version used. Shell, header and title come from the /app
+   layout route.
+
+   The row actions the design does not draw (Activate / Complete / Intel) are
+   kept — they are the only way to move a campaign's status — and restyled as
+   Aspen buttons rather than dropped. CampaignDrawer is exported from here as
+   before, because app.ads imports it. */
 
 export const Route = createFileRoute("/app/campaigns/")({
   component: CampaignsPage,
@@ -16,21 +23,30 @@ export const Route = createFileRoute("/app/campaigns/")({
 type Campaign = Tables<"campaigns">;
 type Platform = "YouTube" | "Reddit" | "X" | "LinkedIn" | "All";
 
-const TABS: { key: "active" | "draft" | "completed" | "all"; label: string }[] = [
+const TABS: { key: "all" | "active" | "draft" | "completed"; label: string }[] = [
+  { key: "all", label: "All" },
   { key: "active", label: "Active" },
   { key: "draft", label: "Draft" },
   { key: "completed", label: "Completed" },
-  { key: "all", label: "All" },
 ];
 
+// The design's platform chips, keyed to the same brand colours it used.
 const platColor = (p: string) =>
-  p === "YouTube" ? "#FF0000" : p === "Reddit" ? "#FF4500" : p === "X" ? "#1A1A1A" : p === "LinkedIn" ? "#0A66C2" : "#7C3AED";
+  p === "YouTube" ? "#F03" : p === "Reddit" ? "#FF4500" : p === "X" ? "#17141E" : p === "LinkedIn" ? "#0A66C2" : "#8A8494";
+
+const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
+  active: { bg: "#DDF3E6", fg: "#0E7A3D", label: "Active" },
+  draft: { bg: "#F5F1E9", fg: "#8A8494", label: "Draft" },
+  completed: { bg: "#E7EDFB", fg: "#3159A8", label: "Completed" },
+};
 
 function CampaignsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { new: openNew } = useSearch({ from: "/app/campaigns" });
   // Default to "all": new campaigns start as drafts, and landing on an empty
   // Active tab made people think creation had failed.
-  const [tab, setTab] = useState<"active" | "draft" | "completed" | "all">("all");
+  const [tab, setTab] = useState<"all" | "active" | "draft" | "completed">("all");
   const [drawer, setDrawer] = useState(false);
   const [intel, setIntel] = useState<{ id: string; name: string } | null>(null);
   const [rows, setRows] = useState<Campaign[]>([]);
@@ -54,6 +70,15 @@ function CampaignsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  // The shell's "+ New campaign" button links here with ?new=1. Consume the
+  // param so a refresh or a back-navigation does not reopen the drawer.
+  useEffect(() => {
+    if (openNew) {
+      setDrawer(true);
+      navigate({ to: "/app/campaigns", search: { new: undefined }, replace: true });
+    }
+  }, [openNew, navigate]);
+
   const setStatus = async (c: Campaign, status: "active" | "draft" | "completed") => {
     const { error } = await supabase.from("campaigns").update({ status }).eq("id", c.id);
     if (error) {
@@ -65,30 +90,25 @@ function CampaignsPage() {
   };
 
   const counts = {
+    all: rows.length,
     active: rows.filter((c) => c.status === "active").length,
     draft: rows.filter((c) => c.status === "draft").length,
     completed: rows.filter((c) => c.status === "completed").length,
-    all: rows.length,
   };
   const visible = tab === "all" ? rows : rows.filter((c) => c.status === tab);
 
   return (
-    <AppShell
-      title="Campaigns"
-      right={
-        <button onClick={() => setDrawer(true)} className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00c472]">
-          <Plus className="w-4 h-4" /> New Campaign
-        </button>
-      }
-    >
-      <div className="flex gap-6 border-b border-white/[0.07] mb-6">
+    <div className="aspen-scope">
+      <div className="flex gap-[26px] border-b-[1.5px] border-border mb-[22px]">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === t.key ? "border-[#00D97E] text-[#00D97E]" : "border-transparent text-[#8892A4] hover:text-white"
-            }`}
+            className="border-0 bg-transparent cursor-pointer p-[0_0_13px] text-[14.5px] font-bold mb-[-1.5px]"
+            style={{
+              color: tab === t.key ? "#17141E" : "#8A8494",
+              borderBottom: `2.5px solid ${tab === t.key ? "#F2542D" : "transparent"}`,
+            }}
           >
             {t.label} ({counts[t.key]})
           </button>
@@ -96,66 +116,52 @@ function CampaignsPage() {
       </div>
 
       <DataGate connected={true} loading={loading} empty={visible.length === 0}>
-        <div className="space-y-3">
-          {visible.map((c) => (
-            <Card key={c.id} className="px-6 py-5">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                <div className="md:col-span-4">
-                  <div className="font-bold text-[#F0F4FF]">{c.name}</div>
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
+        <div className="flex flex-col gap-[12px]">
+          {visible.map((c) => {
+            const s = STATUS_STYLE[c.status] ?? { bg: "#F5F1E9", fg: "#8A8494", label: c.status };
+            return (
+              <div key={c.id} className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px_24px] flex gap-[24px] items-center flex-wrap">
+                <div className="flex-[1_1_260px] min-w-0">
+                  <div className="font-bold text-[16.5px]">{c.name}</div>
+                  <div className="flex gap-[6px] mt-[9px] flex-wrap">
                     {(c.platforms ?? []).map((p) => (
-                      <span key={p} className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: platColor(p) }}>{p}</span>
+                      <span key={p} className="text-[11px] font-bold text-surface p-[4px_9px] rounded-[7px]" style={{ background: platColor(p) }}>{p}</span>
                     ))}
                   </div>
                 </div>
-                <div className="md:col-span-5 text-xs text-[#8892A4]">
-                  {c.goal ? <div>Goal: {c.goal}</div> : null}
-                  {c.product_description ? <div className="line-clamp-1 mt-1">{c.product_description}</div> : null}
+                <div className="flex-[1_1_260px] min-w-0 text-[13.5px] text-muted leading-[1.5]">
+                  {c.goal ? <div className="font-semibold text-dark">Goal: {c.goal}</div> : null}
+                  {c.product_description ? <div className="line-clamp-1">{c.product_description}</div> : null}
                 </div>
-                <div className="md:col-span-3 flex items-center justify-end gap-3">
-                  <StatusBadge s={c.status} />
-                  {c.status === "draft" && (
-                    <button
-                      onClick={() => setStatus(c, "active")}
-                      className="text-xs font-bold px-2.5 h-7 rounded-lg bg-[#00D97E] text-[#05080F]"
-                    >
-                      Activate
-                    </button>
-                  )}
-                  {c.status === "active" && (
-                    <button
-                      onClick={() => setStatus(c, "completed")}
-                      className="text-xs px-2.5 h-7 rounded-lg border border-white/10 text-[#8892A4] hover:text-white"
-                    >
-                      Complete
-                    </button>
-                  )}
-                  {c.budget ? <span className="text-sm text-[#8892A4]">{c.budget}</span> : null}
-                  <button onClick={() => setIntel({ id: c.id, name: c.name })} className="text-sm text-[#8892A4] hover:text-white">Intel</button>
-                  <Link to="/app/campaigns/$id" params={{ id: c.id }} className="text-sm text-[#00D97E] hover:underline">Open →</Link>
+                <div className="flex items-center gap-[10px] flex-wrap">
+                  <span className="text-[12px] font-bold p-[6px_12px] rounded-[8px]" style={{ background: s.bg, color: s.fg }}>{s.label}</span>
+                  {c.budget ? <span className="text-[14px] font-bold">{c.budget}</span> : null}
+                  {c.status === "draft" ? (
+                    <button onClick={() => setStatus(c, "active")} className="border-0 bg-accent text-cream text-[13px] font-bold p-[9px_14px] rounded-[11px] cursor-pointer ah21">Activate</button>
+                  ) : null}
+                  {c.status === "active" ? (
+                    <button onClick={() => setStatus(c, "completed")} className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26">Complete</button>
+                  ) : null}
+                  <button onClick={() => setIntel({ id: c.id, name: c.name })} className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26">Intel</button>
+                  <Link to="/app/hotlist" search={{ campaign: c.id }} className="border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer ah26">Creators</Link>
+                  <Link to="/app/campaigns/$id" params={{ id: c.id }} search={{ new: undefined }} className="border-0 bg-dark text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer ah27">Open →</Link>
                 </div>
               </div>
-            </Card>
-          ))}
+            );
+          })}
         </div>
       </DataGate>
 
       {drawer && <CampaignDrawer onClose={() => setDrawer(false)} onCreated={refresh} />}
       {intel && <CampaignIntelligence campaignId={intel.id} campaignName={intel.name} onClose={() => setIntel(null)} />}
-    </AppShell>
+    </div>
   );
 }
 
-function StatusBadge({ s }: { s: string }) {
-  const map: Record<string, { bg: string; color: string; label: string }> = {
-    active: { bg: "rgba(0,217,126,0.15)", color: "#00D97E", label: "Active" },
-    draft: { bg: "rgba(255,255,255,0.08)", color: "#8892A4", label: "Draft" },
-    completed: { bg: "rgba(59,130,246,0.15)", color: "#60A5FA", label: "Completed" },
-  };
-  const v = map[s] ?? { bg: "rgba(255,255,255,0.08)", color: "#8892A4", label: s };
-  return <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: v.bg, color: v.color }}>{v.label}</span>;
-}
-
+/* Create-campaign drawer. Same side effects as before — insert, then call the
+   generate-search-criteria edge function and store the result on the row — with
+   the dark form repainted in the Aspen palette so it does not flash a navy
+   modal over a cream page. app.ads imports this. */
 export function CampaignDrawer({
   onClose,
   onCreated,
@@ -225,10 +231,7 @@ export function CampaignDrawer({
       });
       if (res.ok) {
         const criteria = await res.json();
-        await supabase
-          .from("campaigns")
-          .update({ search_criteria: criteria })
-          .eq("id", inserted.id);
+        await supabase.from("campaigns").update({ search_criteria: criteria }).eq("id", inserted.id);
       }
     } catch (e) {
       console.error("generate-search-criteria failed", e);
@@ -239,61 +242,61 @@ export function CampaignDrawer({
     onClose();
   };
 
+  const field = "w-full box-border h-[46px] p-[0_14px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg max-h-[90vh] bg-[#0C1222] border border-white/10 rounded-2xl shadow-2xl overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.07]">
-          <h3 className="font-bold text-lg">New Campaign</h3>
-          <button onClick={onClose} className="text-[#8892A4] hover:text-white"><X className="w-5 h-5" /></button>
+    <div className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]">
+      <div className="absolute inset-0 bg-[rgba(23,20,30,0.55)]" onClick={onClose} />
+      <div className="relative w-full max-w-[520px] max-h-[90vh] bg-surface border-[1.5px] border-border rounded-[22px] overflow-y-auto">
+        <div className="flex items-center justify-between p-[22px_24px] border-b-[1.5px] border-border-soft">
+          <h3 className="font-heading font-bold text-[19px] m-0">New campaign</h3>
+          <button onClick={onClose} className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20" aria-label="Close">✕</button>
         </div>
-        <div className="p-6 space-y-5">
-          <Field label="Campaign Name">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube Push" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+        <div className="p-[24px] flex flex-col gap-[16px]">
+          <Field label="CAMPAIGN NAME">
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube push" className={field} />
           </Field>
-          <Field label="Product / Brand Being Promoted">
-            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
+          <Field label="PRODUCT / BRAND BEING PROMOTED">
+            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className={field} />
           </Field>
-          <Field label="Target Platform">
-            <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
-              <option>YouTube</option>
-              <option>Reddit</option>
-              <option>X</option>
-              <option>LinkedIn</option>
-              <option>All</option>
-            </select>
-          </Field>
-          <Field label="Campaign Goal">
-            <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white">
-              <option>Brand Awareness</option>
-              <option>Affiliate Sales</option>
-              <option>Product Review</option>
-              <option>Thought Leadership</option>
-            </select>
-          </Field>
-          <Field label="Budget">
-            <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4]" />
-          </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Start Date">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
+            <Field label="TARGET PLATFORM">
+              <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className={field}>
+                <option>YouTube</option>
+                <option>Reddit</option>
+                <option>X</option>
+                <option>LinkedIn</option>
+                <option>All</option>
+              </select>
             </Field>
-            <Field label="End Date">
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white" />
+            <Field label="CAMPAIGN GOAL">
+              <select value={goal} onChange={(e) => setGoal(e.target.value)} className={field}>
+                <option>Brand Awareness</option>
+                <option>Affiliate Sales</option>
+                <option>Product Review</option>
+                <option>Thought Leadership</option>
+              </select>
             </Field>
           </div>
-          <Field label="Campaign Brief / Notes">
-            <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="Describe what creators should know about the product..." className="w-full p-3 rounded-lg bg-[#131D2E] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white placeholder:text-[#8892A4] resize-none" />
+          <Field label="BUDGET">
+            <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className={field} />
+          </Field>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
+            <Field label="START DATE">
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={field} />
+            </Field>
+            <Field label="END DATE">
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={field} />
+            </Field>
+          </div>
+          <Field label="CAMPAIGN BRIEF / NOTES">
+            <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="Describe what creators should know about the product…" className="w-full box-border p-[13px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14px] leading-[1.55] outline-none resize-y" />
           </Field>
         </div>
-        <div className="p-6 border-t border-white/[0.07] flex gap-3">
-          <button onClick={onClose} disabled={saving} className="flex-1 h-11 rounded-lg border border-white/15 hover:bg-white/5 text-sm font-semibold">Cancel</button>
-          <button
-            onClick={create}
-            disabled={saving}
-            className="w-full py-3 rounded-lg bg-[#00D97E] text-[#05080F] font-semibold hover:bg-[#00c472] disabled:opacity-50"
-          >
-            {saving ? "Creating…" : "Create Campaign →"}
+        <div className="p-[20px_24px] border-t-[1.5px] border-border-soft flex gap-[10px]">
+          <button onClick={onClose} disabled={saving} className="flex-1 border-[1.5px] border-border bg-transparent text-[14px] font-bold p-[12px_0] rounded-[12px] cursor-pointer ah26 disabled:opacity-60">Cancel</button>
+          <button onClick={create} disabled={saving} className="flex-[2] border-0 bg-accent text-cream text-[14px] font-bold p-[13px_0] rounded-[12px] cursor-pointer ah21 disabled:opacity-60">
+            {saving ? "Creating…" : "Create campaign →"}
           </button>
         </div>
       </div>
@@ -304,7 +307,7 @@ export function CampaignDrawer({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-[#8892A4] mb-1.5">{label}</label>
+      <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">{label}</div>
       {children}
     </div>
   );

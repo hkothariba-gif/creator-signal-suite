@@ -8,11 +8,11 @@ import './aspen.css';
    Dynamic (data-driven) values stay in style={{}} — they cannot be classes.
    Pseudo-states are .ahN rules in aspen.css.
 
-   NOT YET ROUTED. Nothing renders this component; splitting it into the
-   app.*.tsx routes is a separate pass. The types below were tightened only
-   enough to satisfy `tsc --noEmit` — no behaviour or structure was changed.
-   Note it renders no `.aspen-scope` wrapper yet; add one when it is routed,
-   or the Aspen token overrides in styles.css will not reach it. */
+   SPLIT AND SUPERSEDED. Nothing renders this component any more. The shell
+   (sidebar + header) is now src/routes/app.tsx and each `state.screen` block
+   is its own app.*.tsx route, each with its own `.aspen-scope` wrapper.
+   Kept only as the reference copy of the design export while the split is
+   being reviewed — delete it once the routed screens look right. */
 
 export default class AspenApp extends React.Component<any, any> {
   state: any = {

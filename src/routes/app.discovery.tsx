@@ -1,17 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { SearchSchemaInput } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { createServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { AppShell, Card } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
-import { CampaignPicker } from "@/components/app/CampaignPicker";
-import { Telescope, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { campaignText, contentRelevance, alignmentKeyword } from "@/lib/scoring";
+import { useAspenCampaign } from "@/routes/app";
+
+/* CREATOR DISCOVERY — the `v.isDiscovery` block of src/aspen/AspenApp.tsx, on
+   the live hooks the dark version used. Shell, header and title come from the
+   /app layout route.
+
+   The campaign this scores against comes from the sidebar switcher now (see
+   the CAMPAIGN block in app.tsx) instead of the old header CampaignPicker; the
+   `campaign` search param still overrides it so existing links keep working.
+
+   Profile links point at hotlist row UUIDs, never a slug: a discovery result is
+   not a saved row, so "Profile →" only appears once the creator is in the
+   hotlist and we know its id. */
 
 export const Route = createFileRoute("/app/discovery")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: { campaign?: string } & SearchSchemaInput) => ({
     campaign: typeof search.campaign === "string" ? search.campaign : undefined,
   }),
   component: DiscoveryPage,
@@ -53,15 +64,18 @@ const searchYouTubeChannels = createServerFn({ method: "GET" })
 function DiscoveryPage() {
   const { user } = useAuth();
   const { campaign: campaignParam } = Route.useSearch();
+  const { selected } = useAspenCampaign();
   const status = useConnectorStatus();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CreatorResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [campaignId, setCampaignId] = useState<string | undefined>(campaignParam);
   const [campText, setCampText] = useState<string>("");
-  const [detail, setDetail] = useState<CreatorResult | null>(null);
+  const [campName, setCampName] = useState<string>("");
+  // external_id → hotlist row id, so a result can link to its real profile.
+  const [saved, setSaved] = useState<Record<string, string>>({});
 
+  const campaignId = campaignParam ?? selected?.id;
   const ytReady = status.data ? status.data.platform.youtube : undefined;
 
   // Load the selected campaign (or most recent) to prefill the query and to
@@ -81,6 +95,7 @@ function DiscoveryPage() {
       if (cancelled) return;
       const camp = data?.[0];
       setCampText(camp ? campaignText(camp) : "");
+      setCampName(camp?.name ?? "");
       const sc = (camp?.search_criteria ?? null) as { primaryQuery?: string; searchQueries?: string[] } | null;
       const pre = sc?.primaryQuery || sc?.searchQueries?.[0];
       if (pre) setQuery((cur) => cur || pre);
@@ -89,6 +104,26 @@ function DiscoveryPage() {
       cancelled = true;
     };
   }, [user?.id, campaignId]);
+
+  // Which of these creators are already saved, and under what row id.
+  useEffect(() => {
+    if (!user || results.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("hotlist")
+        .select("id,external_id")
+        .eq("user_id", user.id)
+        .in("external_id", results.map((r) => r.id));
+      if (cancelled) return;
+      const next: Record<string, string> = {};
+      for (const row of data ?? []) if (row.external_id) next[row.external_id] = row.id;
+      setSaved((cur) => ({ ...cur, ...next }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, results]);
 
   const handleSearch = async () => {
     if (!ytReady || !query.trim()) return;
@@ -129,53 +164,57 @@ function DiscoveryPage() {
       .eq("external_id", c.id)
       .maybeSingle();
     if (existing) {
+      setSaved((cur) => ({ ...cur, [c.id]: existing.id }));
       toast.info(`${c.name} is already in your hotlist`);
       return;
     }
-    const { error } = await supabase.from("hotlist").insert({
-      user_id: user.id,
-      creator_name: c.name,
-      avatar_url: c.thumbnail ?? null,
-      external_id: c.id,
-      source: "youtube_api",
-      platform: c.platform,
-      stage: "saved",
-      campaign_id: campaignId ?? null,
-      profile_data: { description: c.description, thumbnail: c.thumbnail },
-    });
-    if (error) {
-      toast.error(error.message);
+    const { data: inserted, error } = await supabase
+      .from("hotlist")
+      .insert({
+        user_id: user.id,
+        creator_name: c.name,
+        avatar_url: c.thumbnail ?? null,
+        external_id: c.id,
+        source: "youtube_api",
+        platform: c.platform,
+        stage: "saved",
+        campaign_id: campaignId ?? null,
+        profile_data: { description: c.description, thumbnail: c.thumbnail },
+      })
+      .select("id")
+      .single();
+    if (error || !inserted) {
+      toast.error(error?.message ?? "Failed to add to hotlist");
       return;
     }
-    toast.success(
-      campaignId ? `${c.name} added to this campaign's hotlist` : `${c.name} added to hotlist`,
-    );
+    setSaved((cur) => ({ ...cur, [c.id]: inserted.id }));
+    toast.success(campaignId ? `${c.name} added to this campaign's hotlist` : `${c.name} added to hotlist`);
   };
 
-  const slugify = (n: string) => n.toLowerCase().replace(/\s+/g, "-");
-
   return (
-    <AppShell title="Creator Discovery" right={<CampaignPicker value={campaignId} onChange={setCampaignId} />}>
-      {!campaignId && (
-        <p className="text-xs text-[#8892A4] mb-3">
-          Pick a campaign above to attach creators to it and see fit estimates. Without one, creators are added to your general list.
-        </p>
-      )}
-      <div className="flex gap-2 mb-6">
+    <div className="aspen-scope">
+      <div className="flex gap-[10px] mb-[12px] flex-wrap">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           placeholder="Search creators by name, niche, or keyword"
-          className="flex-1 h-[52px] px-5 rounded-lg bg-[#0C1222] border border-white/10 focus:outline-none focus:border-[#00D97E] text-white"
+          className="flex-1 min-w-[260px] h-[52px] p-[0_18px] rounded-[14px] border-[1.5px] border-border bg-surface text-[15.5px] outline-none"
         />
         <button
           onClick={handleSearch}
           disabled={!ytReady || !query.trim() || loading}
-          className="px-6 h-[52px] rounded-lg bg-[#00D97E] text-[#05080F] font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+          className="border-0 bg-accent text-cream text-[15px] font-bold p-[0_26px] rounded-[14px] cursor-pointer ah28 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Search
+          {loading ? "Searching…" : "Search"}
         </button>
+      </div>
+      <div className="text-[13.5px] text-subtle mb-[22px]">
+        {campName ? (
+          <>Scored against <strong className="text-muted">{campName}</strong> — product, audience and brief all feed the fit estimate.</>
+        ) : (
+          <>No campaign selected — creators are added to your general list and no fit estimate is shown.</>
+        )}
       </div>
 
       <DataGate
@@ -185,155 +224,71 @@ function DiscoveryPage() {
         label="Creator search runs through the YouTube connection"
       >
         {results.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[16px]">
             {results.map((c) => {
               const fit = quickFit(c);
+              const hotlistId = saved[c.id];
               return (
-                <Card
-                  key={c.id}
-                  className="p-5 flex flex-col cursor-pointer hover:border-[#00D97E]/40 transition-colors"
-                  onClick={() => setDetail(c)}
-                >
-                  <div className="flex items-center gap-3">
+                <div key={c.id} className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px] flex flex-col ah29">
+                  <div className="flex gap-[12px] items-center">
                     {c.thumbnail ? (
-                      <img src={c.thumbnail} alt={c.name} className="w-12 h-12 rounded-full bg-white/5" />
+                      <img src={c.thumbnail} alt="" className="w-[44px] h-[44px] rounded-[13px] shrink-0 object-cover" />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-sm font-bold text-[#8892A4]">
-                        {c.name.slice(0, 2).toUpperCase()}
-                      </div>
+                      <div className="w-[44px] h-[44px] rounded-[13px] bg-youtube text-surface grid place-items-center font-extrabold text-[14px] shrink-0">▶</div>
                     )}
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-white truncate">{c.name}</h3>
-                      <div className="mt-1 flex items-center gap-1.5">
-                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF0000]/15 text-[#FF6B6B]">
-                          YouTube
-                        </span>
-                        {fit != null && (
+                    <div className="min-w-0">
+                      <div className="font-bold text-[15.5px] truncate">{c.name}</div>
+                      <div className="flex gap-[6px] mt-[5px]">
+                        <span className="text-[11px] font-bold p-[3px_8px] rounded-[7px] bg-sand text-muted">{c.platform}</span>
+                        {fit != null ? (
                           <span
-                            className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold"
-                            style={{ background: "rgba(0,217,126,0.15)", color: "#00D97E" }}
+                            className="text-[11px] font-bold p-[3px_8px] rounded-[7px] bg-tint text-accent-ink"
                             title="Fast keyword fit estimate. Add to the campaign for the full score."
                           >
                             ~{fit}% fit
                           </span>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   </div>
-                  <p className="mt-3 text-sm text-[#8892A4] line-clamp-3 flex-1">
+                  <p className="text-[13.5px] text-muted leading-[1.5] m-[14px_0_18px] flex-1 line-clamp-3">
                     {c.description || "No description available."}
                   </p>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToHotlist(c);
-                      }}
-                      className="flex-1 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-xs font-bold hover:bg-[#00D97E]/90"
-                    >
-                      Add to Hotlist
-                    </button>
-                    <Link
-                      to="/app/creators/$id"
-                      params={{ id: c.id || slugify(c.name) }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex-1 h-9 inline-flex items-center justify-center rounded-lg border border-white/10 text-xs font-bold text-white hover:bg-white/5"
-                    >
-                      View Profile →
-                    </Link>
+                  <div className="flex gap-[8px]">
+                    {hotlistId ? (
+                      <>
+                        <span className="flex-1 text-center border-[1.5px] border-accent text-accent text-[13.5px] font-bold p-[10px_0] rounded-[11px]">★ In hotlist</span>
+                        <Link
+                          to="/app/creators/$id"
+                          params={{ id: hotlistId }}
+                          className="flex-1 text-center border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[10px_0] rounded-[11px] cursor-pointer ah31"
+                        >
+                          Profile →
+                        </Link>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => addToHotlist(c)}
+                        className="flex-1 border-0 bg-accent text-cream text-[13.5px] font-bold p-[11px_0] rounded-[11px] cursor-pointer ah30"
+                      >
+                        Add to hotlist
+                      </button>
+                    )}
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>
         ) : (
-          <div className="flex flex-col items-center text-center py-12">
-            <Telescope className="w-28 h-28 text-[#00D97E]" strokeWidth={1.2} />
-            <h2 className="mt-6 text-[22px] font-bold">No creators loaded yet</h2>
-            <p className="mt-2 max-w-[480px] text-[15px] text-[#8892A4]">
-              Enter a keyword above to search YouTube channels.
+          <div className="bg-surface border-[1.5px] border-border rounded-[24px] p-[44px_32px] text-center max-w-[520px] mx-auto">
+            <img src="/aspen/empty-discovery.webp" alt="A clay telescope on a plinth" className="w-[190px] block mx-auto" loading="lazy" />
+            <div className="font-heading font-extrabold text-[22px] tracking-[-0.02em] mt-[6px]">Nothing to look at yet</div>
+            <p className="text-[14.5px] text-muted leading-[1.6] m-[10px_auto_0] max-w-[340px]">
+              Describe who you want to reach and Aspen searches YouTube, Reddit, X and LinkedIn at once.
             </p>
           </div>
         )}
       </DataGate>
-
-      {/* Creator detail modal. Discovery results are not saved rows yet, so
-          the detail view shows what the search returned; metrics stay in the
-          dev phase placeholder pattern until the creator is saved and scored. */}
-      {detail && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setDetail(null)}
-        >
-          <div
-            className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0C1222] p-6 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-end -mt-2 -mr-2">
-              <button
-                onClick={() => setDetail(null)}
-                className="p-1.5 rounded-lg text-[#8892A4] hover:text-white hover:bg-white/5"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex items-center gap-4">
-              {detail.thumbnail ? (
-                <img src={detail.thumbnail} alt={detail.name} className="w-16 h-16 rounded-full bg-white/5 border border-white/10" />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-lg font-bold text-[#8892A4]">
-                  {detail.name.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-              <div className="min-w-0">
-                <h2 className="text-xl font-bold text-white truncate">{detail.name}</h2>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF0000]/15 text-[#FF6B6B]">
-                    {detail.platform}
-                  </span>
-                  {quickFit(detail) != null && (
-                    <span
-                      className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold"
-                      style={{ background: "rgba(0,217,126,0.15)", color: "#00D97E" }}
-                    >
-                      ~{quickFit(detail)}% fit
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-sm font-bold text-[#F0F4FF] mb-1">About</h3>
-              <p className="text-sm text-[#8892A4] leading-relaxed">
-                {detail.description || "No description available."}
-              </p>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-sm font-bold text-[#F0F4FF] mb-1">Platform Metrics</h3>
-              <p className="text-sm text-[#8892A4]">
-                Metrics load once this creator is saved to your hotlist and scored.
-              </p>
-            </div>
-            <div className="mt-6 flex gap-2">
-              <button
-                onClick={() => {
-                  addToHotlist(detail);
-                }}
-                className="flex-1 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:bg-[#00D97E]/90"
-              >
-                Add to Hotlist
-              </button>
-              <Link
-                to="/app/creators/$id"
-                params={{ id: detail.id || slugify(detail.name) }}
-                className="flex-1 h-10 inline-flex items-center justify-center rounded-lg border border-white/10 text-sm font-bold text-white hover:bg-white/5"
-              >
-                View Profile →
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </AppShell>
+    </div>
   );
 }

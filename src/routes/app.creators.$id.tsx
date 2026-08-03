@@ -1,14 +1,21 @@
-// Creator Profile Page
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AppShell, Card } from "@/components/app/AppShell";
-import { ArrowLeft, Mail, Star, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { OutreachComposer } from "@/components/app/OutreachComposer";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
+
+/* CREATOR PROFILE — the `v.isCreator` block of src/aspen/AspenApp.tsx, on the
+   live hooks the dark version used. Shell, header and title come from the /app
+   layout route.
+
+   `$id` is the hotlist row's UUID and nothing else. The dark version also
+   accepted an external_id or a name slug, which meant two creators with the
+   same name resolved to whichever row came back first, and a slug link could
+   resolve to no row at all. Discovery and the Hotlist board both link with the
+   row id now, so the lookup is a single primary-key read. */
 
 export const Route = createFileRoute("/app/creators/$id")({
   component: CreatorProfilePage,
@@ -21,12 +28,16 @@ const STAGES: { key: string; label: string }[] = [
   { key: "contacted", label: "Contacted" },
   { key: "negotiating", label: "Negotiating" },
   { key: "contracted", label: "Contracted" },
-  { key: "live", label: "Live / Posted" },
+  { key: "live", label: "Live / posted" },
 ];
 
-const platColor = (p: string | null | undefined) => {
+const platMark = (p: string | null | undefined) => {
   const v = (p ?? "").toLowerCase();
-  return v === "youtube" ? "#FF0000" : v === "reddit" ? "#FF4500" : v === "x" ? "#1A1A1A" : v === "linkedin" ? "#0A66C2" : "#7C3AED";
+  if (v === "youtube") return { glyph: "▶", color: "#F03" };
+  if (v === "reddit") return { glyph: "r/", color: "#FF4500" };
+  if (v === "linkedin") return { glyph: "in", color: "#0A66C2" };
+  if (v === "x") return { glyph: "X", color: "#17141E" };
+  return { glyph: "·", color: "#8A8494" };
 };
 
 function CreatorProfilePage() {
@@ -42,26 +53,14 @@ function CreatorProfilePage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      // Try external_id first, then creator_name slug match
-      const { data: byExt } = await supabase
+      const { data } = await supabase
         .from("hotlist")
         .select("*")
         .eq("user_id", user.id)
-        .eq("external_id", id)
+        .eq("id", id)
         .maybeSingle();
-      let found = byExt;
-      if (!found) {
-        const { data: all } = await supabase
-          .from("hotlist")
-          .select("*")
-          .eq("user_id", user.id);
-        found =
-          all?.find(
-            (r) => r.creator_name.toLowerCase().replace(/\s+/g, "-") === id.toLowerCase(),
-          ) ?? null;
-      }
       if (!cancelled) {
-        setRow(found ?? null);
+        setRow(data ?? null);
         setLoading(false);
       }
     })();
@@ -69,11 +68,6 @@ function CreatorProfilePage() {
       cancelled = true;
     };
   }, [user?.id, id]);
-
-  const addHotlist = async () => {
-    if (!user || !row) return;
-    toast.success("Already in your hotlist!");
-  };
 
   const moveTo = async (stage: string) => {
     if (!row) return;
@@ -88,31 +82,29 @@ function CreatorProfilePage() {
     }
   };
 
+  const back = (
+    <Link to="/app/discovery" search={{ campaign: undefined }} className="self-start border-0 bg-transparent text-[13.5px] font-bold text-subtle cursor-pointer p-0 ah32">
+      ← Back to discovery
+    </Link>
+  );
+
   if (loading) {
     return (
-      <AppShell title="">
-        <div className="text-sm text-[#8892A4] py-12 text-center">Loading…</div>
-      </AppShell>
+      <div className="aspen-scope flex flex-col gap-[16px] max-w-[920px]">
+        {back}
+        <div className="text-[14px] text-subtle p-[48px_0] text-center">Loading…</div>
+      </div>
     );
   }
 
   if (!row) {
     return (
-      <AppShell
-        title=""
-        right={
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-white/10 hover:bg-white/5 text-sm text-[#8892A4] hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-        }
-      >
+      <div className="aspen-scope flex flex-col gap-[16px] max-w-[920px]">
+        {back}
         <DataGate connected={true} empty>
           <></>
         </DataGate>
-      </AppShell>
+      </div>
     );
   }
 
@@ -129,142 +121,94 @@ function CreatorProfilePage() {
           : false
     : undefined;
   const profile = (row.profile_data ?? {}) as { description?: string; thumbnail?: string };
+  const mark = platMark(platform);
+  const stage = (row.stage ?? "saved").toLowerCase();
 
   return (
-    <AppShell
-      title=""
-      right={
-        <button
-          onClick={() => window.history.back()}
-          className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-white/10 hover:bg-white/5 text-sm text-[#8892A4] hover:text-white"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-      }
-    >
-      <Card className="p-6 mb-6">
-        <div className="flex items-start gap-5 flex-wrap">
-          {row.avatar_url ? (
-            <img
-              src={row.avatar_url}
-              alt={row.creator_name}
-              width={80}
-              height={80}
-              className="w-20 h-20 rounded-full bg-white/5 border border-white/10 shrink-0"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 shrink-0 flex items-center justify-center text-xl font-bold text-[#8892A4]">
-              {row.creator_name.slice(0, 2).toUpperCase()}
-            </div>
-          )}
-          <div className="flex-1 min-w-[240px]">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-3xl font-bold text-[#F0F4FF]">{row.creator_name}</h1>
-              {platform && (
-                <span
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                  style={{ background: platColor(platform) }}
-                >
-                  {platform}
-                </span>
-              )}
-              {row.stage && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#8892A4]">
-                  {row.stage}
-                </span>
-              )}
-            </div>
-            {row.cpm || typeof row.score === "number" ? (
-              <div className="text-sm text-[#8892A4] mt-1.5">
-                {typeof row.score === "number" && (
-                  <>
-                    <span className="font-semibold text-[#F0F4FF]">{row.score}%</span> fit
-                  </>
-                )}
-                {row.cpm && (
-                  <>
-                    {typeof row.score === "number" ? " · " : ""}
-                    <span className="font-semibold text-[#F0F4FF]">{row.cpm}</span> CPM
-                  </>
-                )}
-              </div>
-            ) : null}
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setComposing(true)}
-              className="inline-flex items-center gap-1.5 px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold hover:brightness-110"
-            >
-              <Mail className="w-4 h-4" /> Contact Creator
-            </button>
-            <button
-              onClick={addHotlist}
-              className="inline-flex items-center gap-1.5 px-4 h-10 rounded-lg border border-[#00D97E] text-[#00D97E] text-sm font-bold hover:bg-[#00D97E]/10"
-            >
-              <Star className="w-4 h-4" /> In Hotlist
-            </button>
-          </div>
-        </div>
-      </Card>
+    <div className="aspen-scope flex flex-col gap-[16px] max-w-[920px]">
+      {back}
 
-      <Card className="p-6 mb-6">
-        <h3 className="text-lg font-bold text-[#F0F4FF] mb-3">Stage</h3>
-        <div className="flex gap-2 flex-wrap">
+      <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[26px] flex gap-[22px] items-start flex-wrap">
+        {row.avatar_url ? (
+          <img src={row.avatar_url} alt="" className="w-[76px] h-[76px] rounded-[22px] shrink-0 object-cover" />
+        ) : (
+          <div className="w-[76px] h-[76px] rounded-[22px] text-surface grid place-items-center font-extrabold text-[22px] shrink-0" style={{ background: mark.color }}>{mark.glyph}</div>
+        )}
+        <div className="flex-1 min-w-[220px]">
+          <div className="flex items-center gap-[10px] flex-wrap">
+            <h2 className="font-heading font-extrabold text-[30px] tracking-[-0.025em] m-0">{row.creator_name}</h2>
+            {platform ? (
+              <span className="text-[11px] font-bold text-surface p-[4px_9px] rounded-[7px]" style={{ background: mark.color }}>{platform}</span>
+            ) : null}
+            <span className="text-[11px] font-bold bg-sand text-muted p-[4px_9px] rounded-[7px]">
+              {STAGES.find((s) => s.key === stage)?.label ?? stage}
+            </span>
+          </div>
+          {typeof row.score === "number" || row.cpm ? (
+            <div className="text-[14.5px] text-muted mt-[8px]">
+              {typeof row.score === "number" ? (<><strong className="text-dark">{row.score}%</strong> brand fit</>) : null}
+              {row.cpm ? (<>{typeof row.score === "number" ? " · " : ""}<strong className="text-dark">{row.cpm}</strong> CPM</>) : null}
+            </div>
+          ) : (
+            <div className="text-[14.5px] text-muted mt-[8px]">Not scored yet — run “Score creators” on the hotlist.</div>
+          )}
+        </div>
+        <div className="flex gap-[10px]">
+          <button onClick={() => setComposing(true)} className="border-0 bg-accent text-cream text-[14px] font-bold p-[12px_18px] rounded-[12px] cursor-pointer ah33">Contact creator</button>
+          <span className="border-[1.5px] border-accent text-accent text-[14px] font-bold p-[11px_16px] rounded-[12px]">★ In hotlist</span>
+        </div>
+      </div>
+
+      <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
+        <h3 className="font-heading font-bold text-[17px] m-[0_0_14px]">Stage</h3>
+        <div className="flex gap-[8px] flex-wrap">
           {STAGES.map((s) => {
-            const active = (row.stage ?? "saved").toLowerCase() === s.key;
+            const on = stage === s.key;
             return (
               <button
                 key={s.key}
-                onClick={() => !active && moveTo(s.key)}
-                className={
-                  active
-                    ? "px-3 h-8 rounded-full text-xs font-bold bg-[#00D97E] text-[#05080F]"
-                    : "px-3 h-8 rounded-full text-xs font-bold border border-white/10 text-[#8892A4] hover:text-white hover:border-[#00D97E]/50"
-                }
+                onClick={() => !on && moveTo(s.key)}
+                className="text-[13px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer"
+                style={{
+                  border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}`,
+                  background: on ? "#F2542D" : "transparent",
+                  color: on ? "#FAF7F1" : "#4A4553",
+                }}
               >
                 {s.label}
               </button>
             );
           })}
         </div>
-      </Card>
+      </div>
 
-      <Card className="p-6 mb-6">
-        <h3 className="text-lg font-bold text-[#F0F4FF] mb-2">About</h3>
-        <p className="text-sm text-[#F0F4FF]/80 leading-relaxed">
-          {profile.description || "No description available."}
-        </p>
-      </Card>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[16px]">
+        <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
+          <h3 className="font-heading font-bold text-[17px] m-[0_0_10px]">About</h3>
+          <p className="text-[14.5px] leading-[1.6] text-muted m-0">{profile.description || "No description available."}</p>
+        </div>
+        <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
+          <h3 className="font-heading font-bold text-[17px] m-[0_0_14px]">Platform metrics</h3>
+          <DataGate
+            connected={platformConnected}
+            empty
+            loading={status.isLoading}
+            label={platform ? `Metrics load from the ${platform} connection` : "Metrics load once this platform is connected"}
+          >
+            <></>
+          </DataGate>
+        </div>
+      </div>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-bold text-[#F0F4FF] mb-4">Platform Metrics</h3>
-        <DataGate
-          connected={platformConnected}
-          empty
-          loading={status.isLoading}
-          label={platform ? `Metrics load from the ${platform} connection` : "Metrics load once this platform is connected"}
-        >
-          <></>
-        </DataGate>
-      </Card>
-
-      {/* Outreach composer modal */}
-      {composing && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setComposing(false)}
-        >
+      {composing ? (
+        <div className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]" onClick={() => setComposing(false)}>
+          <div className="absolute inset-0 bg-[rgba(23,20,30,0.55)]" />
           <div
-            className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0C1222] p-6 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-[560px] max-h-[90vh] overflow-y-auto bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-end -mt-2 -mr-2">
-              <button
-                onClick={() => setComposing(false)}
-                className="p-1.5 rounded-lg text-[#8892A4] hover:text-white hover:bg-white/5"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div className="flex justify-end">
+              <button onClick={() => setComposing(false)} className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20" aria-label="Close">✕</button>
             </div>
             <OutreachComposer
               hotlistId={row.id}
@@ -275,7 +219,7 @@ function CreatorProfilePage() {
             />
           </div>
         </div>
-      )}
-    </AppShell>
+      ) : null}
+    </div>
   );
 }

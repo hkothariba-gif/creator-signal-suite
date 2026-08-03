@@ -2,7 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AppShell, Card } from "@/components/app/AppShell";
+import { Card } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,27 +84,27 @@ function CampaignDetailPage() {
 
   if (campaign.isLoading) {
     return (
-      <AppShell title="" right={back}>
+      <Frame back={back}>
         <div className="text-sm text-[#8892A4] py-12 text-center">Loading…</div>
-      </AppShell>
+      </Frame>
     );
   }
 
   const c = campaign.data;
   if (!c) {
     return (
-      <AppShell title="" right={back}>
+      <Frame back={back}>
         <DataGate connected={true} empty>
           <></>
         </DataGate>
-      </AppShell>
+      </Frame>
     );
   }
 
   const ss = statusStyle(c.status);
 
   return (
-    <AppShell title="" right={back}>
+    <Frame back={back}>
       <div className="mb-6 flex items-center gap-4">
         <h1 className="text-3xl font-bold text-[#F0F4FF]">{c.name}</h1>
         <span
@@ -314,7 +314,21 @@ function CampaignDetailPage() {
           </div>
         </DataGate>
       </Card>
-    </AppShell>
+    </Frame>
+  );
+}
+
+/* This screen has no Aspen design — the export only covers the twelve screens
+   in src/aspen/AspenApp.tsx, and campaign detail is not one of them. It kept
+   its real Supabase wiring and its dark markup; AppShell came off so it does
+   not render a second sidebar inside the Aspen /app layout, and the dark panel
+   below keeps the old palette legible on the cream page until it is redesigned. */
+function Frame({ back, children }: { back: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="rounded-[20px] bg-[#05080F] text-[#F0F4FF] p-6">
+      <div className="mb-6 flex justify-end">{back}</div>
+      {children}
+    </div>
   );
 }
 

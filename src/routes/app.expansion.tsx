@@ -38,7 +38,9 @@ function ExpansionPage() {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_3px]">Recommended creators</h3>
-          <div className="text-[13px] text-subtle mb-[16px]">Audiences that look like your top performers.</div>
+          <div className="text-[13px] text-subtle mb-[16px]">
+            Audiences that look like your top performers.
+          </div>
           <DataGate
             connected={trendsReady}
             empty
@@ -50,10 +52,13 @@ function ExpansionPage() {
         </div>
         <div className="bg-dark text-cream rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_3px]">Budget reallocation</h3>
-          <div className="text-[13px] text-on-dark mb-[16px]">Based on the last 30 days of attribution.</div>
+          <div className="text-[13px] text-on-dark mb-[16px]">
+            Based on the last 30 days of attribution.
+          </div>
           {insightReady ? null : (
             <div className="text-[13.5px] text-on-dark leading-[1.55]">
-              Waiting for API connection — suggestions need the model and creator performance connections.
+              Waiting for API connection — suggestions need the model and creator performance
+              connections.
             </div>
           )}
         </div>

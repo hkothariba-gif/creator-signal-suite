@@ -43,6 +43,20 @@ const STAGES: { key: string; label: string }[] = [
 
 const PLATFORM_FILTERS = ["All", "YouTube", "Reddit", "X", "LinkedIn"];
 
+/* `hotlist.profile_data` is an untyped JSON column. Only the two shapes the
+   heat map reads are declared; everything else in there stays opaque. */
+type ProfileData = {
+  score_breakdown?: {
+    overall?: number;
+    alignment?: number | null;
+    channel?: number | null;
+    content?: number | null;
+    comments?: number | null;
+    method?: string;
+  };
+  stats?: { subscribers?: number | null };
+};
+
 // The design's platform glyph + brand colour, keyed off the stored platform.
 const platMark = (p: string | null) => {
   const v = (p ?? "").toLowerCase();
@@ -103,7 +117,7 @@ function HotlistPage() {
     if (!campaignId) return [];
     const out: HeatCreator[] = [];
     for (const r of campaignRows) {
-      const pd = (r.profile_data ?? {}) as Record<string, any>;
+      const pd = (r.profile_data ?? {}) as ProfileData;
       const b = pd.score_breakdown;
       if (!b) continue;
       out.push({
@@ -146,7 +160,11 @@ function HotlistPage() {
     setScoring(true);
     try {
       const res = await scoreCampaignCreators({ data: { campaignId } });
-      toast.success(res.scored > 0 ? `Scored ${res.scored} creators` : "No creators to score in this campaign yet");
+      toast.success(
+        res.scored > 0
+          ? `Scored ${res.scored} creators`
+          : "No creators to score in this campaign yet",
+      );
       await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not score creators");
@@ -196,7 +214,8 @@ function HotlistPage() {
               {filtered.length} creator{filtered.length === 1 ? "" : "s"}, {STAGES.length} stages
             </h3>
             <p className="text-[13.5px] text-on-dark leading-[1.55] m-[10px_0_0]">
-              Drag a card to move it. Every stage change logs against the campaign, so the outreach cascade never double-messages anyone.
+              Drag a card to move it. Every stage change logs against the campaign, so the outreach
+              cascade never double-messages anyone.
             </p>
           </div>
           <div className="flex gap-[7px] flex-wrap mt-[20px]">
@@ -240,7 +259,9 @@ function HotlistPage() {
             >
               <div className="flex items-center gap-[8px] mb-[12px]">
                 <span className="font-bold text-[14px]">{col.label}</span>
-                <span className="text-[11px] font-bold text-subtle bg-surface p-[2px_8px] rounded-[7px]">{byStage[col.key].length}</span>
+                <span className="text-[11px] font-bold text-subtle bg-surface p-[2px_8px] rounded-[7px]">
+                  {byStage[col.key].length}
+                </span>
               </div>
               <div className="flex flex-col gap-[9px]">
                 {byStage[col.key].map((c) => {
@@ -255,22 +276,39 @@ function HotlistPage() {
                     >
                       <div className="flex gap-[10px] items-center">
                         {c.avatar_url ? (
-                          <img src={c.avatar_url} alt="" className="w-[30px] h-[30px] rounded-[9px] shrink-0 object-cover" />
+                          <img
+                            src={c.avatar_url}
+                            alt=""
+                            className="w-[30px] h-[30px] rounded-[9px] shrink-0 object-cover"
+                          />
                         ) : (
-                          <div className="w-[30px] h-[30px] rounded-[9px] text-surface grid place-items-center font-extrabold text-[11px] shrink-0" style={{ background: mark.color }}>{mark.glyph}</div>
+                          <div
+                            className="w-[30px] h-[30px] rounded-[9px] text-surface grid place-items-center font-extrabold text-[11px] shrink-0"
+                            style={{ background: mark.color }}
+                          >
+                            {mark.glyph}
+                          </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <Link to="/app/creators/$id" params={{ id: c.id }} className="text-[13.5px] font-bold leading-[1.3] block truncate">
+                          <Link
+                            to="/app/creators/$id"
+                            params={{ id: c.id }}
+                            className="text-[13.5px] font-bold leading-[1.3] block truncate"
+                          >
                             {c.creator_name}
                           </Link>
                         </div>
                       </div>
                       <div className="flex gap-[6px] mt-[10px] flex-wrap">
                         {typeof c.score === "number" ? (
-                          <span className="text-[10.5px] font-bold bg-tint text-accent-ink p-[3px_7px] rounded-[6px]">{c.score}% fit</span>
+                          <span className="text-[10.5px] font-bold bg-tint text-accent-ink p-[3px_7px] rounded-[6px]">
+                            {c.score}% fit
+                          </span>
                         ) : null}
                         {c.cpm ? (
-                          <span className="text-[10.5px] font-bold bg-sand text-muted p-[3px_7px] rounded-[6px]">{c.cpm}</span>
+                          <span className="text-[10.5px] font-bold bg-sand text-muted p-[3px_7px] rounded-[6px]">
+                            {c.cpm}
+                          </span>
                         ) : null}
                       </div>
                       {/* Keyboard/no-drag fallback, as the dark version had. */}

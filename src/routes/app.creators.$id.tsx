@@ -83,7 +83,11 @@ function CreatorProfilePage() {
   };
 
   const back = (
-    <Link to="/app/discovery" search={{ campaign: undefined }} className="self-start border-0 bg-transparent text-[13.5px] font-bold text-subtle cursor-pointer p-0 ah32">
+    <Link
+      to="/app/discovery"
+      search={{ campaign: undefined }}
+      className="self-start border-0 bg-transparent text-[13.5px] font-bold text-subtle cursor-pointer p-0 ah32"
+    >
       ← Back to discovery
     </Link>
   );
@@ -130,15 +134,31 @@ function CreatorProfilePage() {
 
       <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[26px] flex gap-[22px] items-start flex-wrap">
         {row.avatar_url ? (
-          <img src={row.avatar_url} alt="" className="w-[76px] h-[76px] rounded-[22px] shrink-0 object-cover" />
+          <img
+            src={row.avatar_url}
+            alt=""
+            className="w-[76px] h-[76px] rounded-[22px] shrink-0 object-cover"
+          />
         ) : (
-          <div className="w-[76px] h-[76px] rounded-[22px] text-surface grid place-items-center font-extrabold text-[22px] shrink-0" style={{ background: mark.color }}>{mark.glyph}</div>
+          <div
+            className="w-[76px] h-[76px] rounded-[22px] text-surface grid place-items-center font-extrabold text-[22px] shrink-0"
+            style={{ background: mark.color }}
+          >
+            {mark.glyph}
+          </div>
         )}
         <div className="flex-1 min-w-[220px]">
           <div className="flex items-center gap-[10px] flex-wrap">
-            <h2 className="font-heading font-extrabold text-[30px] tracking-[-0.025em] m-0">{row.creator_name}</h2>
+            <h2 className="font-heading font-extrabold text-[30px] tracking-[-0.025em] m-0">
+              {row.creator_name}
+            </h2>
             {platform ? (
-              <span className="text-[11px] font-bold text-surface p-[4px_9px] rounded-[7px]" style={{ background: mark.color }}>{platform}</span>
+              <span
+                className="text-[11px] font-bold text-surface p-[4px_9px] rounded-[7px]"
+                style={{ background: mark.color }}
+              >
+                {platform}
+              </span>
             ) : null}
             <span className="text-[11px] font-bold bg-sand text-muted p-[4px_9px] rounded-[7px]">
               {STAGES.find((s) => s.key === stage)?.label ?? stage}
@@ -146,16 +166,34 @@ function CreatorProfilePage() {
           </div>
           {typeof row.score === "number" || row.cpm ? (
             <div className="text-[14.5px] text-muted mt-[8px]">
-              {typeof row.score === "number" ? (<><strong className="text-dark">{row.score}%</strong> brand fit</>) : null}
-              {row.cpm ? (<>{typeof row.score === "number" ? " · " : ""}<strong className="text-dark">{row.cpm}</strong> CPM</>) : null}
+              {typeof row.score === "number" ? (
+                <>
+                  <strong className="text-dark">{row.score}%</strong> brand fit
+                </>
+              ) : null}
+              {row.cpm ? (
+                <>
+                  {typeof row.score === "number" ? " · " : ""}
+                  <strong className="text-dark">{row.cpm}</strong> CPM
+                </>
+              ) : null}
             </div>
           ) : (
-            <div className="text-[14.5px] text-muted mt-[8px]">Not scored yet — run “Score creators” on the hotlist.</div>
+            <div className="text-[14.5px] text-muted mt-[8px]">
+              Not scored yet — run “Score creators” on the hotlist.
+            </div>
           )}
         </div>
         <div className="flex gap-[10px]">
-          <button onClick={() => setComposing(true)} className="border-0 bg-accent text-cream text-[14px] font-bold p-[12px_18px] rounded-[12px] cursor-pointer ah33">Contact creator</button>
-          <span className="border-[1.5px] border-accent text-accent text-[14px] font-bold p-[11px_16px] rounded-[12px]">★ In hotlist</span>
+          <button
+            onClick={() => setComposing(true)}
+            className="border-0 bg-accent text-cream text-[14px] font-bold p-[12px_18px] rounded-[12px] cursor-pointer ah33"
+          >
+            Contact creator
+          </button>
+          <span className="border-[1.5px] border-accent text-accent text-[14px] font-bold p-[11px_16px] rounded-[12px]">
+            ★ In hotlist
+          </span>
         </div>
       </div>
 
@@ -185,7 +223,9 @@ function CreatorProfilePage() {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_10px]">About</h3>
-          <p className="text-[14.5px] leading-[1.6] text-muted m-0">{profile.description || "No description available."}</p>
+          <p className="text-[14.5px] leading-[1.6] text-muted m-0">
+            {profile.description || "No description available."}
+          </p>
         </div>
         <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_14px]">Platform metrics</h3>
@@ -193,7 +233,11 @@ function CreatorProfilePage() {
             connected={platformConnected}
             empty
             loading={status.isLoading}
-            label={platform ? `Metrics load from the ${platform} connection` : "Metrics load once this platform is connected"}
+            label={
+              platform
+                ? `Metrics load from the ${platform} connection`
+                : "Metrics load once this platform is connected"
+            }
           >
             <></>
           </DataGate>
@@ -201,14 +245,23 @@ function CreatorProfilePage() {
       </div>
 
       {composing ? (
-        <div className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]" onClick={() => setComposing(false)}>
+        <div
+          className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]"
+          onClick={() => setComposing(false)}
+        >
           <div className="absolute inset-0 bg-[rgba(23,20,30,0.55)]" />
           <div
             className="relative w-full max-w-[560px] max-h-[90vh] overflow-y-auto bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-end">
-              <button onClick={() => setComposing(false)} className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20" aria-label="Close">✕</button>
+              <button
+                onClick={() => setComposing(false)}
+                className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
+                aria-label="Close"
+              >
+                ✕
+              </button>
             </div>
             <OutreachComposer
               hotlistId={row.id}

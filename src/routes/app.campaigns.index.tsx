@@ -32,7 +32,15 @@ const TABS: { key: "all" | "active" | "draft" | "completed"; label: string }[] =
 
 // The design's platform chips, keyed to the same brand colours it used.
 const platColor = (p: string) =>
-  p === "YouTube" ? "#F03" : p === "Reddit" ? "#FF4500" : p === "X" ? "#17141E" : p === "LinkedIn" ? "#0A66C2" : "#8A8494";
+  p === "YouTube"
+    ? "#F03"
+    : p === "Reddit"
+      ? "#FF4500"
+      : p === "X"
+        ? "#17141E"
+        : p === "LinkedIn"
+          ? "#0A66C2"
+          : "#8A8494";
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
   active: { bg: "#DDF3E6", fg: "#0E7A3D", label: "Active" },
@@ -120,31 +128,75 @@ function CampaignsPage() {
           {visible.map((c) => {
             const s = STATUS_STYLE[c.status] ?? { bg: "#F5F1E9", fg: "#8A8494", label: c.status };
             return (
-              <div key={c.id} className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px_24px] flex gap-[24px] items-center flex-wrap">
+              <div
+                key={c.id}
+                className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px_24px] flex gap-[24px] items-center flex-wrap"
+              >
                 <div className="flex-[1_1_260px] min-w-0">
                   <div className="font-bold text-[16.5px]">{c.name}</div>
                   <div className="flex gap-[6px] mt-[9px] flex-wrap">
                     {(c.platforms ?? []).map((p) => (
-                      <span key={p} className="text-[11px] font-bold text-surface p-[4px_9px] rounded-[7px]" style={{ background: platColor(p) }}>{p}</span>
+                      <span
+                        key={p}
+                        className="text-[11px] font-bold text-surface p-[4px_9px] rounded-[7px]"
+                        style={{ background: platColor(p) }}
+                      >
+                        {p}
+                      </span>
                     ))}
                   </div>
                 </div>
                 <div className="flex-[1_1_260px] min-w-0 text-[13.5px] text-muted leading-[1.5]">
                   {c.goal ? <div className="font-semibold text-dark">Goal: {c.goal}</div> : null}
-                  {c.product_description ? <div className="line-clamp-1">{c.product_description}</div> : null}
+                  {c.product_description ? (
+                    <div className="line-clamp-1">{c.product_description}</div>
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-[10px] flex-wrap">
-                  <span className="text-[12px] font-bold p-[6px_12px] rounded-[8px]" style={{ background: s.bg, color: s.fg }}>{s.label}</span>
+                  <span
+                    className="text-[12px] font-bold p-[6px_12px] rounded-[8px]"
+                    style={{ background: s.bg, color: s.fg }}
+                  >
+                    {s.label}
+                  </span>
                   {c.budget ? <span className="text-[14px] font-bold">{c.budget}</span> : null}
                   {c.status === "draft" ? (
-                    <button onClick={() => setStatus(c, "active")} className="border-0 bg-accent text-cream text-[13px] font-bold p-[9px_14px] rounded-[11px] cursor-pointer ah21">Activate</button>
+                    <button
+                      onClick={() => setStatus(c, "active")}
+                      className="border-0 bg-accent text-cream text-[13px] font-bold p-[9px_14px] rounded-[11px] cursor-pointer ah21"
+                    >
+                      Activate
+                    </button>
                   ) : null}
                   {c.status === "active" ? (
-                    <button onClick={() => setStatus(c, "completed")} className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26">Complete</button>
+                    <button
+                      onClick={() => setStatus(c, "completed")}
+                      className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26"
+                    >
+                      Complete
+                    </button>
                   ) : null}
-                  <button onClick={() => setIntel({ id: c.id, name: c.name })} className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26">Intel</button>
-                  <Link to="/app/hotlist" search={{ campaign: c.id }} className="border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer ah26">Creators</Link>
-                  <Link to="/app/campaigns/$id" params={{ id: c.id }} search={{ new: undefined }} className="border-0 bg-dark text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer ah27">Open →</Link>
+                  <button
+                    onClick={() => setIntel({ id: c.id, name: c.name })}
+                    className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26"
+                  >
+                    Intel
+                  </button>
+                  <Link
+                    to="/app/hotlist"
+                    search={{ campaign: c.id }}
+                    className="border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer ah26"
+                  >
+                    Creators
+                  </Link>
+                  <Link
+                    to="/app/campaigns/$id"
+                    params={{ id: c.id }}
+                    search={{ new: undefined }}
+                    className="border-0 bg-dark text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer ah27"
+                  >
+                    Open →
+                  </Link>
                 </div>
               </div>
             );
@@ -153,7 +205,13 @@ function CampaignsPage() {
       </DataGate>
 
       {drawer && <CampaignDrawer onClose={() => setDrawer(false)} onCreated={refresh} />}
-      {intel && <CampaignIntelligence campaignId={intel.id} campaignName={intel.name} onClose={() => setIntel(null)} />}
+      {intel && (
+        <CampaignIntelligence
+          campaignId={intel.id}
+          campaignName={intel.name}
+          onClose={() => setIntel(null)}
+        />
+      )}
     </div>
   );
 }
@@ -231,7 +289,10 @@ export function CampaignDrawer({
       });
       if (res.ok) {
         const criteria = await res.json();
-        await supabase.from("campaigns").update({ search_criteria: criteria }).eq("id", inserted.id);
+        await supabase
+          .from("campaigns")
+          .update({ search_criteria: criteria })
+          .eq("id", inserted.id);
       }
     } catch (e) {
       console.error("generate-search-criteria failed", e);
@@ -242,7 +303,8 @@ export function CampaignDrawer({
     onClose();
   };
 
-  const field = "w-full box-border h-[46px] p-[0_14px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none";
+  const field =
+    "w-full box-border h-[46px] p-[0_14px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none";
 
   return (
     <div className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]">
@@ -250,18 +312,38 @@ export function CampaignDrawer({
       <div className="relative w-full max-w-[520px] max-h-[90vh] bg-surface border-[1.5px] border-border rounded-[22px] overflow-y-auto">
         <div className="flex items-center justify-between p-[22px_24px] border-b-[1.5px] border-border-soft">
           <h3 className="font-heading font-bold text-[19px] m-0">New campaign</h3>
-          <button onClick={onClose} className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20" aria-label="Close">✕</button>
+          <button
+            onClick={onClose}
+            className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
+            aria-label="Close"
+          >
+            ✕
+          </button>
         </div>
         <div className="p-[24px] flex flex-col gap-[16px]">
           <Field label="CAMPAIGN NAME">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Q3 YouTube push" className={field} />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Q3 YouTube push"
+              className={field}
+            />
           </Field>
           <Field label="PRODUCT / BRAND BEING PROMOTED">
-            <input value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. Notion Pro" className={field} />
+            <input
+              value={product}
+              onChange={(e) => setProduct(e.target.value)}
+              placeholder="e.g. Notion Pro"
+              className={field}
+            />
           </Field>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
             <Field label="TARGET PLATFORM">
-              <select value={platform} onChange={(e) => setPlatform(e.target.value as Platform)} className={field}>
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value as Platform)}
+                className={field}
+              >
                 <option>YouTube</option>
                 <option>Reddit</option>
                 <option>X</option>
@@ -279,23 +361,54 @@ export function CampaignDrawer({
             </Field>
           </div>
           <Field label="BUDGET">
-            <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$0.00" className={field} />
+            <input
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              placeholder="$0.00"
+              className={field}
+            />
           </Field>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
             <Field label="START DATE">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={field} />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className={field}
+              />
             </Field>
             <Field label="END DATE">
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={field} />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className={field}
+              />
             </Field>
           </div>
           <Field label="CAMPAIGN BRIEF / NOTES">
-            <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="Describe what creators should know about the product…" className="w-full box-border p-[13px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14px] leading-[1.55] outline-none resize-y" />
+            <textarea
+              value={brief}
+              onChange={(e) => setBrief(e.target.value)}
+              rows={4}
+              placeholder="Describe what creators should know about the product…"
+              className="w-full box-border p-[13px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14px] leading-[1.55] outline-none resize-y"
+            />
           </Field>
         </div>
         <div className="p-[20px_24px] border-t-[1.5px] border-border-soft flex gap-[10px]">
-          <button onClick={onClose} disabled={saving} className="flex-1 border-[1.5px] border-border bg-transparent text-[14px] font-bold p-[12px_0] rounded-[12px] cursor-pointer ah26 disabled:opacity-60">Cancel</button>
-          <button onClick={create} disabled={saving} className="flex-[2] border-0 bg-accent text-cream text-[14px] font-bold p-[13px_0] rounded-[12px] cursor-pointer ah21 disabled:opacity-60">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex-1 border-[1.5px] border-border bg-transparent text-[14px] font-bold p-[12px_0] rounded-[12px] cursor-pointer ah26 disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={create}
+            disabled={saving}
+            className="flex-[2] border-0 bg-accent text-cream text-[14px] font-bold p-[13px_0] rounded-[12px] cursor-pointer ah21 disabled:opacity-60"
+          >
             {saving ? "Creating…" : "Create campaign →"}
           </button>
         </div>

@@ -109,7 +109,8 @@ function AdsCenterPage() {
   const [selThemes, setSelThemes] = useState<string[]>([]);
   const [selHooks, setSelHooks] = useState<string[]>([]);
   const [selAngles, setSelAngles] = useState<string[]>([]);
-  const toggle = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  const toggle = (arr: string[], v: string) =>
+    arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
   // ── Editor state ───────────────────────────────────────────────────────────
   const [brief, setBrief] = useState("");
@@ -213,17 +214,27 @@ function AdsCenterPage() {
   };
 
   if (!user) {
-    return <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">Sign in to open the Ads Center.</div>;
+    return (
+      <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">
+        Sign in to open the Ads Center.
+      </div>
+    );
   }
 
   if (!orgId) {
     return (
       <div className="aspen-scope bg-surface border-[1.5px] border-border rounded-[22px] p-[36px] text-center max-w-[560px]">
-        <h2 className="font-heading font-extrabold text-[22px] tracking-[-0.02em] m-0">Create your first campaign</h2>
+        <h2 className="font-heading font-extrabold text-[22px] tracking-[-0.02em] m-0">
+          Create your first campaign
+        </h2>
         <p className="text-[14.5px] text-muted leading-[1.6] m-[10px_auto_0] max-w-[400px]">
-          Ads are built for a product, on a campaign. Finish the quick setup and your first campaign lands right back here.
+          Ads are built for a product, on a campaign. Finish the quick setup and your first campaign
+          lands right back here.
         </p>
-        <Link to="/onboarding" className="mt-[18px] inline-block border-0 bg-accent text-cream text-[14px] font-bold p-[12px_20px] rounded-[12px] ah21">
+        <Link
+          to="/onboarding"
+          className="mt-[18px] inline-block border-0 bg-accent text-cream text-[14px] font-bold p-[12px_20px] rounded-[12px] ah21"
+        >
           Finish setup
         </Link>
       </div>
@@ -231,7 +242,12 @@ function AdsCenterPage() {
   }
 
   // The design's four intelligence groups, filled from the ranked terms.
-  const groups: { title: string; terms: RankedTerm[]; sel: string[]; set: (v: string[]) => void }[] = [
+  const groups: {
+    title: string;
+    terms: RankedTerm[];
+    sel: string[];
+    set: (v: string[]) => void;
+  }[] = [
     { title: "HOOKS", terms: intel?.hooks ?? [], sel: selHooks, set: setSelHooks },
     { title: "PHRASES", terms: intel?.phrases ?? [], sel: selThemes, set: setSelThemes },
     { title: "THEMES", terms: intel?.themes ?? [], sel: selThemes, set: setSelThemes },
@@ -242,7 +258,11 @@ function AdsCenterPage() {
     <span
       key={label}
       className="text-[11.5px] font-bold p-[5px_10px] rounded-[8px]"
-      style={on ? { background: "#DDF3E6", color: "#0E7A3D" } : { background: "#F5F1E9", color: "#8A8494" }}
+      style={
+        on
+          ? { background: "#DDF3E6", color: "#0E7A3D" }
+          : { background: "#F5F1E9", color: "#8A8494" }
+      }
     >
       {label}
     </span>
@@ -253,7 +273,9 @@ function AdsCenterPage() {
       <div className="flex gap-[16px] items-start flex-wrap">
         <div className="flex-[0_1_340px] min-w-[290px] flex flex-col gap-[16px]">
           <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
-            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]">SIGNAL SOURCES</div>
+            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]">
+              SIGNAL SOURCES
+            </div>
             <div className="flex gap-[7px] flex-wrap">
               {sourceChip("YouTube", p?.youtube)}
               {sourceChip("Reddit", p?.reddit)}
@@ -284,9 +306,13 @@ function AdsCenterPage() {
           </div>
 
           <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
-            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">RANKED INTELLIGENCE</div>
+            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">
+              RANKED INTELLIGENCE
+            </div>
             <div className="text-[12.5px] text-subtle m-[8px_0_16px]">
-              {intel ? `From ${intel.total} signals. Pick the terms that feed the draft.` : "Collect signals to rank the language your audience uses."}
+              {intel
+                ? `From ${intel.total} signals. Pick the terms that feed the draft.`
+                : "Collect signals to rank the language your audience uses."}
             </div>
             <DataGate
               connected={anySource}
@@ -297,7 +323,9 @@ function AdsCenterPage() {
               <div className="flex flex-col gap-[16px]">
                 {groups.map((g) => (
                   <div key={g.title}>
-                    <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[8px]">{g.title}</div>
+                    <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[8px]">
+                      {g.title}
+                    </div>
                     <div className="flex gap-[7px] flex-wrap">
                       {g.terms.length === 0 ? (
                         <span className="text-[12.5px] text-subtle">None yet</span>
@@ -331,7 +359,9 @@ function AdsCenterPage() {
 
         <div className="flex-[1_1_420px] min-w-[320px] flex flex-col gap-[16px]">
           <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
-            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]">GENERATE COPY</div>
+            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]">
+              GENERATE COPY
+            </div>
             <textarea
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
@@ -345,14 +375,22 @@ function AdsCenterPage() {
                 onChange={(e) => setPlatform(e.target.value as (typeof PLATFORMS)[number])}
                 className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
               >
-                {PLATFORMS.map((v) => <option key={v} value={v}>{v}</option>)}
+                {PLATFORMS.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
               </select>
               <select
                 value={tone}
                 onChange={(e) => setTone(e.target.value as (typeof TONES)[number])}
                 className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
               >
-                {TONES.map((v) => <option key={v} value={v}>{v}</option>)}
+                {TONES.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
               </select>
               <button
                 onClick={generateCopy}
@@ -363,7 +401,9 @@ function AdsCenterPage() {
               </button>
             </div>
             {llmReady === false ? (
-              <div className="text-[12.5px] text-subtle mt-[10px]">Waiting for API connection — copy generation needs the model connection.</div>
+              <div className="text-[12.5px] text-subtle mt-[10px]">
+                Waiting for API connection — copy generation needs the model connection.
+              </div>
             ) : null}
           </div>
 
@@ -371,20 +411,25 @@ function AdsCenterPage() {
             <div className="flex items-center justify-between gap-[12px] mb-[16px]">
               <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">EDITOR</div>
               {draft?.informed_by_affiliate ? (
-                <span className="text-[11px] font-bold bg-tint text-accent-ink p-[5px_10px] rounded-[8px]">Informed by affiliate performance</span>
+                <span className="text-[11px] font-bold bg-tint text-accent-ink p-[5px_10px] rounded-[8px]">
+                  Informed by affiliate performance
+                </span>
               ) : null}
             </div>
 
             {!draft ? (
               <div className="text-[13.5px] text-subtle p-[24px_0] text-center">
-                Generate copy to start a draft. It saves as you go, so imagery has something to attach to.
+                Generate copy to start a draft. It saves as you go, so imagery has something to
+                attach to.
               </div>
             ) : (
               <>
                 <div className="flex gap-[20px] flex-wrap">
                   <div className="flex-[1_1_260px] min-w-[240px] flex flex-col gap-[12px]">
                     <div>
-                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">HEADLINE</div>
+                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                        HEADLINE
+                      </div>
                       <input
                         value={draft.headline ?? ""}
                         onChange={(e) => setDraft({ ...draft, headline: e.target.value })}
@@ -392,7 +437,9 @@ function AdsCenterPage() {
                       />
                     </div>
                     <div>
-                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">BODY</div>
+                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                        BODY
+                      </div>
                       <textarea
                         value={draft.body ?? ""}
                         onChange={(e) => setDraft({ ...draft, body: e.target.value })}
@@ -401,7 +448,9 @@ function AdsCenterPage() {
                       />
                     </div>
                     <div>
-                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">CALL TO ACTION</div>
+                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                        CALL TO ACTION
+                      </div>
                       <input
                         value={draft.cta ?? ""}
                         onChange={(e) => setDraft({ ...draft, cta: e.target.value })}
@@ -409,14 +458,32 @@ function AdsCenterPage() {
                       />
                     </div>
                     <div className="flex gap-[9px] mt-[2px]">
-                      <button onClick={() => saveDraft(false)} disabled={saving} className="border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[11px_16px] rounded-[11px] cursor-pointer ah39 disabled:opacity-40">Save</button>
-                      <button onClick={() => saveDraft(true)} disabled={saving} className="border-0 bg-dark text-cream text-[13.5px] font-bold p-[12px_17px] rounded-[11px] cursor-pointer ah40 disabled:opacity-40">Save and share</button>
+                      <button
+                        onClick={() => saveDraft(false)}
+                        disabled={saving}
+                        className="border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[11px_16px] rounded-[11px] cursor-pointer ah39 disabled:opacity-40"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => saveDraft(true)}
+                        disabled={saving}
+                        className="border-0 bg-dark text-cream text-[13.5px] font-bold p-[12px_17px] rounded-[11px] cursor-pointer ah40 disabled:opacity-40"
+                      >
+                        Save and share
+                      </button>
                     </div>
                   </div>
                   <div className="flex-[0_1_230px] min-w-[200px]">
-                    <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[8px]">IMAGERY</div>
+                    <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[8px]">
+                      IMAGERY
+                    </div>
                     {imageUrl ? (
-                      <img src={imageUrl} alt="Generated ad creative" className="w-full rounded-[14px] block" />
+                      <img
+                        src={imageUrl}
+                        alt="Generated ad creative"
+                        className="w-full rounded-[14px] block"
+                      />
                     ) : (
                       <div className="w-full aspect-square rounded-[14px] bg-sand grid place-items-center text-[12.5px] text-subtle text-center p-[12px]">
                         No image yet

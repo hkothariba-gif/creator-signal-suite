@@ -1,10 +1,4 @@
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useNavigate,
-  useRouterState,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,7 +12,9 @@ export const Route = createFileRoute("/app")({
 
 /* The Aspen app shell — sidebar, header and the `.aspen-scope` wrapper that
    rebinds the four colliding design tokens (see src/styles.css). This is the
-   shell half of src/aspen/AspenApp.tsx; the twelve screen blocks it used to
+   shell half of src/aspen/AspenApp.tsx (deleted once the split landed — it is
+   in git history, and the per-screen comments still name their block); the
+   twelve screen blocks it used to
    switch between with `state.screen` now live in the app.*.tsx routes and
    render through the <Outlet /> below. */
 
@@ -76,36 +72,90 @@ const NAV = [
     title: "WORKSPACE",
     items: [
       { to: "/app", label: "Home", count: null, match: ["/app"], exact: true },
-      { to: "/app/campaigns", label: "Campaigns", count: "campaigns", match: ["/app/campaigns"], exact: false },
+      {
+        to: "/app/campaigns",
+        label: "Campaigns",
+        count: "campaigns",
+        match: ["/app/campaigns"],
+        exact: false,
+      },
     ],
   },
   {
     title: "FIND",
     items: [
-      { to: "/app/discovery", label: "Discovery", count: null, match: ["/app/discovery", "/app/creators"], exact: false },
-      { to: "/app/hotlist", label: "Hotlist CRM", count: "hotlist", match: ["/app/hotlist"], exact: false },
-      { to: "/app/community", label: "Community signals", count: null, match: ["/app/community"], exact: false },
+      {
+        to: "/app/discovery",
+        label: "Discovery",
+        count: null,
+        match: ["/app/discovery", "/app/creators"],
+        exact: false,
+      },
+      {
+        to: "/app/hotlist",
+        label: "Hotlist CRM",
+        count: "hotlist",
+        match: ["/app/hotlist"],
+        exact: false,
+      },
+      {
+        to: "/app/community",
+        label: "Community signals",
+        count: null,
+        match: ["/app/community"],
+        exact: false,
+      },
     ],
   },
   {
     title: "RUN",
     items: [
-      { to: "/app/outreach", label: "Outreach inbox", count: null, match: ["/app/outreach"], exact: false },
+      {
+        to: "/app/outreach",
+        label: "Outreach inbox",
+        count: null,
+        match: ["/app/outreach"],
+        exact: false,
+      },
       { to: "/app/ads", label: "Ads Center", count: null, match: ["/app/ads"], exact: false },
     ],
   },
   {
     title: "PROVE",
     items: [
-      { to: "/app/affiliate", label: "Affiliate & payouts", count: null, match: ["/app/affiliate"], exact: false },
-      { to: "/app/expansion", label: "Expansion", count: null, match: ["/app/expansion"], exact: false },
+      {
+        to: "/app/affiliate",
+        label: "Affiliate & payouts",
+        count: null,
+        match: ["/app/affiliate"],
+        exact: false,
+      },
+      {
+        to: "/app/expansion",
+        label: "Expansion",
+        count: null,
+        match: ["/app/expansion"],
+        exact: false,
+      },
     ],
   },
   {
     title: "SETUP",
     items: [
-      { to: "/app/platforms", label: "Platforms", count: null, match: ["/app/platforms"], exact: false },
-      { to: "/app/settings", label: "Settings", count: null, match: ["/app/settings"], exact: false },
+      {
+        to: "/app/platforms",
+        label: "Platforms",
+        count: null,
+        match: ["/app/platforms"],
+        exact: false,
+      },
+      {
+        to: "/app/settings",
+        label: "Settings",
+        count: null,
+        match: ["/app/settings"],
+        exact: false,
+      },
     ],
   },
 ] as const;
@@ -177,12 +227,15 @@ function AppLayout() {
   return (
     <CampaignContext.Provider value={{ campaigns, selected, selectedId: selected?.id }}>
       <div className="aspen-scope flex min-h-screen bg-cream">
-
         {/* SIDEBAR */}
         <aside className="w-[246px] shrink-0 bg-dark text-cream p-[22px_16px] flex flex-col gap-[26px] sticky top-0 h-[100vh] box-border overflow-y-auto">
           <Link to="/" className="flex items-center gap-[10px] p-[0_8px]">
-            <div className="w-[28px] h-[28px] rounded-[9px] bg-accent grid place-items-center text-cream font-heading font-extrabold text-[16px]">a</div>
-            <span className="font-heading font-extrabold text-[19px] tracking-[-0.02em] text-cream">aspen</span>
+            <div className="w-[28px] h-[28px] rounded-[9px] bg-accent grid place-items-center text-cream font-heading font-extrabold text-[16px]">
+              a
+            </div>
+            <span className="font-heading font-extrabold text-[19px] tracking-[-0.02em] text-cream">
+              aspen
+            </span>
           </Link>
 
           <div className="bg-dark-raised rounded-[14px] p-[12px_13px]">
@@ -205,7 +258,9 @@ function AppLayout() {
 
           {NAV.map((g) => (
             <div key={g.title} className="flex flex-col gap-[3px]">
-              <div className="text-[10.5px] font-bold tracking-[0.14em] text-dark-muted p-[0_10px_6px]">{g.title}</div>
+              <div className="text-[10.5px] font-bold tracking-[0.14em] text-dark-muted p-[0_10px_6px]">
+                {g.title}
+              </div>
               {g.items.map((i) => {
                 const on = isActive(i);
                 return (
@@ -213,10 +268,16 @@ function AppLayout() {
                     key={i.to}
                     to={i.to}
                     className="flex items-center justify-between gap-[8px] w-full text-left border-0 cursor-pointer p-[9px_11px] rounded-[11px] text-[14.5px] font-semibold"
-                    style={{ background: on ? "#F2542D" : "transparent", color: on ? "#FAF7F1" : "#B8B2C2" }}
+                    style={{
+                      background: on ? "#F2542D" : "transparent",
+                      color: on ? "#FAF7F1" : "#B8B2C2",
+                    }}
                   >
                     {i.label}
-                    <span className="text-[11px] font-bold" style={{ color: on ? "#FFD9CC" : "#6E6879" }}>
+                    <span
+                      className="text-[11px] font-bold"
+                      style={{ color: on ? "#FFD9CC" : "#6E6879" }}
+                    >
                       {i.count ? (badges[i.count] ?? "") : ""}
                     </span>
                   </Link>
@@ -233,9 +294,13 @@ function AppLayout() {
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[13.5px] font-bold text-cream truncate" title={user.email}>{user.email}</div>
+              <div className="text-[13.5px] font-bold text-cream truncate" title={user.email}>
+                {user.email}
+              </div>
               <div className="text-[11.5px] text-subtle truncate">
-                {[user.organization?.name ?? user.company_name, user.role].filter(Boolean).join(" · ") || "No organization yet"}
+                {[user.organization?.name ?? user.company_name, user.role]
+                  .filter(Boolean)
+                  .join(" · ") || "No organization yet"}
               </div>
             </div>
             <button
@@ -255,7 +320,9 @@ function AppLayout() {
         <main className="flex-1 min-w-0 flex flex-col">
           <header className="flex items-center justify-between gap-[20px] p-[20px_32px] border-b-[1.5px] border-border bg-cream sticky top-0 z-10 flex-wrap">
             <div>
-              <h1 className="font-heading font-extrabold text-[26px] tracking-[-0.025em] m-0">{title}</h1>
+              <h1 className="font-heading font-extrabold text-[26px] tracking-[-0.025em] m-0">
+                {title}
+              </h1>
               <div className="text-[13.5px] text-subtle mt-[2px]">{subtitle}</div>
             </div>
             <div className="flex items-center gap-[10px]">
@@ -266,10 +333,21 @@ function AppLayout() {
                 to="/app/platforms"
                 className="inline-flex items-center gap-[8px] bg-surface border-[1.5px] border-border rounded-[11px] p-[9px_13px] text-[13px] font-semibold text-muted"
               >
-                <span className="w-[8px] h-[8px] rounded-full" style={{ background: platformsConnected > 0 ? "#1FA463" : "#C9C1B4" }}></span>
-                {connectorStatus.isLoading ? "Checking platforms…" : `${platformsConnected} of 4 platforms connected`}
+                <span
+                  className="w-[8px] h-[8px] rounded-full"
+                  style={{ background: platformsConnected > 0 ? "#1FA463" : "#C9C1B4" }}
+                ></span>
+                {connectorStatus.isLoading
+                  ? "Checking platforms…"
+                  : `${platformsConnected} of 4 platforms connected`}
               </Link>
-              <Link to="/app/campaigns" search={{ new: true }} className="border-0 bg-accent text-cream text-[14px] font-bold p-[11px_18px] rounded-[12px] cursor-pointer ah21">+ New campaign</Link>
+              <Link
+                to="/app/campaigns"
+                search={{ new: true }}
+                className="border-0 bg-accent text-cream text-[14px] font-bold p-[11px_18px] rounded-[12px] cursor-pointer ah21"
+              >
+                + New campaign
+              </Link>
             </div>
           </header>
 

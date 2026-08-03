@@ -49,7 +49,11 @@ const searchYouTubeChannels = createServerFn({ method: "GET" })
     const json = (await res.json()) as {
       items?: Array<{
         id: { channelId: string };
-        snippet: { channelTitle: string; description: string; thumbnails?: { default?: { url?: string } } };
+        snippet: {
+          channelTitle: string;
+          description: string;
+          thumbnails?: { default?: { url?: string } };
+        };
       }>;
     };
     return (json.items ?? []).map((item) => ({
@@ -96,7 +100,10 @@ function DiscoveryPage() {
       const camp = data?.[0];
       setCampText(camp ? campaignText(camp) : "");
       setCampName(camp?.name ?? "");
-      const sc = (camp?.search_criteria ?? null) as { primaryQuery?: string; searchQueries?: string[] } | null;
+      const sc = (camp?.search_criteria ?? null) as {
+        primaryQuery?: string;
+        searchQueries?: string[];
+      } | null;
       const pre = sc?.primaryQuery || sc?.searchQueries?.[0];
       if (pre) setQuery((cur) => cur || pre);
     })();
@@ -114,7 +121,10 @@ function DiscoveryPage() {
         .from("hotlist")
         .select("id,external_id")
         .eq("user_id", user.id)
-        .in("external_id", results.map((r) => r.id));
+        .in(
+          "external_id",
+          results.map((r) => r.id),
+        );
       if (cancelled) return;
       const next: Record<string, string> = {};
       for (const row of data ?? []) if (row.external_id) next[row.external_id] = row.id;
@@ -188,7 +198,9 @@ function DiscoveryPage() {
       return;
     }
     setSaved((cur) => ({ ...cur, [c.id]: inserted.id }));
-    toast.success(campaignId ? `${c.name} added to this campaign's hotlist` : `${c.name} added to hotlist`);
+    toast.success(
+      campaignId ? `${c.name} added to this campaign's hotlist` : `${c.name} added to hotlist`,
+    );
   };
 
   return (
@@ -211,9 +223,15 @@ function DiscoveryPage() {
       </div>
       <div className="text-[13.5px] text-subtle mb-[22px]">
         {campName ? (
-          <>Scored against <strong className="text-muted">{campName}</strong> — product, audience and brief all feed the fit estimate.</>
+          <>
+            Scored against <strong className="text-muted">{campName}</strong> — product, audience
+            and brief all feed the fit estimate.
+          </>
         ) : (
-          <>No campaign selected — creators are added to your general list and no fit estimate is shown.</>
+          <>
+            No campaign selected — creators are added to your general list and no fit estimate is
+            shown.
+          </>
         )}
       </div>
 
@@ -229,17 +247,28 @@ function DiscoveryPage() {
               const fit = quickFit(c);
               const hotlistId = saved[c.id];
               return (
-                <div key={c.id} className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px] flex flex-col ah29">
+                <div
+                  key={c.id}
+                  className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px] flex flex-col ah29"
+                >
                   <div className="flex gap-[12px] items-center">
                     {c.thumbnail ? (
-                      <img src={c.thumbnail} alt="" className="w-[44px] h-[44px] rounded-[13px] shrink-0 object-cover" />
+                      <img
+                        src={c.thumbnail}
+                        alt=""
+                        className="w-[44px] h-[44px] rounded-[13px] shrink-0 object-cover"
+                      />
                     ) : (
-                      <div className="w-[44px] h-[44px] rounded-[13px] bg-youtube text-surface grid place-items-center font-extrabold text-[14px] shrink-0">▶</div>
+                      <div className="w-[44px] h-[44px] rounded-[13px] bg-youtube text-surface grid place-items-center font-extrabold text-[14px] shrink-0">
+                        ▶
+                      </div>
                     )}
                     <div className="min-w-0">
                       <div className="font-bold text-[15.5px] truncate">{c.name}</div>
                       <div className="flex gap-[6px] mt-[5px]">
-                        <span className="text-[11px] font-bold p-[3px_8px] rounded-[7px] bg-sand text-muted">{c.platform}</span>
+                        <span className="text-[11px] font-bold p-[3px_8px] rounded-[7px] bg-sand text-muted">
+                          {c.platform}
+                        </span>
                         {fit != null ? (
                           <span
                             className="text-[11px] font-bold p-[3px_8px] rounded-[7px] bg-tint text-accent-ink"
@@ -257,7 +286,9 @@ function DiscoveryPage() {
                   <div className="flex gap-[8px]">
                     {hotlistId ? (
                       <>
-                        <span className="flex-1 text-center border-[1.5px] border-accent text-accent text-[13.5px] font-bold p-[10px_0] rounded-[11px]">★ In hotlist</span>
+                        <span className="flex-1 text-center border-[1.5px] border-accent text-accent text-[13.5px] font-bold p-[10px_0] rounded-[11px]">
+                          ★ In hotlist
+                        </span>
                         <Link
                           to="/app/creators/$id"
                           params={{ id: hotlistId }}
@@ -281,10 +312,18 @@ function DiscoveryPage() {
           </div>
         ) : (
           <div className="bg-surface border-[1.5px] border-border rounded-[24px] p-[44px_32px] text-center max-w-[520px] mx-auto">
-            <img src="/aspen/empty-discovery.webp" alt="A clay telescope on a plinth" className="w-[190px] block mx-auto" loading="lazy" />
-            <div className="font-heading font-extrabold text-[22px] tracking-[-0.02em] mt-[6px]">Nothing to look at yet</div>
+            <img
+              src="/aspen/empty-discovery.webp"
+              alt="A clay telescope on a plinth"
+              className="w-[190px] block mx-auto"
+              loading="lazy"
+            />
+            <div className="font-heading font-extrabold text-[22px] tracking-[-0.02em] mt-[6px]">
+              Nothing to look at yet
+            </div>
             <p className="text-[14.5px] text-muted leading-[1.6] m-[10px_auto_0] max-w-[340px]">
-              Describe who you want to reach and Aspen searches YouTube, Reddit, X and LinkedIn at once.
+              Describe who you want to reach and Aspen searches YouTube, Reddit, X and LinkedIn at
+              once.
             </p>
           </div>
         )}

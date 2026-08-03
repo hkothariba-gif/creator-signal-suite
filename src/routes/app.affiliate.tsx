@@ -94,7 +94,11 @@ function AffiliatePage() {
     setCreating(true);
     try {
       await createAffiliateLink({
-        data: { organizationId: orgId, destinationUrl: dest.trim(), label: label.trim() || undefined },
+        data: {
+          organizationId: orgId,
+          destinationUrl: dest.trim(),
+          label: label.trim() || undefined,
+        },
       });
       setDest("");
       setLabel("");
@@ -108,7 +112,10 @@ function AffiliatePage() {
   };
 
   const perfByLink = useMemo(() => {
-    const m = new Map<string, { clicks: number; conversions: number; revenueMinor: number; conversionRate: number }>();
+    const m = new Map<
+      string,
+      { clicks: number; conversions: number; revenueMinor: number; conversionRate: number }
+    >();
     for (const l of perf?.byLink ?? []) if (l.linkId) m.set(l.linkId, l);
     return m;
   }, [perf]);
@@ -117,17 +124,27 @@ function AffiliatePage() {
   const dash = "—";
 
   if (!user) {
-    return <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">Sign in to view affiliate tracking.</div>;
+    return (
+      <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">
+        Sign in to view affiliate tracking.
+      </div>
+    );
   }
   if (!orgId) {
-    return <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">Finish onboarding to create a brand organization.</div>;
+    return (
+      <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">
+        Finish onboarding to create a brand organization.
+      </div>
+    );
   }
 
   return (
     <div className="aspen-scope">
       <div className="flex items-center justify-between gap-[14px] bg-surface border-[1.5px] border-border rounded-[20px] p-[18px_22px] mb-[16px] flex-wrap">
         <div>
-          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">SALES CONNECTION</div>
+          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">
+            SALES CONNECTION
+          </div>
           <div className="text-[14.5px] font-semibold mt-[5px]">
             {salesConnected
               ? "Connected — conversions post in through the ingest endpoint."
@@ -135,7 +152,9 @@ function AffiliatePage() {
           </div>
         </div>
         {salesConnected ? (
-          <span className="text-[12px] font-bold text-success-ink bg-success-wash p-[7px_13px] rounded-[9px]">✓ Live</span>
+          <span className="text-[12px] font-bold text-success-ink bg-success-wash p-[7px_13px] rounded-[9px]">
+            ✓ Live
+          </span>
         ) : (
           <div className="flex gap-[8px] items-center">
             <select
@@ -143,7 +162,11 @@ function AffiliatePage() {
               onChange={(e) => setProvider(e.target.value as (typeof PROVIDERS)[number])}
               className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
             >
-              {PROVIDERS.map((v) => <option key={v} value={v}>{v}</option>)}
+              {PROVIDERS.map((v) => (
+                <option key={v} value={v}>
+                  {v}
+                </option>
+              ))}
             </select>
             <button
               onClick={connect}
@@ -158,7 +181,9 @@ function AffiliatePage() {
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[16px] mb-[16px]">
         <div className="bg-dark text-cream rounded-[20px] p-[22px]">
-          <div className="text-[12px] font-bold tracking-[0.1em] text-subtle">ATTRIBUTED REVENUE</div>
+          <div className="text-[12px] font-bold tracking-[0.1em] text-subtle">
+            ATTRIBUTED REVENUE
+          </div>
           <div className="font-heading font-extrabold text-[36px] tracking-[-0.03em] mt-[8px]">
             {perf ? money(perf.totals.revenueMinor, currency) : dash}
           </div>
@@ -177,14 +202,18 @@ function AffiliatePage() {
         </div>
         <div className="bg-tint rounded-[20px] p-[22px]">
           <div className="text-[12px] font-bold tracking-[0.1em] text-accent-ink">PAYOUTS DUE</div>
-          <div className="font-heading font-extrabold text-[36px] tracking-[-0.03em] mt-[8px] text-accent-ink">{dash}</div>
+          <div className="font-heading font-extrabold text-[36px] tracking-[-0.03em] mt-[8px] text-accent-ink">
+            {dash}
+          </div>
           <div className="text-[12px] text-accent-ink-soft mt-[4px]">No payout ledger yet</div>
         </div>
       </div>
 
       <div className="flex gap-[10px] items-end bg-surface border-[1.5px] border-border rounded-[20px] p-[20px_22px] mb-[16px] flex-wrap">
         <div className="flex-[1_1_260px] min-w-[220px]">
-          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">DESTINATION URL</div>
+          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+            DESTINATION URL
+          </div>
           <input
             value={dest}
             onChange={(e) => setDest(e.target.value)}
@@ -193,7 +222,9 @@ function AffiliatePage() {
           />
         </div>
         <div className="flex-[0_1_180px] min-w-[150px]">
-          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">LABEL</div>
+          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+            LABEL
+          </div>
           <input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
@@ -222,15 +253,26 @@ function AffiliatePage() {
           {links.map((l) => {
             const stat = perfByLink.get(l.id);
             return (
-              <div key={l.id} className="flex gap-[12px] items-center p-[15px_22px] border-b-[1px] border-sand">
+              <div
+                key={l.id}
+                className="flex gap-[12px] items-center p-[15px_22px] border-b-[1px] border-sand"
+              >
                 <div className="flex-[2] min-w-0">
                   <div className="text-[14.5px] font-bold">{l.label || "Untitled link"}</div>
                   <div className="text-[12.5px] text-subtle mt-[2px] truncate">{l.trackingUrl}</div>
                 </div>
-                <span className="flex-1 text-right text-[14px] font-semibold text-muted">{stat ? stat.clicks.toLocaleString() : dash}</span>
-                <span className="flex-1 text-right text-[14px] font-semibold text-muted">{stat ? stat.conversions.toLocaleString() : dash}</span>
-                <span className="flex-1 text-right text-[14px] font-bold">{stat ? money(stat.revenueMinor, currency) : dash}</span>
-                <span className="flex-1 text-right text-[14px] font-bold text-accent">{stat ? `${(stat.conversionRate * 100).toFixed(1)}%` : dash}</span>
+                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                  {stat ? stat.clicks.toLocaleString() : dash}
+                </span>
+                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                  {stat ? stat.conversions.toLocaleString() : dash}
+                </span>
+                <span className="flex-1 text-right text-[14px] font-bold">
+                  {stat ? money(stat.revenueMinor, currency) : dash}
+                </span>
+                <span className="flex-1 text-right text-[14px] font-bold text-accent">
+                  {stat ? `${(stat.conversionRate * 100).toFixed(1)}%` : dash}
+                </span>
               </div>
             );
           })}

@@ -31,7 +31,9 @@ import { useAspenCampaign } from "@/routes/app";
    closed threads, which the dark version never surfaced at all. */
 
 export const Route = createFileRoute("/app/outreach")({
-  validateSearch: (search: { campaign?: string; connected?: string; email_error?: string } & SearchSchemaInput) => ({
+  validateSearch: (
+    search: { campaign?: string; connected?: string; email_error?: string } & SearchSchemaInput,
+  ) => ({
     campaign: typeof search.campaign === "string" ? search.campaign : undefined,
     connected: typeof search.connected === "string" ? search.connected : undefined,
     email_error: typeof search.email_error === "string" ? search.email_error : undefined,
@@ -128,10 +130,10 @@ function OutreachPage() {
       <div className="flex gap-[16px] items-start flex-wrap">
         <div className="flex-[0_1_320px] min-w-[280px] flex flex-col gap-[9px]">
           <div className="flex gap-[7px] mb-[3px]">
-            {([
+            {[
               { key: "open" as const, label: `Open (${open.length})` },
               { key: "archived" as const, label: `Archived (${archived.length})` },
-            ]).map((t) => {
+            ].map((t) => {
               const on = inbox === t.key;
               return (
                 <button
@@ -151,10 +153,17 @@ function OutreachPage() {
           </div>
 
           {loading ? (
-            <div className="text-[13.5px] text-subtle p-[24px_0] text-center">Loading conversations…</div>
+            <div className="text-[13.5px] text-subtle p-[24px_0] text-center">
+              Loading conversations…
+            </div>
           ) : visible.length === 0 ? (
             <div className="bg-surface border-[1.5px] border-border rounded-[18px] p-[32px_22px] text-center">
-              <img src="/aspen/empty-outreach.webp" alt="A clay letterbox with one folded note" className="w-[120px] block mx-auto" loading="lazy" />
+              <img
+                src="/aspen/empty-outreach.webp"
+                alt="A clay letterbox with one folded note"
+                className="w-[120px] block mx-auto"
+                loading="lazy"
+              />
               <div className="font-heading font-extrabold text-[18px] tracking-[-0.02em] mt-[4px]">
                 {inbox === "archived" ? "Nothing archived" : "No conversations yet"}
               </div>
@@ -176,13 +185,27 @@ function OutreachPage() {
                   style={{ border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}` }}
                 >
                   <div className="flex items-center justify-between gap-[10px]">
-                    <span className="text-[14.5px] font-bold truncate">{t.creator_name ?? "Creator"}</span>
-                    <span className="text-[10.5px] font-bold text-surface p-[3px_8px] rounded-[6px] shrink-0" style={{ background: ch.color }}>{ch.label}</span>
+                    <span className="text-[14.5px] font-bold truncate">
+                      {t.creator_name ?? "Creator"}
+                    </span>
+                    <span
+                      className="text-[10.5px] font-bold text-surface p-[3px_8px] rounded-[6px] shrink-0"
+                      style={{ background: ch.color }}
+                    >
+                      {ch.label}
+                    </span>
                   </div>
                   <div className="flex items-center gap-[9px] mt-[7px]">
-                    <span className="text-[11.5px] font-bold" style={{ color: STATUS_COLOR[t.status] ?? "#8A8494" }}>● {t.status}</span>
+                    <span
+                      className="text-[11.5px] font-bold"
+                      style={{ color: STATUS_COLOR[t.status] ?? "#8A8494" }}
+                    >
+                      ● {t.status}
+                    </span>
                     {t.last_message_at ? (
-                      <span className="text-[11.5px] text-subtle">{new Date(t.last_message_at).toLocaleDateString()}</span>
+                      <span className="text-[11.5px] text-subtle">
+                        {new Date(t.last_message_at).toLocaleDateString()}
+                      </span>
                     ) : null}
                   </div>
                 </button>
@@ -193,7 +216,9 @@ function OutreachPage() {
 
         <div className="flex-[1_1_420px] min-w-[320px] bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           {!selected ? (
-            <div className="text-center text-[13.5px] text-subtle p-[48px_0]">Select a conversation to read and reply.</div>
+            <div className="text-center text-[13.5px] text-subtle p-[48px_0]">
+              Select a conversation to read and reply.
+            </div>
           ) : replying ? (
             <OutreachComposer
               hotlistId={selected.hotlist_id}
@@ -210,13 +235,22 @@ function OutreachPage() {
             <>
               <div className="flex items-center justify-between gap-[12px] pb-[16px] border-b-[1.5px] border-border-soft">
                 <div>
-                  <div className="font-heading font-bold text-[18px]">{selected.creator_name ?? "Creator"}</div>
+                  <div className="font-heading font-bold text-[18px]">
+                    {selected.creator_name ?? "Creator"}
+                  </div>
                   <div className="text-[12.5px] text-subtle mt-[2px]">
                     {(CHANNEL[selected.channel] ?? CHANNEL.email).label}
-                    {selected.last_message_at ? ` · ${new Date(selected.last_message_at).toLocaleDateString()}` : ""}
+                    {selected.last_message_at
+                      ? ` · ${new Date(selected.last_message_at).toLocaleDateString()}`
+                      : ""}
                   </div>
                 </div>
-                <button onClick={() => setReplying(true)} className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer ah36">Reply →</button>
+                <button
+                  onClick={() => setReplying(true)}
+                  className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer ah36"
+                >
+                  Reply →
+                </button>
               </div>
               <div className="flex flex-col gap-[12px] mt-[18px]">
                 {loadingMsgs ? (
@@ -241,11 +275,22 @@ function OutreachPage() {
                           <span className="text-[11px] font-bold tracking-[0.1em] text-subtle">
                             {out ? "YOU" : (selected.creator_name ?? "CREATOR").toUpperCase()}
                           </span>
-                          <span className="text-[11px] font-semibold" style={{ color: m.status === "failed" ? "#C0341A" : "#8A8494" }}>{m.status}</span>
+                          <span
+                            className="text-[11px] font-semibold"
+                            style={{ color: m.status === "failed" ? "#C0341A" : "#8A8494" }}
+                          >
+                            {m.status}
+                          </span>
                         </div>
-                        {m.subject ? <div className="text-[13.5px] font-bold mb-[4px]">{m.subject}</div> : null}
-                        <div className="text-[14px] leading-[1.6] text-muted whitespace-pre-wrap">{m.body}</div>
-                        {m.error ? <div className="text-[11.5px] text-[#C0341A] mt-[6px]">{m.error}</div> : null}
+                        {m.subject ? (
+                          <div className="text-[13.5px] font-bold mb-[4px]">{m.subject}</div>
+                        ) : null}
+                        <div className="text-[14px] leading-[1.6] text-muted whitespace-pre-wrap">
+                          {m.body}
+                        </div>
+                        {m.error ? (
+                          <div className="text-[11.5px] text-[#C0341A] mt-[6px]">{m.error}</div>
+                        ) : null}
                       </div>
                     );
                   })
@@ -257,7 +302,9 @@ function OutreachPage() {
       </div>
 
       {/* Phase 4E: sending identity, delivery metrics, and sequences. */}
-      <div className="text-[12px] font-bold tracking-[0.14em] text-subtle m-[34px_0_14px]">SENDING &amp; AUTOMATION</div>
+      <div className="text-[12px] font-bold tracking-[0.14em] text-subtle m-[34px_0_14px]">
+        SENDING &amp; AUTOMATION
+      </div>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-[16px]">
         <EmailAccountsCard />
         <DeliveryMetricsPanel campaignId={campaignId} />

@@ -11,8 +11,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type BrandProfileJson = {
   category: string | null;
   age: string | null;
-  gender: string | null;
-  income: string | null;
+  seniority: string | null;
+  deal_size: string | null;
   notes: string | null;
   platforms: string[];
 };

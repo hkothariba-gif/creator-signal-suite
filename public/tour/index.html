@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Aspen — find the creators, run the ads, keep the proof</title>
+  <meta name="description" content="Scroll to fly through Aspen: creator discovery, affiliate management, and ads management in one B2B workspace across YouTube, Reddit, X and LinkedIn." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FAF7F1'/%3E%3Crect x='7' y='6' width='18' height='21' rx='5' fill='%23F2542D'/%3E%3Cpath d='M16 11l5 10h-3.2l-.8-1.8h-2l-.8 1.8H10z' fill='%23FFD84D'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Aspen brand kit -> engine tokens */
+    :root, .sw-root {
+      --sw-bg: #FAF7F1;          /* cream == the scene background colour */
+      --sw-ink: #17141E;         /* dark ink — headings + body */
+      --sw-ink-soft: #6A6472;    /* muted charcoal for secondary text */
+      --sw-accent: #F2542D;      /* signal orange (per-section accents override) */
+      --sw-font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+      --sw-font-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+    html, body { margin: 0; background: #FAF7F1; }
+
+    /* --- Copy legibility polish (unlayered, so it wins over the engine's @layer sw) ---
+       The clay world is bright and busy, so dark copy over it needs a stronger cream
+       scrim + a soft cream halo on the text itself. */
+    .sw-copylayer::before {
+      width: min(66vw, 900px);
+      background: linear-gradient(90deg,
+        var(--sw-bg) 0%,
+        var(--sw-bg) 40%,
+        color-mix(in srgb, var(--sw-bg) 86%, transparent) 58%,
+        color-mix(in srgb, var(--sw-bg) 48%, transparent) 76%,
+        transparent 100%);
+    }
+    .sw-copy__title {
+      text-shadow: 0 2px 18px var(--sw-bg), 0 1px 4px color-mix(in srgb, var(--sw-bg) 92%, transparent);
+    }
+    .sw-copy__body {
+      color: color-mix(in srgb, var(--sw-ink) 88%, var(--sw-ink-soft));
+      text-shadow: 0 1px 10px var(--sw-bg), 0 1px 3px var(--sw-bg);
+    }
+    .sw-copy__eyebrow { text-shadow: 0 1px 8px var(--sw-bg); }
+    @media (max-width: 860px) {
+      /* On phones the copy sits at the bottom — deepen that scrim too. */
+      .sw-copylayer::before {
+        width: 100%; height: 68%; top: auto; bottom: 0;
+        background: linear-gradient(0deg,
+          var(--sw-bg) 12%,
+          color-mix(in srgb, var(--sw-bg) 82%, transparent) 42%,
+          color-mix(in srgb, var(--sw-bg) 30%, transparent) 68%,
+          transparent 100%);
+      }
+    }
+</style>
+</head>
+<body>
+  <div id="top"></div>
+  <div id="world"></div>
+
+  <script src="scrub-engine.js"></script>
+  <script>
+    mountScrollWorld(document.getElementById('world'), {
+      brand: { name: 'Aspen', href: '#top' },
+      cta: { label: 'Join the waitlist', href: '#finale' },
+      hint: 'scroll to fly in',
+      diveScroll: 1.3,
+      connScroll: 0.9,
+      sections: [
+        {
+          id: 'signal', label: 'Discovery',
+          still: 'assets/signal.webp',
+          clip: 'assets/vid/signal.mp4',
+          accent: '#F2542D',
+          scroll: 1.6, linger: 0.4,          // hero: longer dwell while the line lands
+          eyebrow: 'Creator discovery',
+          title: 'Find the creators who move B2B buyers.',
+          body: 'Search YouTube, Reddit, X and LinkedIn for the voices your buyers already trust — not a follower leaderboard.',
+          tags: ['YouTube · Reddit', 'X · LinkedIn', 'B2B-native'],
+        },
+        {
+          id: 'fit', label: 'Vetting',
+          still: 'assets/fit.webp',
+          clip: 'assets/vid/fit.mp4',
+          accent: '#E0A21B',
+          eyebrow: 'Vet the fit',
+          title: 'Fit over follower count.',
+          body: 'See audience overlap, topic authority and past B2B results before you ever send a first DM.',
+          tags: ['Audience fit', 'Authority score', 'No guesswork'],
+        },
+        {
+          id: 'affiliate', label: 'Affiliates',
+          still: 'assets/affiliate.webp',
+          clip: 'assets/vid/affiliate.mp4',
+          accent: '#F2542D',
+          eyebrow: 'Affiliate management',
+          title: 'Set the deals. Track every click.',
+          body: 'Mint unique links and codes, set payouts, and watch every click and conversion land in one ledger.',
+          tags: ['Links & codes', 'Auto-payouts', 'One ledger'],
+        },
+        {
+          id: 'ads', label: 'Ads',
+          still: 'assets/ads.webp',
+          clip: 'assets/vid/ads.mp4',
+          accent: '#C7431F',
+          scroll: 1.45, linger: 0.35,
+          eyebrow: 'Ads management',
+          title: 'Run the ads from one desk.',
+          body: 'Launch and manage creator-driven ads across all four platforms — without juggling four separate dashboards.',
+          tags: ['One console', '4 platforms', 'Live pacing'],
+        },
+        {
+          id: 'proof', label: 'Proof',
+          still: 'assets/proof.webp',
+          clip: 'assets/vid/proof.mp4',
+          accent: '#E0A21B',
+          eyebrow: 'Attribution',
+          title: 'Keep the proof of what worked.',
+          body: 'Every click, code and conversion is receipted and attributed — so renewals and reporting write themselves.',
+          tags: ['Receipted', 'Attributed', 'Board-ready'],
+        },
+        {
+          id: 'finale', label: 'One workspace',
+          still: 'assets/workspace.webp',
+          clip: 'assets/vid/workspace.mp4',
+          accent: '#F2542D',
+          scroll: 1.7, linger: 0.5,          // finale: hold on the payoff + CTA
+          eyebrow: 'Aspen',
+          title: 'Find. Run. Prove — in one place.',
+          body: 'Discovery, affiliates and ads in a single workspace, built for B2B SaaS, startups, coaches and agencies.',
+          tags: [],
+          cta: {
+            primary: { label: 'Join the waitlist', href: 'mailto:hkothariba@gmail.com?subject=Aspen%20waitlist' },
+            secondary: { label: 'See how it works', href: '#top' },
+          },
+        },
+      ],
+      // length === sections.length - 1, in order (Step 5)
+      connectors: [
+        'assets/vid/conn1.mp4',
+        'assets/vid/conn2.mp4',
+        'assets/vid/conn3.mp4',
+        'assets/vid/conn4.mp4',
+        'assets/vid/conn5.mp4',
+      ],
+    });
+  </script>
+</body>
+</html>

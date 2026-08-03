@@ -26,6 +26,75 @@
 
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Aspen design tokens (merged from the handoff's tailwind.config.ts) ──
+     Every colour in the Aspen design has a name here. If you need a hex that
+     isn't in this list, add the token rather than inlining it.
+
+     NOT declared here — four Aspen names collide with the shadcn theme this
+     app already uses (accent / muted / border / sans). They are scoped to the
+     Aspen subtree instead: see `.aspen-scope` further down this file. */
+  --color-cream: #faf7f1;
+  --color-surface: #fff;
+
+  --color-dark: #17141e;
+  --color-dark-raised: #211d2b;
+  --color-dark-border: #2c2838;
+  --color-dark-line: #3a3546;
+  --color-dark-muted: #6e6879;
+  --color-on-dark: #b8b2c2;
+
+  --color-accent-soft: #f98a6b;
+  --color-accent-pale: #ffd9cc;
+  --color-accent-wash: #fff6f2;
+  --color-accent-deep: #c0341a;
+  --color-accent-ink: #b33a12;
+  --color-accent-ink-soft: #7a3a1a;
+
+  --color-tint: #ffecd9;
+  --color-tint-deep: #ffe4da;
+  --color-tint-youtube: #fff0ef;
+  --color-tint-reddit: #fff2ec;
+  --color-tint-linkedin: #eff5fd;
+
+  --color-highlight: #ffd84d;
+  --color-highlight-wash: #fff3d6;
+  --color-highlight-ink: #9a7a00;
+  --color-highlight-deep: #5c4a00;
+  --color-highlight-mid: #6b5b12;
+
+  --color-border-soft: #f0eae0;
+
+  --color-sand: #f5f1e9;
+  --color-sand-deep: #f3eee4;
+  --color-sand-line: #d8d0c2;
+  --color-sand-dark: #c9c1b4;
+  --color-sand-ink: #b5afa3;
+
+  --color-subtle: #8a8494;
+
+  --color-success-wash: #ddf3e6;
+  --color-success-ink: #0e7a3d;
+  --color-success: #1fa463;
+  --color-info-wash: #e7edfb;
+  --color-info-ink: #3159a8;
+
+  --color-youtube: #f03;
+  --color-reddit: #ff4500;
+  --color-linkedin: #0a66c2;
+
+  --font-heading: "Bricolage Grotesque", sans-serif;
+
+  --radius-card: 22px;
+  --radius-card-lg: 26px;
+  --radius-control: 12px;
+  --radius-chip: 10px;
+}
+
+/* Aspen's borderWidth token. Tailwind v4 has no --border-width-* namespace,
+   so the v3 config's `borderWidth: { hair: '1.5px' }` becomes a utility. */
+@utility border-hair {
+  border-width: 1.5px;
 }
 
 html {
@@ -55,14 +124,17 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Headings — tighter, bolder, modern */
-h1,
-h2,
-h3,
-h4 {
-  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
-  letter-spacing: -0.04em;
-  font-weight: 800;
+/* Headings — tighter, bolder, modern.
+   Gated: Aspen pages set their own heading font (Bricolage Grotesque). */
+body:not(:has(.aspen-scope)) {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.04em;
+    font-weight: 800;
+  }
 }
 
 @keyframes blob-drift-1 {
@@ -383,8 +455,8 @@ h4 {
    ASPENREACH VISUAL UPGRADE
    ============================================ */
 
-/* DOT GRID BACKGROUND */
-main {
+/* DOT GRID BACKGROUND — gated off inside Aspen pages (cream, no grid). */
+body:not(:has(.aspen-scope)) main {
   background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px) !important;
   background-size: 24px 24px !important;
 }
@@ -997,66 +1069,77 @@ main .text-\[36px\] {
    backgrounds. This overrides all of them to match the dark theme.
    ============================================================ */
 
-/* Kill any white/light section backgrounds on the landing page */
-section,
-[class*="section"],
-[class*="Section"],
-.bg-white,
-.bg-gray-50,
-.bg-slate-50,
-.bg-neutral-50,
-[class*="bg-white"],
-[class*="bg-gray"],
-[class*="bg-slate"],
-[class*="bg-neutral"] {
-  background-color: transparent !important;
+/* Gated: these are broad element/substring selectors with !important, written
+   for the dark landing. On a cream Aspen page they repaint everything —
+   `section` and `main` blank the background, and `[class*="card"]` matches the
+   Aspen `rounded-card` utilities. Rules are unchanged; only the guard is new. */
+body:not(:has(.aspen-scope)) {
+  /* Kill any white/light section backgrounds on the landing page */
+  section,
+  [class*="section"],
+  [class*="Section"],
+  .bg-white,
+  .bg-gray-50,
+  .bg-slate-50,
+  .bg-neutral-50,
+  [class*="bg-white"],
+  [class*="bg-gray"],
+  [class*="bg-slate"],
+  [class*="bg-neutral"] {
+    background-color: transparent !important;
+  }
+
+  /* Force page root and main content to dark */
+  main,
+  #root > div,
+  .landing-root {
+    background: #05080f !important;
+  }
+
+  /* Old/New way section — nuke the white cards, rebuild dark */
+  [class*="old-way"],
+  [class*="OldWay"],
+  [class*="comparison"],
+  [class*="Comparison"],
+  [class*="versus"],
+  [class*="Versus"] {
+    background: transparent !important;
+  }
+
+  /* Testimonials / social proof sections */
+  [class*="testimonial"],
+  [class*="Testimonial"],
+  [class*="social-proof"],
+  [class*="reviews"],
+  [class*="Reviews"] {
+    background: #05080f !important;
+    color: #f0f4ff !important;
+  }
+
+  /* Any card that appears on a light bg section */
+  [class*="card"]:not([class*="platform-card"]):not([class*="creator-card"]) {
+    background: rgba(12, 18, 34, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+    color: #f0f4ff !important;
+  }
 }
 
-/* Force page root and main content to dark */
-main,
-#root > div,
-.landing-root {
-  background: #05080f !important;
-}
-
-/* Old/New way section — nuke the white cards, rebuild dark */
-[class*="old-way"],
-[class*="OldWay"],
-[class*="comparison"],
-[class*="Comparison"],
-[class*="versus"],
-[class*="Versus"] {
-  background: transparent !important;
-}
-
-/* Testimonials / social proof sections */
-[class*="testimonial"],
-[class*="Testimonial"],
-[class*="social-proof"],
-[class*="reviews"],
-[class*="Reviews"] {
-  background: #05080f !important;
-  color: #f0f4ff !important;
-}
-
-/* Any card that appears on a light bg section */
-[class*="card"]:not([class*="platform-card"]):not([class*="creator-card"]) {
-  background: rgba(12, 18, 34, 0.8) !important;
-  border-color: rgba(255, 255, 255, 0.07) !important;
-  color: #f0f4ff !important;
-}
-
-/* Generic text color override for white-background sections */
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-span,
-li {
-  color: inherit;
+/* Generic text color override for white-background sections.
+   Gated: this rule is unlayered, so it beats Tailwind's @layer utilities no
+   matter the specificity — on an Aspen page it silently cancelled text-muted
+   / text-subtle on every p, span and li. */
+body:not(:has(.aspen-scope)) {
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  li {
+    color: inherit;
+  }
 }
 
 /* ============================================================
@@ -2503,4 +2586,39 @@ li {
 }
 .platform-strategy-block.li::before {
   background: #0a66c2;
+}
+
+/* ============================================================
+   ASPEN SCOPE
+   Four Aspen token names collide with the shadcn theme this app
+   already uses app-wide (bg-accent x33, bg/text-muted, border-border,
+   font-sans). Redefining them globally would repaint every shadcn
+   component; letting shadcn win would break the Aspen design. So the
+   four are rebound to their Aspen values only inside `.aspen-scope`,
+   which wraps the Aspen pages.
+
+   shadcn's tokens are declared with `@theme inline`, so `bg-accent`
+   compiles to `var(--accent)` rather than `var(--color-accent)`. Both
+   spellings are set here so the rebind holds either way.
+   ============================================================ */
+.aspen-scope {
+  --accent: #f2542d;
+  --color-accent: #f2542d;
+  --muted: #4a4553;
+  --color-muted: #4a4553;
+  --border: #e8e2d6;
+  --color-border: #e8e2d6;
+  --font-sans: "Instrument Sans", ui-sans-serif, sans-serif;
+
+  min-height: 100vh;
+  background: #faf7f1;
+  color: #17141e;
+  font-family: "Instrument Sans", ui-sans-serif, sans-serif;
+}
+
+/* The app's global dark rules set these on <body>; an Aspen page owns the
+   whole viewport, so the page background has to follow it. */
+body:has(.aspen-scope) {
+  background: #faf7f1;
+  color: #17141e;
 }

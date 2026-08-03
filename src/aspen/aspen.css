@@ -1,0 +1,94 @@
+/* Aspen base styles + extracted pseudo-state rules.
+   Each .ahN class carries one element's hover/active/focus rule, referenced from
+   the ported components. Convert to Tailwind hover: utilities one at a time. */
+
+/* Fonts (Bricolage Grotesque + Instrument Sans) are loaded from the document
+   head in src/routes/__root.tsx, alongside the app's existing Inter link —
+   the repo already has a font pipeline there, so the @import moved out of
+   this file rather than adding a second, render-blocking request.
+
+   The base rules below were `html, body, a, input…` in the design export.
+   This stylesheet is global once any Aspen route loads its chunk, and it stays
+   loaded after you navigate on to a dark /app screen — so they are scoped to
+   `.aspen-scope`, the wrapper each Aspen route renders.
+
+   They also live in `@layer base`. Unlayered CSS outranks anything in a
+   Tailwind layer regardless of specificity, so as plain rules `a { color }`
+   silently beat every text-colour utility — `<a class="text-accent">` rendered
+   ink-dark instead of orange. In `@layer base` the utilities win, which is
+   what the design assumes. The .ahN hover rules below stay unlayered on
+   purpose: those are meant to override utilities. */
+
+@layer base {
+  .aspen-scope {
+    margin: 0;
+    padding: 0;
+    background: #FAF7F1;
+    font-family: 'Instrument Sans', sans-serif;
+    color: #17141E;
+    -webkit-font-smoothing: antialiased;
+  }
+  .aspen-scope a { color: #17141E; text-decoration: none; }
+  .aspen-scope a:hover { color: #F2542D; }
+  .aspen-scope ::selection { background: #FFD84D; }
+  .aspen-scope :is(input, select, textarea, button) { font-family: 'Instrument Sans', sans-serif; }
+}
+@keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+.ah1:hover { background:#F2542D;color:#FAF7F1; }
+.ah2:hover { background:#17141E;color:#FAF7F1; }
+.ah3:hover { background:#17141E;color:#FAF7F1; }
+.ah4:hover { background:#17141E; }
+.ah5:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah6:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah7:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah8:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah9:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah10:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah11:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah12:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah13:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.1); }
+.ah14:hover { transform:translateY(-4px);box-shadow:0 20px 40px rgba(23,20,30,0.2); }
+.ah15:hover { background:#FFD84D;color:#17141E; }
+.ah16:hover { background:#17141E;color:#FAF7F1; }
+.ah17:hover { background:#FFD84D;color:#17141E; }
+.ah18:hover { background:#17141E;color:#FAF7F1; }
+.ah19:hover { background:#F2542D;color:#FAF7F1; }
+.ah20:hover { color:#F2542D; }
+.ah21:hover { background:#17141E; }
+.ah22:hover { border-color:#F2542D; }
+.ah23:hover { border-color:#F2542D; }
+.ah24:hover { border-color:#F2542D; }
+.ah25:hover { border-color:#F2542D; }
+.ah26:hover { border-color:#17141E; }
+.ah27:hover { background:#F2542D; }
+.ah28:hover { background:#17141E; }
+.ah29:hover { border-color:#F2542D; }
+.ah30:hover { background:#17141E; }
+.ah31:hover { border-color:#17141E; }
+.ah32:hover { color:#F2542D; }
+.ah33:hover { background:#17141E; }
+.ah34:hover { background:#FFECD9; }
+.ah35:hover { background:#17141E; }
+.ah36:hover { background:#17141E; }
+.ah37:hover { background:#F2542D; }
+.ah38:hover { background:#17141E; }
+.ah39:hover { border-color:#17141E; }
+.ah40:hover { background:#F2542D; }
+.ah41:hover { border-color:#F2542D;color:#F2542D; }
+.ah42:hover { background:#17141E; }
+.ah43:hover { border-color:#17141E; }
+.ah44:hover { background:#17141E; }
+.ah45:hover { background:#B33A12;color:#FFECD9; }
+.ah46:hover { color:#F2542D; }
+.ah47:hover { background:#17141E; }
+.ah48:hover { background:#17141E;color:#FAF7F1; }
+.ah49:hover { background:#17141E; }
+.ah50:hover { background:#17141E;color:#FAF7F1; }
+.ah51:hover { color:#B33A12; }
+.ah52:hover { background:#17141E; }
+.ah53:hover { color:#F2542D; }
+.ah54:hover { background:#17141E;color:#FAF7F1; }
+.ah55:hover { background:#17141E; }
+.ah56:hover { background:#F2542D;color:#FAF7F1; }
+.ah57:hover { background:#17141E;color:#FAF7F1; }

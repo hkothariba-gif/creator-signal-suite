@@ -1,50 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LandingNav } from "@/components/landing/LandingNav";
-import { Hero } from "@/components/landing/Hero";
-import { PlatformRevenueTabs } from "@/components/landing/PlatformRevenueTabs";
-import { TrustBar } from "@/components/landing/TrustBar";
-import { ProblemSolution } from "@/components/landing/ProblemSolution";
-import { AdsIntelligence } from "@/components/landing/AdsIntelligence";
-import { HeatMapSection } from "@/components/landing/HeatMapSection";
+import AspenHome from "@/aspen/AspenHome";
 
-import { Pricing } from "@/components/landing/Pricing";
-import { FinalCTA } from "@/components/landing/FinalCTA";
-import { LandingFooter } from "@/components/landing/LandingFooter";
-
+// The Aspen design replaces the previous dark landing. The old section
+// components that used to build this page (LandingNav, Hero, TrustBar,
+// Pricing, LandingFooter, …) were deleted once nothing imported them; they
+// are in git history if any of that copy is needed again. Only
+// components/landing/icons survives — app.platforms and PlatformTrustBar
+// still use it.
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AspenReach | The Right Signals. The Right Creators. Ads That Convert." },
+      { title: "Aspen | The right signals. The right creators. Ads that convert." },
       {
         name: "description",
         content:
-          "Finally, run influencer marketing and paid media from one seamless base. This is Aspen.",
+          "Find the creators your buyers already trust across YouTube, Reddit, X and LinkedIn, then turn what works into ads. Now in private early access.",
       },
-      { property: "og:title", content: "AspenReach | The Right Signals. The Right Creators. Ads That Convert." },
+      {
+        property: "og:title",
+        content: "Aspen | The right signals. The right creators. Ads that convert.",
+      },
       {
         property: "og:description",
-        content: "Finally, run influencer marketing and paid media from one seamless base. This is Aspen.",
+        content:
+          "Find the creators your buyers already trust across YouTube, Reddit, X and LinkedIn, then turn what works into ads. Now in private early access.",
       },
     ],
   }),
   component: Landing,
 });
 
+// Wrapped rather than passed directly: TanStack's RouteComponent expects a
+// function component, and AspenHome is a class (the design export is a class
+// component). This also matches how the other routes here are written.
 function Landing() {
-  return (
-    <div className="font-display antialiased bg-brand-navy text-white">
-      <LandingNav />
-      <main>
-        <Hero />
-        <PlatformRevenueTabs />
-        <TrustBar />
-        <ProblemSolution />
-        <AdsIntelligence />
-        <HeatMapSection />
-        <Pricing />
-        <FinalCTA />
-      </main>
-      <LandingFooter />
-    </div>
-  );
+  return <AspenHome />;
 }

@@ -16,8 +16,12 @@ export type AccountType = "brand" | "affiliate";
 export type BrandProfile = {
   category?: string;
   age?: string;
-  gender?: string;
-  income?: string;
+  /** Buyer seniority and deal size, asked by the Aspen onboarding step 2.
+      These replaced the old gender-skew / income-tier pair outright. Profiles
+      saved before the change may still carry `gender` / `income` keys in the
+      brand_profile JSON; they are ignored on read and dropped on next write. */
+  seniority?: string;
+  deal_size?: string;
   notes?: string;
   platforms?: PlatformFlags;
 };
@@ -86,8 +90,8 @@ function brandFromJson(json: unknown): BrandProfile {
   return {
     category: typeof obj.category === "string" ? obj.category : undefined,
     age: typeof obj.age === "string" ? obj.age : undefined,
-    gender: typeof obj.gender === "string" ? obj.gender : undefined,
-    income: typeof obj.income === "string" ? obj.income : undefined,
+    seniority: typeof obj.seniority === "string" ? obj.seniority : undefined,
+    deal_size: typeof obj.deal_size === "string" ? obj.deal_size : undefined,
     notes: typeof obj.notes === "string" ? obj.notes : undefined,
     platforms: platformsFromArray(Array.isArray(obj.platforms) ? (obj.platforms as string[]) : []),
   };
@@ -209,8 +213,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const brandJson = {
         category: merged.category ?? null,
         age: merged.age ?? null,
-        gender: merged.gender ?? null,
-        income: merged.income ?? null,
+        seniority: merged.seniority ?? null,
+        deal_size: merged.deal_size ?? null,
         notes: merged.notes ?? null,
         platforms: platformsToArray(merged.platforms),
       };

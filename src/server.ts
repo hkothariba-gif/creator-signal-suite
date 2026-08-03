@@ -37,9 +37,34 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+// The scroll-through tour is a standalone static page in public/tour/, not a
+// router route, and both landing CTAs link to it as /tour.
+//
+// This is a dev-only gap. In production Cloudflare's asset handler already
+// resolves /tour -> /tour/ -> index.html by itself, so the request never
+// reaches this worker. Vite's dev server does no such directory-index
+// resolution, so /tour fell through to the router and rendered its 404.
+//
+// It redirects rather than returning the file's bytes at /tour, because the
+// tour's markup uses relative references ("scrub-engine.js",
+// "assets/vid/conn1.mp4"). Served at /tour those resolve against the site
+// root and every one 404s; they only resolve with the document under /tour/.
+//
+// Only the bare path is matched. Redirecting /tour/ as well would be a latent
+// loop in production, where the asset handler sends /tour/index.html back to
+// /tour/. Left alone, /tour/ is served directly in production, and in dev the
+// router's trailing-slash redirect lands it here and it terminates.
+function tourRedirect(request: Request): Response | null {
+  const { pathname, search } = new URL(request.url);
+  if (pathname !== "/tour") return null;
+  return Response.redirect(new URL(`/tour/index.html${search}`, request.url), 308);
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const tour = tourRedirect(request);
+      if (tour) return tour;
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

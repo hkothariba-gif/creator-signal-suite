@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
 import { DataGate } from "@/components/app/DataGate";
@@ -78,14 +79,19 @@ function CampaignsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // The shell's "+ New campaign" button links here with ?new=1. Consume the
-  // param so a refresh or a back-navigation does not reopen the drawer.
+  // The shell's "+ New campaign" button links here with ?new=1.
   useEffect(() => {
-    if (openNew) {
-      setDrawer(true);
-      navigate({ to: "/app/campaigns", search: { new: undefined }, replace: true });
-    }
-  }, [openNew, navigate]);
+    if (openNew) setDrawer(true);
+  }, [openNew]);
+
+  // The param is cleared when the drawer closes, not when it opens. Clearing it
+  // on open replaces the location while this component is mounting, which
+  // remounts the route and throws away the `drawer` state we just set — so
+  // arriving on /app/campaigns?new=1 by URL flashed nothing at all.
+  const closeDrawer = () => {
+    setDrawer(false);
+    if (openNew) navigate({ to: "/app/campaigns", search: { new: undefined }, replace: true });
+  };
 
   const setStatus = async (c: Campaign, status: "active" | "draft" | "completed") => {
     const { error } = await supabase.from("campaigns").update({ status }).eq("id", c.id);
@@ -204,7 +210,7 @@ function CampaignsPage() {
         </div>
       </DataGate>
 
-      {drawer && <CampaignDrawer onClose={() => setDrawer(false)} onCreated={refresh} />}
+      {drawer && <CampaignDrawer onClose={closeDrawer} onCreated={refresh} />}
       {intel && (
         <CampaignIntelligence
           campaignId={intel.id}
@@ -228,6 +234,7 @@ export function CampaignDrawer({
   onCreated: (createdId?: string) => void;
 }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [product, setProduct] = useState("");
   const [platform, setPlatform] = useState<Platform>("All");
@@ -299,6 +306,13 @@ export function CampaignDrawer({
     }
 
     setSaving(false);
+    // The sidebar's campaign switcher and Home's counts read their own queries.
+    // Without this the shell still says "No campaigns yet" next to a campaign
+    // that is visibly on screen.
+    queryClient.invalidateQueries({ queryKey: ["shell-campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["home-counts"] });
+    queryClient.invalidateQueries({ queryKey: ["home-campaign-breakdown"] });
+
     onCreated(inserted.id);
     onClose();
   };

@@ -254,6 +254,9 @@ function AdsCenterPage() {
     { title: "AFFILIATE ANGLES", terms: intel?.angles ?? [], sel: selAngles, set: setSelAngles },
   ];
 
+  // A source chip says whether that source is feeding the ranked intelligence.
+  // Unconnected reads "Not connected" rather than looking merely greyed out —
+  // the difference between "off" and "nothing here" is the whole point.
   const sourceChip = (label: string, on: boolean | undefined) => (
     <span
       key={label}
@@ -264,7 +267,7 @@ function AdsCenterPage() {
           : { background: "#F5F1E9", color: "#8A8494" }
       }
     >
-      {label}
+      {on ? label : `${label} · Not connected`}
     </span>
   );
 
@@ -281,7 +284,7 @@ function AdsCenterPage() {
               {sourceChip("Reddit", p?.reddit)}
               {sourceChip("X", p?.x)}
               {/* No LinkedIn connector exists yet, so this chip can only ever
-                  read "not configured". Kept because the design lists it as a
+                  read "Not connected". Kept because the design lists it as a
                   signal source and its absence is the honest status. */}
               {sourceChip("LinkedIn", undefined)}
               {sourceChip("Affiliate", intel?.affiliateInformed)}

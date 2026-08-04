@@ -19,7 +19,7 @@ import {
 
    The design's "PAYOUTS DUE" tile has nothing behind it — there is no payout
    ledger in the schema, only clicks, conversions and attributed revenue — so it
-   shows a dash rather than a number we cannot compute. */
+   says so in words instead of showing a figure we cannot compute. */
 
 export const Route = createFileRoute("/app/affiliate")({
   component: AffiliatePage,
@@ -202,10 +202,12 @@ function AffiliatePage() {
         </div>
         <div className="bg-tint rounded-[20px] p-[22px]">
           <div className="text-[12px] font-bold tracking-[0.1em] text-accent-ink">PAYOUTS DUE</div>
-          <div className="font-heading font-extrabold text-[36px] tracking-[-0.03em] mt-[8px] text-accent-ink">
-            {dash}
+          <div className="font-heading font-extrabold text-[22px] tracking-[-0.02em] mt-[10px] text-accent-ink">
+            No payouts yet
           </div>
-          <div className="text-[12px] text-accent-ink-soft mt-[4px]">No payout ledger yet</div>
+          <div className="text-[12px] text-accent-ink-soft mt-[6px]">
+            Payouts arrive with the payouts phase.
+          </div>
         </div>
       </div>
 

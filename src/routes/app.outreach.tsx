@@ -1,29 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SearchSchemaInput } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AppShell, Card } from "@/components/app/AppShell";
-import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { OutreachComposer } from "@/components/app/OutreachComposer";
 import {
   EmailAccountsCard,
   DeliveryMetricsPanel,
   SequencesPanel,
 } from "@/components/app/OutreachPanels";
-import { Inbox, MessageSquare, ArrowRight, Loader2 } from "lucide-react";
 import {
   listThreads,
   getThreadMessages,
   type OutreachThread,
   type OutreachMessage,
 } from "@/lib/outreach.functions";
+import { useAspenCampaign } from "@/routes/app";
 
-// Unified outreach inbox. Every conversation across email, X, Reddit, and
-// LinkedIn-assisted lands here, scoped by campaign. Threads on the left, the
-// selected conversation on the right, with a reply composer. New outreach is
-// started from a creator's profile or the hotlist; this page manages the
-// back-and-forth once it exists.
+/* OUTREACH INBOX — the `v.isOutreach` block of src/aspen/AspenApp.tsx, on the
+   live hooks the dark version used. Shell, header and title come from the /app
+   layout route. Campaign scope comes from the sidebar switcher; the `campaign`
+   search param still overrides it.
+
+   Unified outreach inbox. Every conversation across email, X, Reddit, and
+   LinkedIn-assisted lands here, scoped by campaign. Threads on the left, the
+   selected conversation on the right, with a reply composer. New outreach is
+   started from a creator's profile or the hotlist; this page manages the
+   back-and-forth once it exists.
+
+   The design's Open/Archived tabs map onto thread status: "Archived" is the
+   closed threads, which the dark version never surfaced at all. */
+
 export const Route = createFileRoute("/app/outreach")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (
+    search: { campaign?: string; connected?: string; email_error?: string } & SearchSchemaInput,
+  ) => ({
     campaign: typeof search.campaign === "string" ? search.campaign : undefined,
     connected: typeof search.connected === "string" ? search.connected : undefined,
     email_error: typeof search.email_error === "string" ? search.email_error : undefined,
@@ -31,25 +41,35 @@ export const Route = createFileRoute("/app/outreach")({
   component: OutreachPage,
 });
 
-const CHANNEL_BADGE: Record<string, { bg: string; color: string; label: string }> = {
-  email: { bg: "rgba(0,217,126,0.15)", color: "#00D97E", label: "Email" },
-  x: { bg: "rgba(255,255,255,0.1)", color: "#FFFFFF", label: "X" },
-  reddit: { bg: "rgba(255,69,0,0.15)", color: "#FF7B3D", label: "Reddit" },
-  linkedin: { bg: "rgba(10,102,194,0.15)", color: "#5BA4F5", label: "LinkedIn" },
+// The design's channel chips, in its brand colours.
+const CHANNEL: Record<string, { color: string; label: string }> = {
+  email: { color: "#F03", label: "Email" },
+  x: { color: "#17141E", label: "X" },
+  reddit: { color: "#FF4500", label: "Reddit" },
+  linkedin: { color: "#0A66C2", label: "LinkedIn" },
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  active: "#00D97E",
-  replied: "#F59E0B",
-  bounced: "#FF6B6B",
-  closed: "#5A6478",
-  draft: "#8892A4",
+  active: "#1FA463",
+  replied: "#F2542D",
+  bounced: "#C0341A",
+  closed: "#8A8494",
+  draft: "#8A8494",
 };
 
 function OutreachPage() {
   const { campaign: campaignParam, connected, email_error } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const [campaignId, setCampaignId] = useState<string | undefined>(campaignParam);
+  const { selected: selectedCampaign } = useAspenCampaign();
+  const campaignId = campaignParam ?? selectedCampaign?.id;
+
+  const [threads, setThreads] = useState<OutreachThread[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<OutreachThread | null>(null);
+  const [messages, setMessages] = useState<OutreachMessage[]>([]);
+  const [loadingMsgs, setLoadingMsgs] = useState(false);
+  const [replying, setReplying] = useState(false);
+  const [inbox, setInbox] = useState<"open" | "archived">("open");
 
   // Post-OAuth landing: surface the outcome once, then clean the URL.
   useEffect(() => {
@@ -67,12 +87,6 @@ function OutreachPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, email_error]);
-  const [threads, setThreads] = useState<OutreachThread[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<OutreachThread | null>(null);
-  const [messages, setMessages] = useState<OutreachMessage[]>([]);
-  const [loadingMsgs, setLoadingMsgs] = useState(false);
-  const [replying, setReplying] = useState(false);
 
   const loadThreads = async () => {
     setLoading(true);
@@ -101,159 +115,203 @@ function OutreachPage() {
     }
   };
 
-  const counts = useMemo(() => {
-    const c = { total: threads.length, replied: threads.filter((t) => t.status === "replied").length };
-    return c;
-  }, [threads]);
+  const open = useMemo(() => threads.filter((t) => t.status !== "closed"), [threads]);
+  const archived = useMemo(() => threads.filter((t) => t.status === "closed"), [threads]);
+  const visible = inbox === "archived" ? archived : open;
+  const replied = open.filter((t) => t.status === "replied").length;
 
   return (
-    <AppShell
-      title="Outreach Inbox"
-      right={<CampaignPicker value={campaignId} onChange={setCampaignId} />}
-    >
-      <p className="text-[#8892A4] mb-4">
-        {counts.total} conversation{counts.total === 1 ? "" : "s"}
-        {counts.replied > 0 ? ` · ${counts.replied} replied` : ""} — email, X, Reddit, and LinkedIn in one place.
-      </p>
+    <div className="aspen-scope">
+      <div className="text-[14px] text-muted mb-[18px]">
+        {threads.length} conversation{threads.length === 1 ? "" : "s"}
+        {replied > 0 ? ` · ${replied} replied` : ""} — email, X, Reddit and LinkedIn in one place.
+      </div>
 
-      {loading ? (
-        <div className="flex items-center gap-2 text-[#8892A4] text-sm py-12 justify-center">
-          <Loader2 className="w-4 h-4 animate-spin" /> Loading conversations…
-        </div>
-      ) : threads.length === 0 ? (
-        <Card className="p-10 text-center">
-          <Inbox className="w-12 h-12 mx-auto text-[#00D97E]" strokeWidth={1.2} />
-          <h2 className="mt-4 text-lg font-bold text-[#F0F4FF]">No conversations yet</h2>
-          <p className="mt-1 text-sm text-[#8892A4] max-w-md mx-auto">
-            Start outreach from a creator's profile or your hotlist. Replies and sent messages will appear here.
-          </p>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
-          {/* Threads list */}
-          <div className="space-y-2">
-            {threads.map((t) => {
-              const b = CHANNEL_BADGE[t.channel] ?? CHANNEL_BADGE.email;
+      <div className="flex gap-[16px] items-start flex-wrap">
+        <div className="flex-[0_1_320px] min-w-[280px] flex flex-col gap-[9px]">
+          <div className="flex gap-[7px] mb-[3px]">
+            {[
+              { key: "open" as const, label: `Open (${open.length})` },
+              { key: "archived" as const, label: `Archived (${archived.length})` },
+            ].map((t) => {
+              const on = inbox === t.key;
               return (
                 <button
-                  key={t.id}
-                  onClick={() => openThread(t)}
-                  className={`w-full text-left rounded-xl border p-3 transition-colors ${
-                    selected?.id === t.id
-                      ? "border-[#00D97E] bg-[#0C1222]"
-                      : "border-white/[0.07] bg-[#0C1222] hover:border-white/20"
-                  }`}
+                  key={t.key}
+                  onClick={() => setInbox(t.key)}
+                  className="text-[12.5px] font-bold p-[8px_13px] rounded-[10px] cursor-pointer"
+                  style={{
+                    border: `1.5px solid ${on ? "#17141E" : "#E8E2D6"}`,
+                    background: on ? "#17141E" : "#fff",
+                    color: on ? "#FAF7F1" : "#4A4553",
+                  }}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-sm text-white truncate">
-                      {t.creator_name ?? "Creator"}
-                    </span>
-                    <span
-                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
-                      style={{ background: b.bg, color: b.color }}
-                    >
-                      {b.label}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span
-                      className="text-[10px] font-semibold"
-                      style={{ color: STATUS_COLOR[t.status] ?? "#8892A4" }}
-                    >
-                      ● {t.status}
-                    </span>
-                    {t.last_message_at && (
-                      <span className="text-[10px] text-[#5A6478]">
-                        {new Date(t.last_message_at).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
+                  {t.label}
                 </button>
               );
             })}
           </div>
 
-          {/* Conversation */}
-          <Card className="p-5 min-h-[400px]">
-            {!selected ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-[#5A6478]">
-                <MessageSquare className="w-10 h-10" strokeWidth={1.2} />
-                <p className="mt-3 text-sm">Select a conversation to read and reply.</p>
-              </div>
-            ) : replying ? (
-              <OutreachComposer
-                hotlistId={selected.hotlist_id}
-                campaignId={selected.campaign_id}
-                creatorName={selected.creator_name ?? "creator"}
-                onSent={async () => {
-                  setReplying(false);
-                  await openThread(selected);
-                  await loadThreads();
-                }}
-                onClose={() => setReplying(false)}
+          {loading ? (
+            <div className="text-[13.5px] text-subtle p-[24px_0] text-center">
+              Loading conversations…
+            </div>
+          ) : visible.length === 0 ? (
+            <div className="bg-surface border-[1.5px] border-border rounded-[18px] p-[32px_22px] text-center">
+              <img
+                src="/aspen/empty-outreach.webp"
+                alt="A clay letterbox with one folded note"
+                className="w-[120px] block mx-auto"
+                loading="lazy"
               />
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-[#F0F4FF]">{selected.creator_name ?? "Creator"}</h3>
-                  <button
-                    onClick={() => setReplying(true)}
-                    className="px-4 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-xs font-bold inline-flex items-center gap-1.5"
-                  >
-                    Reply <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+              <div className="font-heading font-extrabold text-[18px] tracking-[-0.02em] mt-[4px]">
+                {inbox === "archived" ? "Nothing archived" : "No conversations yet"}
+              </div>
+              <p className="text-[13.5px] text-muted leading-[1.55] m-[8px_auto_0] max-w-[230px]">
+                {inbox === "archived"
+                  ? "Conversations you close land here, with every contact attempt still logged."
+                  : "Start outreach from a creator's profile or your hotlist. Replies and sent messages appear here."}
+              </p>
+            </div>
+          ) : (
+            visible.map((t) => {
+              const ch = CHANNEL[t.channel] ?? CHANNEL.email;
+              const on = selected?.id === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => openThread(t)}
+                  className="text-left cursor-pointer bg-surface rounded-[15px] p-[14px_15px]"
+                  style={{ border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}` }}
+                >
+                  <div className="flex items-center justify-between gap-[10px]">
+                    <span className="text-[14.5px] font-bold truncate">
+                      {t.creator_name ?? "Creator"}
+                    </span>
+                    <span
+                      className="text-[10.5px] font-bold text-surface p-[3px_8px] rounded-[6px] shrink-0"
+                      style={{ background: ch.color }}
+                    >
+                      {ch.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-[9px] mt-[7px]">
+                    <span
+                      className="text-[11.5px] font-bold"
+                      style={{ color: STATUS_COLOR[t.status] ?? "#8A8494" }}
+                    >
+                      ● {t.status}
+                    </span>
+                    {t.last_message_at ? (
+                      <span className="text-[11.5px] text-subtle">
+                        {new Date(t.last_message_at).toLocaleDateString()}
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        <div className="flex-[1_1_420px] min-w-[320px] bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+          {!selected ? (
+            <div className="text-center text-[13.5px] text-subtle p-[48px_0]">
+              Select a conversation to read and reply.
+            </div>
+          ) : replying ? (
+            <OutreachComposer
+              hotlistId={selected.hotlist_id}
+              campaignId={selected.campaign_id}
+              creatorName={selected.creator_name ?? "creator"}
+              onSent={async () => {
+                setReplying(false);
+                await openThread(selected);
+                await loadThreads();
+              }}
+              onClose={() => setReplying(false)}
+            />
+          ) : (
+            <>
+              <div className="flex items-center justify-between gap-[12px] pb-[16px] border-b-[1.5px] border-border-soft">
+                <div>
+                  <div className="font-heading font-bold text-[18px]">
+                    {selected.creator_name ?? "Creator"}
+                  </div>
+                  <div className="text-[12.5px] text-subtle mt-[2px]">
+                    {(CHANNEL[selected.channel] ?? CHANNEL.email).label}
+                    {selected.last_message_at
+                      ? ` · ${new Date(selected.last_message_at).toLocaleDateString()}`
+                      : ""}
+                  </div>
                 </div>
+                <button
+                  onClick={() => setReplying(true)}
+                  className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer ah36"
+                >
+                  Reply →
+                </button>
+              </div>
+              <div className="flex flex-col gap-[12px] mt-[18px]">
                 {loadingMsgs ? (
-                  <p className="text-xs text-[#5A6478]">Loading messages…</p>
+                  <div className="text-[13px] text-subtle">Loading messages…</div>
+                ) : messages.length === 0 ? (
+                  <div className="text-[13px] text-subtle">No messages in this thread yet.</div>
                 ) : (
-                  <div className="space-y-3">
-                    {messages.map((m) => (
+                  messages.map((m) => {
+                    const out = m.direction === "outbound";
+                    return (
                       <div
                         key={m.id}
-                        className={`rounded-lg p-3 border ${
-                          m.direction === "outbound"
-                            ? "bg-[#00D97E]/[0.06] border-[#00D97E]/20 ml-8"
-                            : "bg-white/[0.03] border-white/[0.07] mr-8"
-                        }`}
+                        className="rounded-[15px] p-[15px]"
+                        style={{
+                          background: out ? "#FFF6F2" : "#FAF7F1",
+                          border: `1.5px solid ${out ? "#FFD9CC" : "#E8E2D6"}`,
+                          marginLeft: out ? "32px" : "0px",
+                          marginRight: out ? "0px" : "32px",
+                        }}
                       >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8892A4]">
-                            {m.direction === "outbound" ? "You" : selected.creator_name ?? "Creator"}
+                        <div className="flex items-center justify-between gap-[10px] mb-[7px]">
+                          <span className="text-[11px] font-bold tracking-[0.1em] text-subtle">
+                            {out ? "YOU" : (selected.creator_name ?? "CREATOR").toUpperCase()}
                           </span>
                           <span
-                            className="text-[10px]"
-                            style={{ color: m.status === "failed" ? "#FF6B6B" : "#5A6478" }}
+                            className="text-[11px] font-semibold"
+                            style={{ color: m.status === "failed" ? "#C0341A" : "#8A8494" }}
                           >
                             {m.status}
                           </span>
                         </div>
-                        {m.subject && <p className="text-xs font-semibold text-[#F0F4FF]">{m.subject}</p>}
-                        <p className="text-sm text-[#F0F4FF]/85 whitespace-pre-wrap">{m.body}</p>
-                        {m.error && <p className="mt-1 text-[10px] text-[#FF6B6B]">{m.error}</p>}
+                        {m.subject ? (
+                          <div className="text-[13.5px] font-bold mb-[4px]">{m.subject}</div>
+                        ) : null}
+                        <div className="text-[14px] leading-[1.6] text-muted whitespace-pre-wrap">
+                          {m.body}
+                        </div>
+                        {m.error ? (
+                          <div className="text-[11.5px] text-[#C0341A] mt-[6px]">{m.error}</div>
+                        ) : null}
                       </div>
-                    ))}
-                    {messages.length === 0 && (
-                      <p className="text-xs text-[#5A6478]">No messages in this thread yet.</p>
-                    )}
-                  </div>
+                    );
+                  })
                 )}
               </div>
-            )}
-          </Card>
+            </>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Phase 4E: sending identity, delivery metrics, and sequences. */}
-      <h2 className="mt-8 mb-3 text-sm font-bold uppercase tracking-wider text-[#8892A4]">
-        Sending & automation
-      </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="text-[12px] font-bold tracking-[0.14em] text-subtle m-[34px_0_14px]">
+        SENDING &amp; AUTOMATION
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-[16px]">
         <EmailAccountsCard />
         <DeliveryMetricsPanel campaignId={campaignId} />
       </div>
-      <div className="mt-4">
+      <div className="mt-[16px]">
         <SequencesPanel campaignId={campaignId} />
       </div>
-    </AppShell>
+    </div>
   );
 }

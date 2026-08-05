@@ -1,11 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import type { SearchSchemaInput } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AppShell, Card } from "@/components/app/AppShell";
-import { AdsLibrary } from "@/components/app/AdsLibrary";
-import { CampaignDrawer } from "@/routes/app.campaigns.index";
-import { AuthenticAdStudio } from "@/components/app/AuthenticAdStudio";
-import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,14 +12,26 @@ import {
   generateAdImage,
 } from "@/lib/ads.functions";
 import type { AdIntelligence, RankedTerm } from "@/lib/intelligence";
-import { RefreshCw, Wand2, Image as ImageIcon, Save, Share2, Loader2 } from "lucide-react";
+import { useAspenCampaign } from "@/routes/app";
+
+/* ADS CENTER — the `v.isAds` block of src/aspen/AspenApp.tsx, on the live hooks
+   the dark version used. Shell, header and title come from the /app layout
+   route. Campaign scope comes from the sidebar switcher; the `campaign` search
+   param still overrides it.
+
+   Only the Generate view exists now. The design's Library and Intelligence tabs
+   both rendered the Generate layout — they were chrome with nothing behind them
+   — so they are gone rather than left as dead affordances. The ranked
+   intelligence panel is still here in the left column, which is where the
+   design puts it; what is no longer reachable is the saved-ads browser that the
+   dark version had behind the Library tab (components/app/AdsLibrary.tsx is
+   still in the tree, unrendered, waiting for a screen of its own). */
 
 export const Route = createFileRoute("/app/ads")({
-  component: AdStudioPage,
-  validateSearch: (search: Record<string, unknown>): { campaign?: string } => ({
-    campaign:
-      typeof search.campaign === "string" && search.campaign ? search.campaign : undefined,
+  validateSearch: (search: { campaign?: string } & SearchSchemaInput) => ({
+    campaign: typeof search.campaign === "string" ? search.campaign : undefined,
   }),
+  component: AdsCenterPage,
 });
 
 type AdRow = {
@@ -42,27 +50,23 @@ type AdRow = {
   insights: unknown;
 };
 
-const PLATFORMS = ["reddit", "x", "youtube"] as const;
+const PLATFORMS = ["reddit", "x", "youtube", "linkedin"] as const;
 const TONES = ["confident", "direct", "playful", "expert"] as const;
-const AFFILIATE_LABEL = "Not informed by affiliate performance";
 
-function AdStudioPage() {
-  const { user, canEdit } = useAuth();
+function AdsCenterPage() {
+  const { user } = useAuth();
   const status = useConnectorStatus();
   const p = status.data?.platform;
   const orgId = user?.organization?.id;
+  const { selected: selectedCampaign } = useAspenCampaign();
+  const { campaign: campaignParam } = Route.useSearch();
+  const campaignId = campaignParam ?? selectedCampaign?.id;
 
   const anySource: boolean | undefined = p
     ? p.listening || p.creatorPerformance || p.youtube || p.x || p.reddit || p.trends
     : undefined;
   const llmReady = p ? p.llm : undefined;
   const imageReady = p ? p.image : undefined;
-
-  // ── V3 campaign-first shell state ──
-  const { campaign: campaignParam } = Route.useSearch();
-  const [adsCampaignId, setAdsCampaignId] = useState<string | undefined>(campaignParam);
-  const [adsTab, setAdsTab] = useState<"generate" | "library" | "intelligence">("generate");
-  const [showNewCampaign, setShowNewCampaign] = useState(false);
 
   // ── Signals and intelligence ───────────────────────────────────────────────
   const [query, setQuery] = useState("");
@@ -74,8 +78,7 @@ function AdStudioPage() {
     if (!orgId) return;
     setIntelLoading(true);
     try {
-      const result = await getAdIntelligence({ data: { organizationId: orgId } });
-      setIntel(result);
+      setIntel(await getAdIntelligence({ data: { organizationId: orgId } }));
     } catch {
       setIntel(null);
     } finally {
@@ -102,14 +105,14 @@ function AdStudioPage() {
     }
   };
 
-  // ── Selection feeding generation ────────────────────────────────────────────
+  // ── Selection feeding generation ───────────────────────────────────────────
   const [selThemes, setSelThemes] = useState<string[]>([]);
   const [selHooks, setSelHooks] = useState<string[]>([]);
   const [selAngles, setSelAngles] = useState<string[]>([]);
   const toggle = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
-  // ── Editor state ────────────────────────────────────────────────────────────
+  // ── Editor state ───────────────────────────────────────────────────────────
   const [brief, setBrief] = useState("");
   const [tone, setTone] = useState<(typeof TONES)[number]>("confident");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]>("reddit");
@@ -119,31 +122,6 @@ function AdStudioPage() {
   const [generatingCopy, setGeneratingCopy] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // ── Saved and shared ads ────────────────────────────────────────────────────
-  const [ads, setAds] = useState<AdRow[]>([]);
-
-  const loadAds = useCallback(async () => {
-    if (!orgId) return;
-    const { data } = await supabase
-      .from("ads")
-      .select(
-        "id,name,headline,body,cta,image_path,image_prompt,target_platform,informed_by_affiliate,status,shared,created_by,insights",
-      )
-      .eq("organization_id", orgId)
-      .order("updated_at", { ascending: false });
-    setAds((data ?? []) as AdRow[]);
-  }, [orgId]);
-
-  useEffect(() => {
-    void loadAds();
-  }, [loadAds]);
-
-  const signedUrl = useCallback(async (path: string | null): Promise<string | null> => {
-    if (!path) return null;
-    const { data } = await supabase.storage.from("ad-images").createSignedUrl(path, 3600);
-    return data?.signedUrl ?? null;
-  }, []);
 
   const generateCopy = async () => {
     if (!orgId || !brief.trim()) return;
@@ -185,7 +163,6 @@ function AdStudioPage() {
       setImagePrompt(
         `Advertising image for ${user?.company_name ?? "the brand"}. ${copy.headline}. ${selThemes.slice(0, 4).join(", ")}`.trim(),
       );
-      await loadAds();
       toast.success("Draft created");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not generate copy");
@@ -203,7 +180,6 @@ function AdStudioPage() {
       });
       setImageUrl(res.url);
       setDraft((d) => (d ? { ...d, image_path: res.path, image_prompt: imagePrompt.trim() } : d));
-      await loadAds();
       toast.success("Image attached");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not generate image");
@@ -229,7 +205,6 @@ function AdStudioPage() {
         .eq("id", draft.id);
       if (error) throw new Error(error.message);
       setDraft((d) => (d ? { ...d, status: "saved", shared: share ? true : d.shared } : d));
-      await loadAds();
       toast.success(share ? "Saved and shared with the team" : "Saved");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not save");
@@ -238,508 +213,317 @@ function AdStudioPage() {
     }
   };
 
-  const editAd = async (ad: AdRow) => {
-    setDraft(ad);
-    setImagePrompt(ad.image_prompt ?? "");
-    setImageUrl(await signedUrl(ad.image_path));
-  };
-
   if (!user) {
     return (
-      <AppShell title="Ad Studio">
-        <Card className="p-8 text-center text-[#8892A4]">Sign in to open Ad Studio.</Card>
-      </AppShell>
+      <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">
+        Sign in to open the Ads Center.
+      </div>
     );
   }
 
   if (!orgId) {
     return (
-      <AppShell title="Ad Studio">
-        <Card className="p-8 text-center">
-          <h2 className="text-lg font-bold text-white">Create your first campaign</h2>
-          <p className="mt-2 text-sm text-[#8892A4]">
-            Ads are built for a product, on a campaign. Finish the quick setup and your first
-            campaign lands right back here.
-          </p>
-          <Link
-            to="/onboarding"
-            className="mt-4 inline-block px-5 py-2 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold"
-          >
-            Finish setup
-          </Link>
-        </Card>
-      </AppShell>
+      <div className="aspen-scope bg-surface border-[1.5px] border-border rounded-[22px] p-[36px] text-center max-w-[560px]">
+        <h2 className="font-heading font-extrabold text-[22px] tracking-[-0.02em] m-0">
+          Create your first campaign
+        </h2>
+        <p className="text-[14.5px] text-muted leading-[1.6] m-[10px_auto_0] max-w-[400px]">
+          Ads are built for a product, on a campaign. Finish the quick setup and your first campaign
+          lands right back here.
+        </p>
+        <Link
+          to="/onboarding"
+          className="mt-[18px] inline-block border-0 bg-accent text-cream text-[14px] font-bold p-[12px_20px] rounded-[12px] ah21"
+        >
+          Finish setup
+        </Link>
+      </div>
     );
   }
 
+  // The design's four intelligence groups, filled from the ranked terms.
+  const groups: {
+    title: string;
+    terms: RankedTerm[];
+    sel: string[];
+    set: (v: string[]) => void;
+  }[] = [
+    { title: "HOOKS", terms: intel?.hooks ?? [], sel: selHooks, set: setSelHooks },
+    { title: "PHRASES", terms: intel?.phrases ?? [], sel: selThemes, set: setSelThemes },
+    { title: "THEMES", terms: intel?.themes ?? [], sel: selThemes, set: setSelThemes },
+    { title: "AFFILIATE ANGLES", terms: intel?.angles ?? [], sel: selAngles, set: setSelAngles },
+  ];
+
+  // A source chip says whether that source is feeding the ranked intelligence.
+  // Unconnected reads "Not connected" rather than looking merely greyed out —
+  // the difference between "off" and "nothing here" is the whole point.
+  const sourceChip = (label: string, on: boolean | undefined) => (
+    <span
+      key={label}
+      className="text-[11.5px] font-bold p-[5px_10px] rounded-[8px]"
+      style={
+        on
+          ? { background: "#DDF3E6", color: "#0E7A3D" }
+          : { background: "#F5F1E9", color: "#8A8494" }
+      }
+    >
+      {on ? label : `${label} · Not connected`}
+    </span>
+  );
+
   return (
-    <AppShell title="Ad Studio">
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold">Ads Center</h2>
-        <p className="text-[#8892A4] mt-1">
-          Build ads for a product, on a campaign — grounded in real audience language and your
-          creator marketing data.
-        </p>
-      </div>
-
-      {/* ── V3: campaign-first shell ── */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <CampaignPicker key={adsCampaignId ?? "none"} value={adsCampaignId} onChange={setAdsCampaignId} />
-        <button
-          onClick={() => setShowNewCampaign(true)}
-          className="text-xs font-bold text-[#00D97E] hover:underline"
-        >
-          + New campaign
-        </button>
-        {adsCampaignId && (
-          <div className="flex gap-1.5 ml-auto">
-            {(["generate", "library", "intelligence"] as const).map((t) => (
+    <div className="aspen-scope">
+      <div className="flex gap-[16px] items-start flex-wrap">
+        <div className="flex-[0_1_340px] min-w-[290px] flex flex-col gap-[16px]">
+          <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
+            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]">
+              SIGNAL SOURCES
+            </div>
+            <div className="flex gap-[7px] flex-wrap">
+              {sourceChip("YouTube", p?.youtube)}
+              {sourceChip("Reddit", p?.reddit)}
+              {sourceChip("X", p?.x)}
+              {/* No LinkedIn connector exists yet, so this chip can only ever
+                  read "Not connected". Kept because the design lists it as a
+                  signal source and its absence is the honest status. */}
+              {sourceChip("LinkedIn", undefined)}
+              {sourceChip("Affiliate", intel?.affiliateInformed)}
+              {sourceChip("Trends", p?.trends)}
+            </div>
+            <div className="flex gap-[8px] mt-[14px]">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && runCollect()}
+                placeholder="Topic to listen for"
+                className="flex-1 min-w-0 h-[42px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
+              />
               <button
-                key={t}
-                onClick={() => setAdsTab(t)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold capitalize ${
-                  adsTab === t ? "bg-[#00D97E] text-[#05080F]" : "bg-white/[0.05] text-[#8892A4] hover:text-white"
-                }`}
+                onClick={runCollect}
+                disabled={!query.trim() || collecting}
+                className="border-0 bg-dark text-cream text-[13px] font-bold p-[0_15px] rounded-[11px] cursor-pointer ah37 disabled:opacity-40"
               >
-                {t}
+                {collecting ? "…" : "Refresh"}
               </button>
-            ))}
+            </div>
           </div>
-        )}
-      </div>
 
-      {showNewCampaign && (
-        <CampaignDrawer
-          onClose={() => setShowNewCampaign(false)}
-          onCreated={(id) => {
-            if (id) {
-              setAdsCampaignId(id);
-              setAdsTab("generate");
-            }
-          }}
-        />
-      )}
-
-      {!adsCampaignId ? (
-        <Card className="p-10 text-center">
-          <h3 className="text-lg font-bold text-[#F0F4FF]">Pick a campaign to build ads for</h3>
-          <p className="mt-1 text-sm text-[#8892A4] max-w-md mx-auto">
-            Its product, audience, belief doc, corpus, and affiliate data flow in automatically —
-            or create a new campaign to start from scratch.
-          </p>
-        </Card>
-      ) : adsTab === "generate" && orgId ? (
-        <AuthenticAdStudio
-          key={adsCampaignId}
-          organizationId={orgId}
-          brand={user?.company_name ?? user?.organization?.name ?? "the brand"}
-          canEdit={canEdit}
-          llmReady={llmReady}
-          onGenerated={() => void loadAds()}
-          campaignId={adsCampaignId}
-        />
-      ) : adsTab === "library" && orgId ? (
-        <AdsLibrary
-          organizationId={orgId}
-          campaignId={adsCampaignId}
-          brand={user?.company_name ?? user?.organization?.name ?? "the brand"}
-          canEdit={canEdit}
-        />
-      ) : null}
-
-      <div
-        className={`grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6 ${
-          adsCampaignId && adsTab === "intelligence" ? "" : "hidden"
-        }`}
-      >
-        {/* ── Left: signals and intelligence ── */}
-        <div className="space-y-6">
-          <Card className="p-5">
-            <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold mb-3">
-              Signal sources
+          <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
+            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">
+              RANKED INTELLIGENCE
             </div>
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {p &&
-                (
-                  [
-                    ["Brand24", p.listening],
-                    ["Phyllo", p.creatorPerformance],
-                    ["YouTube", p.youtube],
-                    ["X", p.x],
-                    ["Reddit", p.reddit],
-                    ["Trends", p.trends],
-                  ] as const
-                ).map(([label, on]) => (
-                  <span
-                    key={label}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                      on
-                        ? "bg-[#00D97E]/15 text-[#00D97E] border-[#00D97E]/30"
-                        : "bg-white/[0.03] text-[#5A6478] border-white/10"
-                    }`}
-                  >
-                    {label}
-                  </span>
-                ))}
-            </div>
-            {canEdit && (
-              <div className="flex gap-2">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && runCollect()}
-                  placeholder="Topic to listen for"
-                  className="flex-1 h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm focus:outline-none focus:border-[#00D97E]"
-                />
-                <button
-                  onClick={runCollect}
-                  disabled={collecting || !anySource || !query.trim()}
-                  className="px-3 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
-                >
-                  {collecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  Refresh
-                </button>
-              </div>
-            )}
-          </Card>
-
-          <Card className="p-5">
-            <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold mb-3">
-              Ranked intelligence
+            <div className="text-[12.5px] text-subtle m-[8px_0_16px]">
+              {intel
+                ? `From ${intel.total} signals. Pick the terms that feed the draft.`
+                : "Collect signals to rank the language your audience uses."}
             </div>
             <DataGate
               connected={anySource}
               loading={status.isLoading || intelLoading}
               empty={!intel || intel.total === 0}
-              label="Ranks once a signal source is configured and signals are stored"
+              label="Signals come from your platform connections"
             >
-              {intel && (
-                <div className="space-y-4">
-                  <p className="text-xs text-[#8892A4]">
-                    From {intel.total} signals. Select terms to feed generation.
-                  </p>
-                  <TermGroup
-                    title="Hooks"
-                    terms={intel.hooks}
-                    selected={selHooks}
-                    onToggle={(t) => setSelHooks((a) => toggle(a, t))}
-                  />
-                  <TermGroup
-                    title="Phrases"
-                    terms={intel.phrases}
-                    selected={selThemes}
-                    onToggle={(t) => setSelThemes((a) => toggle(a, t))}
-                  />
-                  <TermGroup
-                    title="Themes"
-                    terms={intel.themes}
-                    selected={selThemes}
-                    onToggle={(t) => setSelThemes((a) => toggle(a, t))}
-                  />
-                  <TermGroup
-                    title="Affiliate angles"
-                    terms={intel.angles}
-                    selected={selAngles}
-                    onToggle={(t) => setSelAngles((a) => toggle(a, t))}
-                  />
-                </div>
-              )}
+              <div className="flex flex-col gap-[16px]">
+                {groups.map((g) => (
+                  <div key={g.title}>
+                    <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[8px]">
+                      {g.title}
+                    </div>
+                    <div className="flex gap-[7px] flex-wrap">
+                      {g.terms.length === 0 ? (
+                        <span className="text-[12.5px] text-subtle">None yet</span>
+                      ) : (
+                        g.terms.map((t) => {
+                          const on = g.sel.includes(t.text);
+                          return (
+                            <button
+                              key={t.text}
+                              onClick={() => g.set(toggle(g.sel, t.text))}
+                              title={`${t.count} mention${t.count === 1 ? "" : "s"} · ${t.sources.join(", ")}`}
+                              className="text-[12.5px] font-semibold p-[7px_11px] rounded-[10px] cursor-pointer text-left"
+                              style={{
+                                border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}`,
+                                background: on ? "#FFECD9" : "#FAF7F1",
+                                color: on ? "#B33A12" : "#4A4553",
+                              }}
+                            >
+                              {t.text}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </DataGate>
-          </Card>
+          </div>
         </div>
 
-        {/* ── Right: generation and editor ── */}
-        <div className="space-y-6">
-          <Card className="p-5">
-            <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold mb-3">
-              Generate copy
+        <div className="flex-[1_1_420px] min-w-[320px] flex flex-col gap-[16px]">
+          <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]">
+              GENERATE COPY
             </div>
-            <DataGate
-              connected={llmReady}
-              loading={status.isLoading}
-              label="Copy generation runs through the LLM connection"
-            >
-              <div className="space-y-3">
-                <textarea
-                  value={brief}
-                  onChange={(e) => setBrief(e.target.value)}
-                  placeholder="What are you advertising? Product, offer, and audience."
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-lg bg-[#05080F] border border-white/10 text-sm focus:outline-none focus:border-[#00D97E]"
-                />
-                <div className="flex flex-wrap gap-3">
-                  <label className="text-xs text-[#8892A4] flex items-center gap-2">
-                    Platform
-                    <select
-                      value={platform}
-                      onChange={(e) => setPlatform(e.target.value as (typeof PLATFORMS)[number])}
-                      className="h-9 px-2 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white"
-                    >
-                      {PLATFORMS.map((x) => (
-                        <option key={x} value={x}>
-                          {x}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-xs text-[#8892A4] flex items-center gap-2">
-                    Tone
-                    <select
-                      value={tone}
-                      onChange={(e) => setTone(e.target.value as (typeof TONES)[number])}
-                      className="h-9 px-2 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white"
-                    >
-                      {TONES.map((x) => (
-                        <option key={x} value={x}>
-                          {x}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                {canEdit ? (
-                  <button
-                    onClick={generateCopy}
-                    disabled={generatingCopy || !brief.trim()}
-                    className="px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
-                  >
-                    {generatingCopy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                    Generate copy
-                  </button>
-                ) : (
-                  <p className="text-xs text-[#8892A4]">Reviewer access is read only.</p>
-                )}
+            <textarea
+              value={brief}
+              onChange={(e) => setBrief(e.target.value)}
+              placeholder="What are you advertising? Product, offer, and audience."
+              rows={3}
+              className="w-full box-border p-[14px] rounded-[14px] border-[1.5px] border-border bg-cream text-[14.5px] leading-[1.55] outline-none resize-y"
+            />
+            <div className="flex gap-[10px] mt-[12px] flex-wrap items-center">
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value as (typeof PLATFORMS)[number])}
+                className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
+              >
+                {PLATFORMS.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={tone}
+                onChange={(e) => setTone(e.target.value as (typeof TONES)[number])}
+                className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
+              >
+                {TONES.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={generateCopy}
+                disabled={!llmReady || !brief.trim() || generatingCopy}
+                className="border-0 bg-accent text-cream text-[14px] font-bold p-[0_20px] h-[42px] rounded-[11px] cursor-pointer ah38 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {generatingCopy ? "Generating…" : "Generate copy"}
+              </button>
+            </div>
+            {llmReady === false ? (
+              <div className="text-[12.5px] text-subtle mt-[10px]">
+                Waiting for API connection — copy generation needs the model connection.
               </div>
-            </DataGate>
-          </Card>
+            ) : null}
+          </div>
 
-          {draft && (
-            <Card className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold">Editor</div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#7C3AED]/20 text-[#A78BFA] border border-[#7C3AED]/30">
-                  {draft.informed_by_affiliate ? "Informed by affiliate performance" : AFFILIATE_LABEL}
+          <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+            <div className="flex items-center justify-between gap-[12px] mb-[16px]">
+              <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">EDITOR</div>
+              {draft?.informed_by_affiliate ? (
+                <span className="text-[11px] font-bold bg-tint text-accent-ink p-[5px_10px] rounded-[8px]">
+                  Informed by affiliate performance
                 </span>
+              ) : null}
+            </div>
+
+            {!draft ? (
+              <div className="text-[13.5px] text-subtle p-[24px_0] text-center">
+                Generate copy to start a draft. It saves as you go, so imagery has something to
+                attach to.
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <div className="space-y-3">
-                  <Field label="Name" value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} disabled={!canEdit} />
-                  <Field label="Headline" value={draft.headline ?? ""} onChange={(v) => setDraft({ ...draft, headline: v })} disabled={!canEdit} />
-                  <Field label="Body" value={draft.body ?? ""} onChange={(v) => setDraft({ ...draft, body: v })} disabled={!canEdit} multiline />
-                  <Field label="Call to action" value={draft.cta ?? ""} onChange={(v) => setDraft({ ...draft, cta: v })} disabled={!canEdit} />
-                  {canEdit && (
-                    <div className="flex gap-2 pt-1">
+            ) : (
+              <>
+                <div className="flex gap-[20px] flex-wrap">
+                  <div className="flex-[1_1_260px] min-w-[240px] flex flex-col gap-[12px]">
+                    <div>
+                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                        HEADLINE
+                      </div>
+                      <input
+                        value={draft.headline ?? ""}
+                        onChange={(e) => setDraft({ ...draft, headline: e.target.value })}
+                        className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14.5px] font-semibold outline-none"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                        BODY
+                      </div>
+                      <textarea
+                        value={draft.body ?? ""}
+                        onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+                        rows={4}
+                        className="w-full box-border p-[13px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14px] leading-[1.55] outline-none resize-y"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                        CALL TO ACTION
+                      </div>
+                      <input
+                        value={draft.cta ?? ""}
+                        onChange={(e) => setDraft({ ...draft, cta: e.target.value })}
+                        className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none"
+                      />
+                    </div>
+                    <div className="flex gap-[9px] mt-[2px]">
                       <button
                         onClick={() => saveDraft(false)}
                         disabled={saving}
-                        className="px-4 h-10 rounded-lg border border-white/15 text-sm font-bold text-white hover:bg-white/5 disabled:opacity-40 inline-flex items-center gap-1.5"
+                        className="border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[11px_16px] rounded-[11px] cursor-pointer ah39 disabled:opacity-40"
                       >
-                        <Save className="w-4 h-4" /> Save
+                        Save
                       </button>
                       <button
                         onClick={() => saveDraft(true)}
                         disabled={saving}
-                        className="px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
+                        className="border-0 bg-dark text-cream text-[13.5px] font-bold p-[12px_17px] rounded-[11px] cursor-pointer ah40 disabled:opacity-40"
                       >
-                        <Share2 className="w-4 h-4" /> Save and share
+                        Save and share
                       </button>
                     </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold">Imagery</div>
-                  <div className="aspect-square rounded-xl border border-white/10 bg-[#05080F] overflow-hidden flex items-center justify-center">
-                    {imageUrl ? (
-                      <img src={imageUrl} alt={draft.headline ?? "Ad image"} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs text-[#5A6478]">No image yet</span>
-                    )}
                   </div>
-                  <DataGate
-                    connected={imageReady}
-                    loading={status.isLoading}
-                    label="Imagery runs through the image connection"
-                  >
-                    <div className="space-y-2">
-                      <textarea
-                        value={imagePrompt}
-                        onChange={(e) => setImagePrompt(e.target.value)}
-                        rows={2}
-                        disabled={!canEdit}
-                        placeholder="Describe the image"
-                        className="w-full px-3 py-2 rounded-lg bg-[#05080F] border border-white/10 text-sm focus:outline-none focus:border-[#00D97E] disabled:opacity-60"
-                      />
-                      {canEdit && (
-                        <button
-                          onClick={regenerateImage}
-                          disabled={generatingImage || !imagePrompt.trim()}
-                          className="px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
-                        >
-                          {generatingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                          Generate image
-                        </button>
-                      )}
+                  <div className="flex-[0_1_230px] min-w-[200px]">
+                    <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[8px]">
+                      IMAGERY
                     </div>
-                  </DataGate>
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt="Generated ad creative"
+                        className="w-full rounded-[14px] block"
+                      />
+                    ) : (
+                      <div className="w-full aspect-square rounded-[14px] bg-sand grid place-items-center text-[12.5px] text-subtle text-center p-[12px]">
+                        No image yet
+                      </div>
+                    )}
+                    <textarea
+                      value={imagePrompt}
+                      onChange={(e) => setImagePrompt(e.target.value)}
+                      rows={2}
+                      placeholder="Describe the image"
+                      className="w-full box-border mt-[10px] p-[11px] rounded-[11px] border-[1.5px] border-border bg-cream text-[13px] leading-[1.5] outline-none resize-y"
+                    />
+                    <button
+                      onClick={regenerateImage}
+                      disabled={!imageReady || !imagePrompt.trim() || generatingImage}
+                      className="w-full mt-[8px] border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[10px_0] rounded-[11px] cursor-pointer ah41 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {generatingImage ? "Generating…" : "Generate image"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          )}
 
-          <Card className="p-5">
-            <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold mb-3">
-              Saved ads
-            </div>
-            {ads.length === 0 ? (
-              <p className="text-sm text-[#8892A4]">Generated ads you save appear here. Shared ads are visible to the team.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {ads.map((ad) => (
-                  <SavedAdCard key={ad.id} ad={ad} signedUrl={signedUrl} canEdit={canEdit} onEdit={() => editAd(ad)} />
-                ))}
-              </div>
+                {selThemes.length || selHooks.length || selAngles.length ? (
+                  <div className="text-[12.5px] text-subtle leading-[1.5] mt-[18px] pt-[16px] border-t-[1.5px] border-border-soft">
+                    Traced back to:{" "}
+                    {[...selHooks, ...selThemes, ...selAngles].map((t, i, arr) => (
+                      <span key={t}>
+                        <strong className="text-muted">“{t}”</strong>
+                        {i < arr.length - 1 ? " · " : ""}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </>
             )}
-          </Card>
+          </div>
         </div>
-      </div>
-    </AppShell>
-  );
-}
-
-function TermGroup({
-  title,
-  terms,
-  selected,
-  onToggle,
-}: {
-  title: string;
-  terms: RankedTerm[];
-  selected: string[];
-  onToggle: (t: string) => void;
-}) {
-  if (terms.length === 0) return null;
-  return (
-    <div>
-      <div className="text-[10px] uppercase tracking-wider text-[#5A6478] font-semibold mb-1.5">{title}</div>
-      <div className="flex flex-wrap gap-1.5">
-        {terms.map((t) => {
-          const on = selected.includes(t.text);
-          return (
-            <button
-              key={t.text}
-              onClick={() => onToggle(t.text)}
-              title={`score ${t.score} across ${t.sources.join(", ")}`}
-              className={`px-2 py-1 rounded-lg text-[11px] border text-left ${
-                on
-                  ? "bg-[#00D97E]/15 text-[#00D97E] border-[#00D97E]/40"
-                  : "bg-white/[0.03] text-[#B8C0CE] border-white/10 hover:border-white/25"
-              }`}
-            >
-              {t.text}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  disabled,
-  multiline,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-  multiline?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="text-[10px] uppercase tracking-wider text-[#5A6478] font-semibold">{label}</span>
-      {multiline ? (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          rows={3}
-          className="mt-1 w-full px-3 py-2 rounded-lg bg-[#05080F] border border-white/10 text-sm focus:outline-none focus:border-[#00D97E] disabled:opacity-60"
-        />
-      ) : (
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          className="mt-1 w-full h-9 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm focus:outline-none focus:border-[#00D97E] disabled:opacity-60"
-        />
-      )}
-    </label>
-  );
-}
-
-function SavedAdCard({
-  ad,
-  signedUrl,
-  canEdit,
-  onEdit,
-}: {
-  ad: AdRow;
-  signedUrl: (p: string | null) => Promise<string | null>;
-  canEdit: boolean;
-  onEdit: () => void;
-}) {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    let live = true;
-    void signedUrl(ad.image_path).then((u) => live && setUrl(u));
-    return () => {
-      live = false;
-    };
-  }, [ad.image_path, signedUrl]);
-
-  return (
-    <div className="rounded-xl border border-white/10 bg-[#05080F] overflow-hidden flex flex-col">
-      <div className="aspect-video bg-[#0C1222] flex items-center justify-center overflow-hidden">
-        {url ? (
-          <img src={url} alt={ad.headline ?? ad.name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-[11px] text-[#5A6478]">No image</span>
-        )}
-      </div>
-      <div className="p-3 flex-1 flex flex-col gap-1.5">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-white/5 text-[#8892A4] border border-white/10">
-            {ad.status}
-          </span>
-          {ad.shared && (
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-[#00D97E]/15 text-[#00D97E] border border-[#00D97E]/30">
-              Shared
-            </span>
-          )}
-          {ad.target_platform && (
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-white/5 text-[#8892A4] border border-white/10">
-              {ad.target_platform}
-            </span>
-          )}
-        </div>
-        <div className="text-sm font-bold text-white line-clamp-2">{ad.headline || ad.name}</div>
-        {ad.body && <div className="text-xs text-[#8892A4] line-clamp-3">{ad.body}</div>}
-        {ad.cta && <div className="text-xs font-semibold text-[#00D97E]">{ad.cta}</div>}
-        <div className="text-[9px] text-[#5A6478] mt-auto pt-1">
-          {ad.informed_by_affiliate ? "Informed by affiliate performance" : AFFILIATE_LABEL}
-        </div>
-        {canEdit && (
-          <button
-            onClick={onEdit}
-            className="mt-1 h-8 rounded-lg border border-white/15 text-xs font-bold text-white hover:bg-white/5"
-          >
-            Edit
-          </button>
-        )}
       </div>
     </div>
   );

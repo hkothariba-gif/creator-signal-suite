@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AppShell, Card } from "@/components/app/AppShell";
 import { DataGate } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -13,7 +12,14 @@ import {
   type AffiliatePerformance,
   type AffiliateLink,
 } from "@/lib/affiliate.functions";
-import { Link2, Plus, Copy, Check, Loader2, RefreshCw } from "lucide-react";
+
+/* AFFILIATE & PAYOUTS — the `v.isAffiliate` block of src/aspen/AspenApp.tsx, on
+   the live hooks the dark version used. Shell, header and title come from the
+   /app layout route.
+
+   The design's "PAYOUTS DUE" tile has nothing behind it — there is no payout
+   ledger in the schema, only clicks, conversions and attributed revenue — so it
+   says so in words instead of showing a figure we cannot compute. */
 
 export const Route = createFileRoute("/app/affiliate")({
   component: AffiliatePage,
@@ -30,7 +36,7 @@ function money(minor: number, currency: string): string {
 }
 
 function AffiliatePage() {
-  const { user, canEdit } = useAuth();
+  const { user } = useAuth();
   const orgId = user?.organization?.id;
 
   const [salesConnected, setSalesConnected] = useState<boolean | undefined>(undefined);
@@ -62,7 +68,7 @@ function AffiliatePage() {
     void load();
   }, [load]);
 
-  // ── Connect a sales provider ────────────────────────────────────────────────
+  // ── Connect a sales provider ───────────────────────────────────────────────
   const [provider, setProvider] = useState<(typeof PROVIDERS)[number]>("stripe");
   const [connecting, setConnecting] = useState(false);
   const connect = async () => {
@@ -79,7 +85,7 @@ function AffiliatePage() {
     }
   };
 
-  // ── Create a tracking link ──────────────────────────────────────────────────
+  // ── Create a tracking link ─────────────────────────────────────────────────
   const [dest, setDest] = useState("");
   const [label, setLabel] = useState("");
   const [creating, setCreating] = useState(false);
@@ -88,7 +94,11 @@ function AffiliatePage() {
     setCreating(true);
     try {
       await createAffiliateLink({
-        data: { organizationId: orgId, destinationUrl: dest.trim(), label: label.trim() || undefined },
+        data: {
+          organizationId: orgId,
+          destinationUrl: dest.trim(),
+          label: label.trim() || undefined,
+        },
       });
       setDest("");
       setLabel("");
@@ -102,222 +112,174 @@ function AffiliatePage() {
   };
 
   const perfByLink = useMemo(() => {
-    const m = new Map<string, { clicks: number; conversions: number; revenueMinor: number; conversionRate: number }>();
+    const m = new Map<
+      string,
+      { clicks: number; conversions: number; revenueMinor: number; conversionRate: number }
+    >();
     for (const l of perf?.byLink ?? []) if (l.linkId) m.set(l.linkId, l);
     return m;
   }, [perf]);
 
   const currency = perf?.currency ?? "USD";
+  const dash = "—";
 
   if (!user) {
     return (
-      <AppShell title="Affiliate & Payouts">
-        <Card className="p-8 text-center text-[#8892A4]">Sign in to view affiliate tracking.</Card>
-      </AppShell>
+      <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">
+        Sign in to view affiliate tracking.
+      </div>
     );
   }
   if (!orgId) {
     return (
-      <AppShell title="Affiliate & Payouts">
-        <Card className="p-8 text-center text-[#8892A4]">Finish onboarding to create a brand organization.</Card>
-      </AppShell>
+      <div className="aspen-scope text-[14px] text-subtle p-[48px_0] text-center">
+        Finish onboarding to create a brand organization.
+      </div>
     );
   }
 
-  const metrics: { label: string; value: string }[] = perf
-    ? [
-        { label: "Total Revenue", value: money(perf.totals.revenueMinor, currency) },
-        { label: "Total Conversions", value: perf.totals.conversions.toLocaleString() },
-        { label: "Total Clicks", value: perf.totals.clicks.toLocaleString() },
-      ]
-    : [
-        { label: "Total Revenue", value: "" },
-        { label: "Total Conversions", value: "" },
-        { label: "Total Clicks", value: "" },
-      ];
-
-  const noData = !perf?.hasData;
-
   return (
-    <AppShell
-      title="Affiliate & Payouts"
-      right={
-        <button
-          onClick={() => void load()}
-          className="text-[#8892A4] hover:text-white inline-flex items-center gap-1.5 text-sm"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh
-        </button>
-      }
-    >
-      {/* Connect a sales provider */}
-      {canEdit && (
-        <Card className="p-5 mb-6">
-          <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold mb-3">
-            Sales connection
+    <div className="aspen-scope">
+      <div className="flex items-center justify-between gap-[14px] bg-surface border-[1.5px] border-border rounded-[20px] p-[18px_22px] mb-[16px] flex-wrap">
+        <div>
+          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle">
+            SALES CONNECTION
           </div>
-          {salesConnected ? (
-            <p className="text-sm text-[#00D97E] flex items-center gap-2">
-              <Check className="w-4 h-4" /> A sales provider is connected. Conversions post in through the ingest endpoint.
-            </p>
-          ) : (
-            <div className="flex flex-wrap items-end gap-2">
-              <label className="text-xs text-[#8892A4] flex flex-col gap-1">
-                Provider
-                <select
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value as (typeof PROVIDERS)[number])}
-                  className="h-10 px-2 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white"
-                >
-                  {PROVIDERS.map((x) => (
-                    <option key={x} value={x}>
-                      {x}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                onClick={connect}
-                disabled={connecting}
-                className="px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
-              >
-                {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                Connect
-              </button>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {metrics.map((m) => (
-          <Card key={m.label} className="p-5">
-            <p className="text-xs text-[#8892A4] mb-2">{m.label}</p>
-            <DataGate
-              connected={salesConnected}
-              empty={noData}
-              loading={loading}
-              label="Loads from your sales connection"
+          <div className="text-[14.5px] font-semibold mt-[5px]">
+            {salesConnected
+              ? "Connected — conversions post in through the ingest endpoint."
+              : "Not connected. Pick a provider to start attributing revenue."}
+          </div>
+        </div>
+        {salesConnected ? (
+          <span className="text-[12px] font-bold text-success-ink bg-success-wash p-[7px_13px] rounded-[9px]">
+            ✓ Live
+          </span>
+        ) : (
+          <div className="flex gap-[8px] items-center">
+            <select
+              value={provider}
+              onChange={(e) => setProvider(e.target.value as (typeof PROVIDERS)[number])}
+              className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
             >
-              <p className="text-3xl font-extrabold tracking-tight text-[#F0F4FF]">{m.value}</p>
-            </DataGate>
-          </Card>
-        ))}
-      </div>
-
-      {/* Create tracking link */}
-      {canEdit && salesConnected && (
-        <Card className="p-5 mb-6">
-          <div className="text-[11px] uppercase tracking-wider text-[#8892A4] font-semibold mb-3">
-            Create tracking link
-          </div>
-          <div className="flex flex-wrap items-end gap-2">
-            <label className="text-xs text-[#8892A4] flex flex-col gap-1 flex-1 min-w-[220px]">
-              Destination URL
-              <input
-                value={dest}
-                onChange={(e) => setDest(e.target.value)}
-                placeholder="https://merchant.com/product"
-                className="h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm focus:outline-none focus:border-[#00D97E]"
-              />
-            </label>
-            <label className="text-xs text-[#8892A4] flex flex-col gap-1 min-w-[160px]">
-              Label
-              <input
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                placeholder="Optional"
-                className="h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm focus:outline-none focus:border-[#00D97E]"
-              />
-            </label>
+              {PROVIDERS.map((v) => (
+                <option key={v} value={v}>
+                  {v}
+                </option>
+              ))}
+            </select>
             <button
-              onClick={create}
-              disabled={creating || !dest.trim()}
-              className="px-4 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
+              onClick={connect}
+              disabled={connecting}
+              className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[0_16px] h-[42px] rounded-[11px] cursor-pointer ah21 disabled:opacity-40"
             >
-              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
-              Create
+              {connecting ? "Connecting…" : "Connect"}
             </button>
           </div>
-        </Card>
-      )}
-
-      {/* Links table */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-[#F0F4FF]">Affiliate Links</h2>
+        )}
       </div>
 
-      <DataGate
-        connected={salesConnected}
-        empty={links.length === 0}
-        loading={loading}
-        label="Link tracking loads from your sales connection"
-      >
-        <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wider text-[#5A6478] border-b border-white/[0.07]">
-                  <th className="px-4 py-3 font-semibold">Link</th>
-                  <th className="px-4 py-3 font-semibold text-right">Clicks</th>
-                  <th className="px-4 py-3 font-semibold text-right">Conversions</th>
-                  <th className="px-4 py-3 font-semibold text-right">Revenue</th>
-                  <th className="px-4 py-3 font-semibold text-right">Conv. rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {links.map((l) => {
-                  const pf = perfByLink.get(l.id);
-                  return (
-                    <tr key={l.id} className="border-b border-white/[0.04] last:border-0">
-                      <td className="px-4 py-3">
-                        <div className="font-semibold text-white">{l.label || l.slug}</div>
-                        <TrackingLink url={l.trackingUrl} />
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-[#B8C0CE]">
-                        {(pf?.clicks ?? 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-[#B8C0CE]">
-                        {(pf?.conversions ?? 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-[#F0F4FF] font-semibold">
-                        {money(pf?.revenueMinor ?? 0, currency)}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-[#B8C0CE]">
-                        {(((pf?.conversionRate ?? 0) * 100).toFixed(1))}%
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[16px] mb-[16px]">
+        <div className="bg-dark text-cream rounded-[20px] p-[22px]">
+          <div className="text-[12px] font-bold tracking-[0.1em] text-subtle">
+            ATTRIBUTED REVENUE
           </div>
-        </Card>
-      </DataGate>
-    </AppShell>
-  );
-}
+          <div className="font-heading font-extrabold text-[36px] tracking-[-0.03em] mt-[8px]">
+            {perf ? money(perf.totals.revenueMinor, currency) : dash}
+          </div>
+        </div>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+          <div className="text-[12px] font-bold tracking-[0.1em] text-subtle">CONVERSIONS</div>
+          <div className="font-heading font-extrabold text-[36px] tracking-[-0.03em] mt-[8px]">
+            {perf ? perf.totals.conversions.toLocaleString() : dash}
+          </div>
+        </div>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+          <div className="text-[12px] font-bold tracking-[0.1em] text-subtle">CLICKS</div>
+          <div className="font-heading font-extrabold text-[36px] tracking-[-0.03em] mt-[8px]">
+            {perf ? perf.totals.clicks.toLocaleString() : dash}
+          </div>
+        </div>
+        <div className="bg-tint rounded-[20px] p-[22px]">
+          <div className="text-[12px] font-bold tracking-[0.1em] text-accent-ink">PAYOUTS DUE</div>
+          <div className="font-heading font-extrabold text-[22px] tracking-[-0.02em] mt-[10px] text-accent-ink">
+            No payouts yet
+          </div>
+          <div className="text-[12px] text-accent-ink-soft mt-[6px]">
+            Payouts arrive with the payouts phase.
+          </div>
+        </div>
+      </div>
 
-function TrackingLink({ url }: { url: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      toast.error("Could not copy");
-    }
-  };
-  return (
-    <button
-      onClick={copy}
-      className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-[#8892A4] hover:text-[#00D97E] max-w-full"
-      title={url}
-    >
-      <span className="truncate max-w-[260px]">{url}</span>
-      {copied ? <Check className="w-3.5 h-3.5 shrink-0" /> : <Copy className="w-3.5 h-3.5 shrink-0" />}
-    </button>
+      <div className="flex gap-[10px] items-end bg-surface border-[1.5px] border-border rounded-[20px] p-[20px_22px] mb-[16px] flex-wrap">
+        <div className="flex-[1_1_260px] min-w-[220px]">
+          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+            DESTINATION URL
+          </div>
+          <input
+            value={dest}
+            onChange={(e) => setDest(e.target.value)}
+            placeholder="https://example.com/pricing"
+            className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
+          />
+        </div>
+        <div className="flex-[0_1_180px] min-w-[150px]">
+          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+            LABEL
+          </div>
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Optional"
+            className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
+          />
+        </div>
+        <button
+          onClick={create}
+          disabled={!dest.trim() || creating}
+          className="border-0 bg-accent text-cream text-[14px] font-bold h-[44px] p-[0_20px] rounded-[11px] cursor-pointer ah42 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {creating ? "Creating…" : "Create link"}
+        </button>
+      </div>
+
+      <DataGate connected={true} loading={loading} empty={links.length === 0}>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] overflow-hidden">
+          <div className="flex gap-[12px] p-[14px_22px] border-b-[1.5px] border-border-soft text-[10.5px] font-bold tracking-[0.12em] text-subtle">
+            <span className="flex-[2]">CREATOR / LINK</span>
+            <span className="flex-1 text-right">CLICKS</span>
+            <span className="flex-1 text-right">CONV.</span>
+            <span className="flex-1 text-right">REVENUE</span>
+            <span className="flex-1 text-right">RATE</span>
+          </div>
+          {links.map((l) => {
+            const stat = perfByLink.get(l.id);
+            return (
+              <div
+                key={l.id}
+                className="flex gap-[12px] items-center p-[15px_22px] border-b-[1px] border-sand"
+              >
+                <div className="flex-[2] min-w-0">
+                  <div className="text-[14.5px] font-bold">{l.label || "Untitled link"}</div>
+                  <div className="text-[12.5px] text-subtle mt-[2px] truncate">{l.trackingUrl}</div>
+                </div>
+                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                  {stat ? stat.clicks.toLocaleString() : dash}
+                </span>
+                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                  {stat ? stat.conversions.toLocaleString() : dash}
+                </span>
+                <span className="flex-1 text-right text-[14px] font-bold">
+                  {stat ? money(stat.revenueMinor, currency) : dash}
+                </span>
+                <span className="flex-1 text-right text-[14px] font-bold text-accent">
+                  {stat ? `${(stat.conversionRate * 100).toFixed(1)}%` : dash}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </DataGate>
+    </div>
   );
 }

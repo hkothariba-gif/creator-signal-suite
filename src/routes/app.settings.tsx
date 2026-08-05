@@ -1,64 +1,53 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell, Card } from "@/components/app/AppShell";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, type OrgRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { DataGate, useConnectorStatus, WAITING_COPY } from "@/components/app/DataGate";
+import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+
+/* SETTINGS — the `v.isSettings` block of src/aspen/AspenApp.tsx, on the live
+   hooks the dark version used. Shell, header and title come from the /app
+   layout route.
+
+   The design lays this out as one page — Workspace, Team, Billing — instead of
+   the old four tabs, and connector status now lives on the Platforms screen, so
+   the Connectors tab is gone from here entirely. */
 
 export const Route = createFileRoute("/app/settings")({
   component: SettingsPage,
 });
 
-type TabId = "profile" | "team" | "connectors" | "billing";
+const ROLE_OPTIONS: OrgRole[] = ["admin", "editor", "reviewer"];
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "profile", label: "Profile" },
-  { id: "team", label: "Team" },
-  { id: "connectors", label: "Connectors" },
-  { id: "billing", label: "Billing" },
-];
+type MemberRow = { id: string; user_id: string; role: OrgRole; email: string; created_at: string };
+type InviteRow = {
+  id: string;
+  email: string;
+  role: OrgRole;
+  status: string;
+  created_at: string;
+  expires_at: string;
+};
+
+const FIELD =
+  "w-full box-border h-[46px] p-[0_14px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none";
+const READONLY =
+  "h-[46px] flex items-center p-[0_14px] rounded-[12px] bg-sand text-[14.5px] text-muted";
 
 function SettingsPage() {
-  const [tab, setTab] = useState<TabId>("profile");
-
   return (
-    <AppShell title="Settings">
-      <div className="max-w-4xl">
-        <div className="flex gap-6 border-b border-white/[0.07] mb-8">
-          {TABS.map((t) => {
-            const active = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className="pb-3 text-sm font-medium transition-colors"
-                style={{
-                  color: active ? "#00D97E" : "#8892A4",
-                  borderBottom: active ? "2px solid #00D97E" : "2px solid transparent",
-                  marginBottom: "-1px",
-                }}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {tab === "profile" && <ProfileTab />}
-        {tab === "team" && <TeamTab />}
-        {tab === "connectors" && <ConnectorsTab />}
-        {tab === "billing" && <BillingTab />}
-      </div>
-    </AppShell>
+    <div className="aspen-scope max-w-[760px] flex flex-col gap-[16px]">
+      <WorkspaceCard />
+      <TeamCard />
+      <BillingCard />
+    </div>
   );
 }
 
-/* ---------- Profile (stored in Supabase, not localStorage) ---------- */
+/* ---------- Workspace (stored in Supabase, not localStorage) ---------- */
 
-function ProfileTab() {
+function WorkspaceCard() {
   const { user, update, canEdit } = useAuth();
   const [companyName, setCompanyName] = useState(user?.company_name ?? "");
   const [saving, setSaving] = useState(false);
@@ -66,6 +55,8 @@ function ProfileTab() {
   useEffect(() => {
     setCompanyName(user?.company_name ?? "");
   }, [user?.company_name]);
+
+  const dirty = companyName !== (user?.company_name ?? "");
 
   const save = async () => {
     setSaving(true);
@@ -76,54 +67,63 @@ function ProfileTab() {
   };
 
   return (
-    <Card className="p-6 space-y-5">
-      <Field label="Company name">
-        <TextInput value={companyName} onChange={setCompanyName} placeholder="Acme Inc." />
-      </Field>
-      <Field label="Account email">
-        <div className="text-sm text-[#F0F4FF]">{user?.email}</div>
-      </Field>
-      <Field label="Account type">
-        <div className="text-sm text-[#F0F4FF] capitalize">{user?.accountType}</div>
-      </Field>
-      <Field label="Your role">
-        <div className="text-sm text-[#F0F4FF] capitalize">{user?.role ?? "No organization yet"}</div>
-      </Field>
-      {canEdit ? (
+    <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[24px]">
+      <h3 className="font-heading font-bold text-[17px] m-[0_0_18px]">Workspace</h3>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[16px]">
         <div>
-          <PrimaryButton onClick={save} disabled={saving}>
-            {saving ? "Saving" : "Save changes"}
-          </PrimaryButton>
+          <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
+            COMPANY NAME
+          </div>
+          {canEdit ? (
+            <input
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Acme Inc."
+              className={FIELD}
+            />
+          ) : (
+            <div className={READONLY}>{companyName || "—"}</div>
+          )}
         </div>
+        <div>
+          <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
+            ACCOUNT EMAIL
+          </div>
+          <div className={READONLY}>{user?.email}</div>
+        </div>
+        <div>
+          <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
+            ACCOUNT TYPE
+          </div>
+          <div className={`${READONLY} capitalize`}>{user?.accountType}</div>
+        </div>
+        <div>
+          <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
+            YOUR ROLE
+          </div>
+          <div className={`${READONLY} capitalize`}>{user?.role ?? "No organization yet"}</div>
+        </div>
+      </div>
+      {canEdit ? (
+        <button
+          onClick={save}
+          disabled={saving || !dirty}
+          className="mt-[18px] border-0 bg-accent text-cream text-[13.5px] font-bold p-[11px_17px] rounded-[11px] cursor-pointer ah21 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {saving ? "Saving…" : "Save changes"}
+        </button>
       ) : (
-        <p className="text-xs text-[#8892A4]">Reviewers have read only access. Ask an admin to change profile details.</p>
+        <p className="text-[12.5px] text-subtle mt-[14px] m-0">
+          Reviewers have read-only access. Ask an admin to change workspace details.
+        </p>
       )}
-    </Card>
+    </div>
   );
 }
 
 /* ---------- Team ---------- */
 
-type MemberRow = {
-  id: string;
-  user_id: string;
-  role: OrgRole;
-  email: string;
-  created_at: string;
-};
-
-type InviteRow = {
-  id: string;
-  email: string;
-  role: OrgRole;
-  status: string;
-  created_at: string;
-  expires_at: string;
-};
-
-const ROLE_OPTIONS: OrgRole[] = ["admin", "editor", "reviewer"];
-
-function TeamTab() {
+function TeamCard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const orgId = user?.organization?.id;
@@ -194,7 +194,10 @@ function TeamTab() {
   };
 
   const changeRole = async (memberId: string, role: OrgRole) => {
-    const { error } = await supabase.from("organization_members").update({ role }).eq("id", memberId);
+    const { error } = await supabase
+      .from("organization_members")
+      .update({ role })
+      .eq("id", memberId);
     if (error) toast.error(`Could not change role: ${error.message}`);
     else {
       toast.success("Role updated");
@@ -212,36 +215,46 @@ function TeamTab() {
   };
 
   const revokeInvite = async (inviteId: string) => {
-    const { error } = await supabase.from("invitations").update({ status: "revoked" }).eq("id", inviteId);
+    const { error } = await supabase
+      .from("invitations")
+      .update({ status: "revoked" })
+      .eq("id", inviteId);
     if (error) toast.error(`Could not revoke: ${error.message}`);
     else refetchAll();
   };
 
   if (!orgId) {
     return (
-      <Card className="p-6">
-        <p className="text-sm text-[#8892A4]">
+      <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[24px]">
+        <h3 className="font-heading font-bold text-[17px] m-[0_0_10px]">Team</h3>
+        <p className="text-[14px] text-muted m-0">
           Finish onboarding to create your organization, then invite teammates here.
         </p>
-      </Card>
+      </div>
     );
   }
 
+  const initials = (email: string) => email.slice(0, 2).toUpperCase();
+  const members = membersQuery.data ?? [];
+  const invites = invitesQuery.data ?? [];
+
   return (
-    <div className="space-y-4">
-      {isAdmin && (
-        <Card className="p-6">
-          <h3 className="font-semibold text-[#F0F4FF] mb-1">Invite a teammate</h3>
-          <p className="text-xs text-[#8892A4] mb-4">
-            Admins manage the team. Editors can change campaigns and ads. Reviewers can view everything but cannot make changes.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <TextInput value={inviteEmail} onChange={setInviteEmail} placeholder="teammate@company.com" type="email" />
+    <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[24px]">
+      <div className="flex items-center justify-between gap-[12px] mb-[16px] flex-wrap">
+        <h3 className="font-heading font-bold text-[17px] m-0">Team</h3>
+        {isAdmin ? (
+          <div className="flex gap-[9px] flex-wrap">
+            <input
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              type="email"
+              placeholder="teammate@company.com"
+              className="h-[42px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
+            />
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as OrgRole)}
-              className="rounded-lg px-3 py-2.5 text-sm text-white outline-none"
-              style={{ background: "#131D2E", border: "1px solid rgba(255,255,255,0.1)" }}
+              className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
             >
               {ROLE_OPTIONS.map((r) => (
                 <option key={r} value={r}>
@@ -249,155 +262,107 @@ function TeamTab() {
                 </option>
               ))}
             </select>
-            <PrimaryButton onClick={sendInvite} disabled={inviting || !inviteEmail.trim()}>
-              {inviting ? "Sending" : "Send invite"}
-            </PrimaryButton>
+            <button
+              onClick={sendInvite}
+              disabled={inviting || !inviteEmail.trim()}
+              className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[0_17px] h-[42px] rounded-[11px] cursor-pointer ah44 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {inviting ? "Inviting…" : "Invite"}
+            </button>
           </div>
-          {lastInviteLink && (
-            <div className="mt-3 text-xs text-[#8892A4] break-all">
-              Email delivery is not configured. Share this link directly:{" "}
-              <span className="text-[#00D97E]">{lastInviteLink}</span>
-            </div>
-          )}
-        </Card>
-      )}
+        ) : null}
+      </div>
 
-      <Card className="p-6">
-        <h3 className="font-semibold text-[#F0F4FF] mb-4">Members</h3>
-        {membersQuery.isLoading ? (
-          <p className="text-sm text-[#8892A4]">Loading</p>
-        ) : (
-          <ul className="divide-y divide-white/[0.05]">
-            {(membersQuery.data ?? []).map((m) => (
-              <li key={m.id} className="py-3 flex items-center justify-between gap-3 text-sm">
-                <span className="font-medium text-[#F0F4FF] truncate">{m.email}</span>
-                {isAdmin && m.user_id !== user?.id ? (
-                  <span className="flex items-center gap-2">
-                    <select
-                      value={m.role}
-                      onChange={(e) => changeRole(m.id, e.target.value as OrgRole)}
-                      className="rounded-lg px-2 py-1.5 text-xs text-white outline-none"
-                      style={{ background: "#131D2E", border: "1px solid rgba(255,255,255,0.1)" }}
-                    >
-                      {ROLE_OPTIONS.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                    <button onClick={() => removeMember(m.id)} className="text-xs text-[#8892A4] hover:text-white">
-                      Remove
-                    </button>
-                  </span>
-                ) : (
-                  <span className="text-xs text-[#8892A4] capitalize">{m.role}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      {isAdmin && (
-        <Card className="p-6">
-          <h3 className="font-semibold text-[#F0F4FF] mb-4">Pending invitations</h3>
-          {(invitesQuery.data ?? []).length === 0 ? (
-            <p className="text-sm text-[#8892A4]">No pending invitations.</p>
-          ) : (
-            <ul className="divide-y divide-white/[0.05]">
-              {(invitesQuery.data ?? []).map((i) => (
-                <li key={i.id} className="py-3 flex items-center justify-between gap-3 text-sm">
-                  <span className="font-medium text-[#F0F4FF] truncate">{i.email}</span>
-                  <span className="text-xs text-[#8892A4] capitalize">{i.role}</span>
-                  <button onClick={() => revokeInvite(i.id)} className="text-xs text-[#8892A4] hover:text-white">
-                    Revoke
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      )}
-    </div>
-  );
-}
-
-/* ---------- Connectors ---------- */
-// Keys live as environment variables on the server or in Supabase Edge
-// Function secrets. The browser only ever sees booleans.
-
-const CONNECTOR_ROWS: { key: string; label: string; desc: string }[] = [
-  { key: "listening", label: "Social listening", desc: "Chatter and sentiment across the web" },
-  { key: "creatorPerformance", label: "Creator performance", desc: "How content performs for creators in your space" },
-  { key: "youtube", label: "YouTube Data API", desc: "Video stats and comments" },
-  { key: "x", label: "X API", desc: "Posts and search" },
-  { key: "reddit", label: "Reddit Data API", desc: "Posts and comments" },
-  { key: "trends", label: "Trends", desc: "Search interest over time" },
-  { key: "llm", label: "Ad copy model", desc: "Generates ad copy from ranked hooks" },
-  { key: "image", label: "Ad imagery", desc: "Generates ad images" },
-  { key: "email", label: "Team invite email", desc: "Delivers invitation emails" },
-  { key: "adsMiddleware", label: "Ads middleware", desc: "Publishes paid campaigns to Reddit, X, and YouTube" },
-  { key: "stripe", label: "Stripe", desc: "Brand billing" },
-  { key: "paypal", label: "PayPal Payouts", desc: "Affiliate cash out" },
-  { key: "identity", label: "Identity and tax", desc: "Verification before payout" },
-];
-
-function ConnectorsTab() {
-  const status = useConnectorStatus();
-  const platform = status.data?.platform as Record<string, boolean> | undefined;
-
-  return (
-    <div className="space-y-4">
-      <Card className="p-6">
-        <p className="text-sm text-[#8892A4]">
-          Integration keys are configured on the server by the platform team. They are never stored in the browser.
-          Panels that depend on an integration show {'"'}
-          {WAITING_COPY}
-          {'"'} until it is configured.
+      {isAdmin ? (
+        <p className="text-[12.5px] text-subtle m-[0_0_14px]">
+          Admins manage the team. Editors can change campaigns and ads. Reviewers can view
+          everything but cannot make changes.
         </p>
-      </Card>
-      {status.isLoading ? (
-        <Card className="p-6">
-          <p className="text-sm text-[#8892A4]">Loading</p>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {CONNECTOR_ROWS.map((row) => {
-            const connected = platform?.[row.key] === true;
-            return (
-              <Card key={row.key} className="p-5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-medium text-[#F0F4FF]">{row.label}</div>
-                  <StatusBadge connected={connected} />
-                </div>
-                <div className="text-sm text-[#8892A4] mt-1">{row.desc}</div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+      ) : null}
 
-function StatusBadge({ connected }: { connected: boolean }) {
-  if (connected) {
-    return (
-      <span
-        className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md"
-        style={{ background: "rgba(0,217,126,0.12)", color: "#00D97E" }}
-      >
-        <Check size={12} /> Configured
-      </span>
-    );
-  }
-  return (
-    <span
-      className="inline-flex items-center text-xs font-medium px-2 py-1 rounded-md"
-      style={{ background: "rgba(136,146,164,0.12)", color: "#8892A4" }}
-    >
-      Not configured
-    </span>
+      {lastInviteLink ? (
+        <div className="bg-tint rounded-[13px] p-[12px_15px] mb-[14px]">
+          <div className="text-[12.5px] font-bold text-accent-ink">
+            Invite email could not be sent — share this link
+          </div>
+          <div className="text-[12.5px] text-accent-ink-soft mt-[4px] break-all">
+            {lastInviteLink}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="flex flex-col">
+        {membersQuery.isLoading ? (
+          <div className="text-[13.5px] text-subtle p-[13px_0]">Loading…</div>
+        ) : (
+          members.map((m) => (
+            <div
+              key={m.id}
+              className="flex items-center gap-[14px] p-[13px_0] border-t-[1px] border-border-soft"
+            >
+              <div className="w-[32px] h-[32px] rounded-[10px] bg-highlight text-dark grid place-items-center font-extrabold text-[12px] shrink-0">
+                {initials(m.email)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[14.5px] font-bold truncate">{m.email}</div>
+                <div className="text-[12.5px] text-subtle">
+                  Joined {new Date(m.created_at).toLocaleDateString()}
+                </div>
+              </div>
+              {isAdmin && m.user_id !== user?.id ? (
+                <>
+                  <select
+                    value={m.role}
+                    onChange={(e) => changeRole(m.id, e.target.value as OrgRole)}
+                    className="h-[34px] p-[0_10px] rounded-[9px] border-[1.5px] border-border bg-cream text-[12.5px] capitalize"
+                  >
+                    {ROLE_OPTIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => removeMember(m.id)}
+                    className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
+                  >
+                    Remove
+                  </button>
+                </>
+              ) : (
+                <span className="text-[12px] font-bold text-muted capitalize">{m.role}</span>
+              )}
+            </div>
+          ))
+        )}
+
+        {invites.map((i) => (
+          <div
+            key={i.id}
+            className="flex items-center gap-[14px] p-[13px_0] border-t-[1px] border-border-soft"
+          >
+            <div className="w-[32px] h-[32px] rounded-[10px] bg-sand text-subtle grid place-items-center font-extrabold text-[12px] shrink-0">
+              ?
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14.5px] font-bold truncate">{i.email}</div>
+              <div className="text-[12.5px] text-subtle">
+                Invitation sent {new Date(i.created_at).toLocaleDateString()}
+              </div>
+            </div>
+            <span className="text-[12px] font-bold text-subtle capitalize">{i.role} · pending</span>
+            {isAdmin ? (
+              <button
+                onClick={() => revokeInvite(i.id)}
+                className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
+              >
+                Revoke
+              </button>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -405,70 +370,21 @@ function StatusBadge({ connected }: { connected: boolean }) {
 // Billing arrives with the payouts phase. Until Stripe is configured and the
 // organization has connected billing, this surface waits.
 
-function BillingTab() {
+function BillingCard() {
   const status = useConnectorStatus();
-  const connected = status.data ? status.data.platform.stripe && status.data.account.billing : undefined;
+  const connected = status.data
+    ? status.data.platform.stripe && status.data.account.billing
+    : undefined;
 
   return (
-    <DataGate connected={connected} loading={status.isLoading} label="Stripe billing">
-      <Card className="p-6">
-        <p className="text-sm text-[#8892A4]">Billing details will appear here.</p>
-      </Card>
-    </DataGate>
-  );
-}
-
-/* ---------- Shared UI ---------- */
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <div className="text-sm text-[#8892A4] mb-1.5">{label}</div>
-      {children}
-    </label>
-  );
-}
-
-function TextInput({
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: string;
-}) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full rounded-lg px-3 py-2.5 text-sm text-white outline-none"
-      style={{ background: "#131D2E", border: "1px solid rgba(255,255,255,0.1)" }}
-    />
-  );
-}
-
-function PrimaryButton({
-  onClick,
-  children,
-  disabled,
-}: {
-  onClick: () => void;
-  children: React.ReactNode;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="px-4 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity disabled:opacity-50"
-      style={{ background: "#00D97E" }}
-    >
-      {children}
-    </button>
+    <div className="bg-tint rounded-[20px] p-[24px]">
+      <h3 className="font-heading font-bold text-[17px] m-0 text-accent-ink">Billing</h3>
+      <DataGate connected={connected} loading={status.isLoading} label="Stripe billing">
+        <p className="text-[14.5px] leading-[1.6] text-accent-ink-soft m-[10px_0_0]">
+          You're on early-access pricing — locked for 12 months after launch. Nothing is charged
+          until your cohort opens.
+        </p>
+      </DataGate>
+    </div>
   );
 }

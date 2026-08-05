@@ -1,13 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AppShell } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+
+/* COMMUNITY SIGNALS — the `v.isCommunity` block of src/aspen/AspenApp.tsx, on
+   the live connector gate the dark version used. Shell, header and title come
+   from the /app layout route.
+
+   Signals have no store of their own yet — the listening connection feeds the
+   Ads Center's ranked intelligence, not a per-signal feed — so each tab waits
+   on that connection rather than showing the design's sample quotes. */
 
 export const Route = createFileRoute("/app/community")({
   component: CommunityPage,
 });
 
-const TABS = ["Brand Mentions", "Buyer Intent", "Competitor Mentions", "Trending Topics"];
+const TABS = ["Buyer intent", "Brand mentions", "Competitor mentions", "Trending topics"];
 
 function CommunityPage() {
   const status = useConnectorStatus();
@@ -16,31 +23,32 @@ function CommunityPage() {
   const listeningReady = status.data ? status.data.platform.listening : undefined;
 
   return (
-    <AppShell title="Community Signals">
-      <p className="text-[#8892A4] mb-6">Reddit and X conversations about your product and category</p>
-
-      <div className="flex gap-6 border-b border-white/[0.07] mb-5 overflow-x-auto">
-        {TABS.map((t, i) => (
+    <div className="aspen-scope">
+      <div className="flex gap-[26px] border-b-[1.5px] border-border mb-[22px] overflow-x-auto">
+        {TABS.map((label, i) => (
           <button
-            key={t}
+            key={label}
             onClick={() => setTab(i)}
-            className={`pb-3 text-sm font-medium whitespace-nowrap border-b-2 -mb-px ${
-              tab === i ? "border-[#00D97E] text-[#00D97E]" : "border-transparent text-[#8892A4] hover:text-white"
-            }`}
+            className="border-0 bg-transparent cursor-pointer p-[0_0_13px] text-[14.5px] font-bold whitespace-nowrap mb-[-1.5px]"
+            style={{
+              color: tab === i ? "#17141E" : "#8A8494",
+              borderBottom: `2.5px solid ${tab === i ? "#F2542D" : "transparent"}`,
+            }}
           >
-            {t}
+            {label}
           </button>
         ))}
       </div>
-
-      <DataGate
-        connected={listeningReady}
-        empty
-        loading={status.isLoading}
-        label="Signals load from the social listening connection"
-      >
-        <></>
-      </DataGate>
-    </AppShell>
+      <div className="max-w-[920px]">
+        <DataGate
+          connected={listeningReady}
+          empty
+          loading={status.isLoading}
+          label="Signals load from the social listening connection"
+        >
+          <></>
+        </DataGate>
+      </div>
+    </div>
   );
 }

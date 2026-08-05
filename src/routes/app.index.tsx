@@ -1,11 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AppShell, Card, StatCard } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Search, Mail, DollarSign, X } from "lucide-react";
+import { X } from "lucide-react";
+
+/* HOME — the `v.isHome` block of src/aspen/AspenApp.tsx, on the live hooks the
+   dark version used. Shell, header and title come from the /app layout route.
+
+   Every number here is real or gated: the two counts are Supabase head counts,
+   brand fit is averaged from the scored hotlist rows, and the three panels that
+   need an integration (outreach, activity, revenue) go through DataGate rather
+   than showing a plausible-looking zero. The design's own sample figures are
+   gone; only the quick-action copy is still a literal, because it is copy. */
 
 export const Route = createFileRoute("/app/")({
   component: HomePage,
@@ -21,27 +29,59 @@ function HomePage() {
     enabled: !!user,
     queryFn: async () => {
       const [c, h] = await Promise.all([
-        supabase.from("campaigns").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
-        supabase.from("hotlist").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+        supabase
+          .from("campaigns")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user!.id),
+        supabase
+          .from("hotlist")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user!.id),
       ]);
       return { campaigns: c.count ?? 0, hotlist: h.count ?? 0 };
     },
   });
 
-  const topCreators = useQuery({
-    queryKey: ["home-top-creators", user?.id],
+  // The design shows a status line under each count ("2 active · 1 draft · 1
+  // done", "9 added this week"), so the breakdown is fetched rather than faked.
+  const campaignBreakdown = useQuery({
+    queryKey: ["home-campaign-breakdown", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("campaigns").select("status").eq("user_id", user!.id);
+      const rows = data ?? [];
+      return {
+        active: rows.filter((r) => r.status === "active").length,
+        draft: rows.filter((r) => r.status === "draft").length,
+        completed: rows.filter((r) => r.status === "completed").length,
+      };
+    },
+  });
+
+  const hotlist = useQuery({
+    queryKey: ["home-hotlist", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase
         .from("hotlist")
-        .select("id,creator_name,platform,score")
+        .select("id,creator_name,platform,score,created_at")
         .eq("user_id", user!.id)
-        .not("score", "is", null)
-        .order("score", { ascending: false })
-        .limit(3);
+        .order("score", { ascending: false, nullsFirst: false });
       return data ?? [];
     },
   });
+
+  const rows = hotlist.data ?? [];
+  const topCreators = rows.filter((r) => r.score != null).slice(0, 4);
+  const scored = rows.filter((r) => r.score != null);
+  const avgFit = scored.length
+    ? Math.round(scored.reduce((sum, r) => sum + (r.score ?? 0), 0) / scored.length)
+    : null;
+
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const addedThisWeek = rows.filter(
+    (r) => r.created_at && Date.parse(r.created_at) >= weekAgo,
+  ).length;
 
   const firstName = (user?.email ?? "there").split("@")[0].split(/[._-]/)[0];
   const greeting = firstName.charAt(0).toUpperCase() + firstName.slice(1);
@@ -51,113 +91,200 @@ function HomePage() {
   const perfReady = status.data ? status.data.platform.creatorPerformance : undefined;
   const salesReady = status.data ? status.data.account.sales : undefined;
 
+  const dash = "—";
+
   return (
-    <AppShell title="Home">
-      {showSetup && (
-        <div className="mb-6 flex items-center gap-3 px-4 py-3 rounded-xl border border-[#00D97E]/30 bg-[#00D97E]/10 text-sm">
-          <span className="text-[#F0F4FF]">Finish setting up your account</span>
+    <div className="aspen-scope flex flex-col gap-[20px]">
+      {showSetup ? (
+        <div className="flex items-center gap-[12px] bg-tint rounded-[16px] p-[14px_18px]">
+          <span className="text-[14px] font-semibold text-accent-ink">
+            {greeting}, finish setting up your account
+          </span>
           <Link
             to="/onboarding"
-            className="ml-auto px-3 h-8 inline-flex items-center rounded-lg bg-[#00D97E] text-[#05080F] font-bold text-xs hover:bg-[#00c472]"
+            className="ml-[auto] border-0 bg-accent text-cream text-[13px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer ah21"
           >
-            Continue Setup →
+            Continue setup →
           </Link>
           <button
             onClick={() => setBannerDismissed(true)}
-            className="text-[#8892A4] hover:text-white"
+            className="border-0 bg-transparent text-accent-ink cursor-pointer ah20"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
-      )}
+      ) : null}
 
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold">Good morning, {greeting}</h2>
-        <p className="text-[#8892A4] mt-1">Here is what is happening across your campaigns</p>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
+          <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">CAMPAIGNS</div>
+          <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
+            {counts.data ? counts.data.campaigns : dash}
+          </div>
+          <div className="text-[13px] text-muted">
+            {campaignBreakdown.data
+              ? `${campaignBreakdown.data.active} active · ${campaignBreakdown.data.draft} draft · ${campaignBreakdown.data.completed} done`
+              : "Loading"}
+          </div>
+        </div>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
+          <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">
+            CREATORS IN HOTLIST
+          </div>
+          <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
+            {counts.data ? counts.data.hotlist : dash}
+          </div>
+          <div className="text-[13px] text-muted">
+            {hotlist.data ? `${addedThisWeek} added this week` : "Loading"}
+          </div>
+        </div>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
+          <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">
+            PENDING OUTREACH
+          </div>
+          {emailReady ? (
+            <>
+              <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
+                {dash}
+              </div>
+              <div className="text-[13px] text-muted">Counts arrive with the inbox sync</div>
+            </>
+          ) : (
+            <DataGate
+              connected={emailReady}
+              empty
+              loading={status.isLoading}
+              label="Needs your email connection"
+            >
+              <></>
+            </DataGate>
+          )}
+        </div>
+        <div className="bg-tint rounded-[20px] p-[20px]">
+          <div className="text-[12.5px] font-bold tracking-[0.1em] text-accent-ink">
+            AVG BRAND FIT
+          </div>
+          <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px] text-accent-ink">
+            {avgFit ?? dash}
+          </div>
+          <div className="text-[13px] text-accent-ink-soft">
+            {scored.length ? `Across ${scored.length} scored creators` : "No creators scored yet"}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Campaigns" value={counts.data ? String(counts.data.campaigns) : "…"} />
-        <StatCard label="Creators in Hotlist" value={counts.data ? String(counts.data.hotlist) : "…"} />
-        <DataGate connected={emailReady} empty loading={status.isLoading} label="Pending outreach">
-          <></>
-        </DataGate>
-        <DataGate connected={perfReady} empty loading={status.isLoading} label="Brand fit score">
-          <></>
-        </DataGate>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
-        <Card className="lg:col-span-3 p-6">
-          <h3 className="font-semibold mb-4">Recent Campaign Activity</h3>
-          <DataGate connected={emailReady} empty loading={status.isLoading} label="Activity loads from your email connection">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-[16px]">
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+          <div className="flex items-center justify-between mb-[16px]">
+            <h3 className="font-heading font-bold text-[17px] m-0">Recent campaign activity</h3>
+            <Link
+              to="/app/outreach"
+              className="border-0 bg-transparent text-[13px] font-bold text-accent cursor-pointer"
+            >
+              Open inbox →
+            </Link>
+          </div>
+          <DataGate
+            connected={emailReady}
+            empty
+            loading={status.isLoading}
+            label="Activity loads from your email connection"
+          >
             <></>
           </DataGate>
-        </Card>
+        </div>
 
-        <Card className="lg:col-span-2 p-6">
-          <h3 className="font-semibold mb-4">Top Creators by Brand Fit</h3>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+          <h3 className="font-heading font-bold text-[17px] m-[0_0_18px]">
+            Top creators by brand fit
+          </h3>
           <DataGate
             connected={perfReady}
-            loading={status.isLoading || topCreators.isLoading}
-            empty={(topCreators.data ?? []).length === 0}
+            loading={status.isLoading || hotlist.isLoading}
+            empty={topCreators.length === 0}
             label="Scores load from the creator performance connection"
           >
-            <ul className="space-y-4">
-              {(topCreators.data ?? []).map((c) => (
-                <li key={c.id}>
-                  <div className="flex items-center justify-between text-sm mb-1.5">
-                    <span className="font-semibold">{c.creator_name}</span>
-                    <span className="text-xs text-[#8892A4]">{c.platform ?? ""}</span>
+            <div className="flex flex-col gap-[16px]">
+              {topCreators.map((c) => (
+                <div key={c.id}>
+                  <div className="flex justify-between items-baseline gap-[12px] mb-[7px]">
+                    <span className="text-[14px] font-bold">{c.creator_name}</span>
+                    <span className="text-[12px] font-semibold text-subtle">
+                      {c.platform ?? ""}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full bg-[#00D97E]" style={{ width: `${c.score ?? 0}%` }} />
+                  <div className="flex items-center gap-[11px]">
+                    <div className="flex-1 h-[8px] rounded-full bg-sand">
+                      <div
+                        className="h-[8px] rounded-full bg-accent"
+                        style={{ width: `${c.score ?? 0}%` }}
+                      ></div>
                     </div>
-                    <span className="text-xs font-bold text-[#00D97E]">{c.score ?? 0}%</span>
+                    <span className="text-[12.5px] font-bold text-accent">{c.score ?? 0}</span>
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </DataGate>
-        </Card>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4">Views and Clicks</h3>
-          <DataGate connected={perfReady} empty loading={status.isLoading} label="Metrics load from the creator performance connection">
-            <></>
-          </DataGate>
-        </Card>
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4">Revenue</h3>
-          <DataGate connected={salesReady} empty loading={status.isLoading} label="Revenue loads from your sales connection">
-            <></>
-          </DataGate>
-        </Card>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[16px]">
+        <div className="bg-dark text-cream rounded-[20px] p-[22px]">
+          <div className="flex items-baseline justify-between gap-[12px]">
+            <h3 className="font-heading font-bold text-[17px] m-0">Attributed revenue</h3>
+            <span className="text-[12.5px] font-semibold text-on-dark">Last 30 days</span>
+          </div>
+          {salesReady ? (
+            <div className="flex items-baseline gap-[12px] mt-[14px]">
+              <span className="font-heading font-extrabold text-[42px] tracking-[-0.03em]">
+                {dash}
+              </span>
+            </div>
+          ) : (
+            <div className="mt-[14px] text-[13.5px] text-on-dark leading-[1.55]">
+              Waiting for API connection — revenue loads from your sales connection.
+            </div>
+          )}
+        </div>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+          <h3 className="font-heading font-bold text-[17px] m-[0_0_4px]">Quick actions</h3>
+          <div className="text-[13px] text-subtle mb-[16px]">Where teams usually pick up.</div>
+          <div className="grid grid-cols-[1fr_1fr] gap-[10px]">
+            <Link
+              to="/app/discovery"
+              search={{ campaign: undefined }}
+              className="block text-left border-[1.5px] border-border bg-cream rounded-[14px] p-[14px] cursor-pointer ah22"
+            >
+              <div className="font-bold text-[14.5px]">Find creators</div>
+              <div className="text-[12.5px] text-subtle mt-[3px]">Search all four platforms</div>
+            </Link>
+            <Link
+              to="/app/outreach"
+              className="block text-left border-[1.5px] border-border bg-cream rounded-[14px] p-[14px] cursor-pointer ah23"
+            >
+              <div className="font-bold text-[14.5px]">Send outreach</div>
+              <div className="text-[12.5px] text-subtle mt-[3px]">Open the inbox</div>
+            </Link>
+            <Link
+              to="/app/ads"
+              search={{ campaign: undefined }}
+              className="block text-left border-[1.5px] border-border bg-cream rounded-[14px] p-[14px] cursor-pointer ah24"
+            >
+              <div className="font-bold text-[14.5px]">Build an ad</div>
+              <div className="text-[12.5px] text-subtle mt-[3px]">From this week's signals</div>
+            </Link>
+            <Link
+              to="/app/affiliate"
+              className="block text-left border-[1.5px] border-border bg-cream rounded-[14px] p-[14px] cursor-pointer ah25"
+            >
+              <div className="font-bold text-[14.5px]">View payouts</div>
+              <div className="text-[12.5px] text-subtle mt-[3px]">Tracking links and revenue</div>
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <h3 className="font-semibold mt-4 mb-3">Quick Actions</h3>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <QuickAction to="/app/campaigns" icon={<Plus className="w-5 h-5" />} label="New Campaign" />
-        <QuickAction to="/app/discovery" icon={<Search className="w-5 h-5" />} label="Search Creators" />
-        <QuickAction to="/app/outreach" icon={<Mail className="w-5 h-5" />} label="Send Outreach" />
-        <QuickAction to="/app/affiliate" icon={<DollarSign className="w-5 h-5" />} label="View Payouts" />
-      </div>
-    </AppShell>
-  );
-}
-
-function QuickAction({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
-  return (
-    <Link
-      to={to}
-      className="bg-[#0C1222] border border-white/[0.07] rounded-xl p-5 flex flex-col items-center text-center hover:border-[#00D97E]/30 hover:shadow-[0_0_20px_rgba(0,217,126,0.05)] transition-all"
-    >
-      <span className="w-10 h-10 rounded-full bg-[#00D97E]/15 text-[#00D97E] flex items-center justify-center mb-3">{icon}</span>
-      <span className="font-semibold text-sm">{label}</span>
-    </Link>
+    </div>
   );
 }

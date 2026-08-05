@@ -1,18 +1,30 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { SearchSchemaInput } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/app/AppShell";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
-import { CampaignPicker } from "@/components/app/CampaignPicker";
 import { AffiliateHeatMap, type HeatCreator } from "@/components/app/AffiliateHeatMap";
 import { scoreCampaignCreators } from "@/lib/creators.functions";
-import { GripVertical, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAspenCampaign } from "@/routes/app";
 import type { Tables } from "@/integrations/supabase/types";
 
+/* HOTLIST CRM — the `v.isHotlist` block of src/aspen/AspenApp.tsx, on the live
+   hooks the dark version used. Shell, header and title come from the /app
+   layout route. Campaign scope comes from the sidebar switcher; the `campaign`
+   search param still overrides it.
+
+   Drag-and-drop across the stage columns writes straight to Supabase, with the
+   same optimistic update and rollback as before. The design's cards only carry
+   `cursor-grab`, so the drag handlers are re-attached here.
+
+   <AffiliateHeatMap /> is the real scored-creator map, in the Aspen palette. It
+   replaces the design's decorative SVG, which drew fixed circles, and renders
+   bare so the "Fit & reach map" card here is the only card around it. */
+
 export const Route = createFileRoute("/app/hotlist")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: { campaign?: string } & SearchSchemaInput) => ({
     campaign: typeof search.campaign === "string" ? search.campaign : undefined,
   }),
   component: HotlistPage,
@@ -25,31 +37,47 @@ const STAGES: { key: string; label: string }[] = [
   { key: "contacted", label: "Contacted" },
   { key: "negotiating", label: "Negotiating" },
   { key: "contracted", label: "Contracted" },
-  { key: "live", label: "Live / Posted" },
+  { key: "live", label: "Live / posted" },
 ];
 
 const PLATFORM_FILTERS = ["All", "YouTube", "Reddit", "X", "LinkedIn"];
 
-const platBadge = (p: string | null) => {
-  const v = (p ?? "").toLowerCase();
-  if (v === "youtube") return { bg: "rgba(255,0,0,0.15)", color: "#FF6B6B" };
-  if (v === "reddit") return { bg: "rgba(255,69,0,0.15)", color: "#FF7B3D" };
-  if (v === "linkedin") return { bg: "rgba(10,102,194,0.15)", color: "#5BA4F5" };
-  return { bg: "rgba(255,255,255,0.1)", color: "#FFFFFF" };
+/* `hotlist.profile_data` is an untyped JSON column. Only the two shapes the
+   heat map reads are declared; everything else in there stays opaque. */
+type ProfileData = {
+  score_breakdown?: {
+    overall?: number;
+    alignment?: number | null;
+    channel?: number | null;
+    content?: number | null;
+    comments?: number | null;
+    method?: string;
+  };
+  stats?: { subscribers?: number | null };
 };
 
-const slugify = (n: string) => n.toLowerCase().replace(/\s+/g, "-");
+// The design's platform glyph + brand colour, keyed off the stored platform.
+const platMark = (p: string | null) => {
+  const v = (p ?? "").toLowerCase();
+  if (v === "youtube") return { glyph: "▶", color: "#F03" };
+  if (v === "reddit") return { glyph: "r/", color: "#FF4500" };
+  if (v === "linkedin") return { glyph: "in", color: "#0A66C2" };
+  if (v === "x") return { glyph: "X", color: "#17141E" };
+  return { glyph: "·", color: "#8A8494" };
+};
 
 function HotlistPage() {
   const { user } = useAuth();
   const { campaign: campaignParam } = Route.useSearch();
+  const { selected } = useAspenCampaign();
   const status = useConnectorStatus();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
   const [dragging, setDragging] = useState<string | null>(null);
-  const [campaignId, setCampaignId] = useState<string | undefined>(campaignParam);
   const [scoring, setScoring] = useState(false);
+
+  const campaignId = campaignParam ?? selected?.id;
 
   const refresh = async () => {
     if (!user) return;
@@ -88,7 +116,7 @@ function HotlistPage() {
     if (!campaignId) return [];
     const out: HeatCreator[] = [];
     for (const r of campaignRows) {
-      const pd = (r.profile_data ?? {}) as Record<string, any>;
+      const pd = (r.profile_data ?? {}) as ProfileData;
       const b = pd.score_breakdown;
       if (!b) continue;
       out.push({
@@ -131,7 +159,11 @@ function HotlistPage() {
     setScoring(true);
     try {
       const res = await scoreCampaignCreators({ data: { campaignId } });
-      toast.success(res.scored > 0 ? `Scored ${res.scored} creators` : "No creators to score in this campaign yet");
+      toast.success(
+        res.scored > 0
+          ? `Scored ${res.scored} creators`
+          : "No creators to score in this campaign yet",
+      );
       await refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not score creators");
@@ -155,48 +187,56 @@ function HotlistPage() {
   const connected = filtered.length > 0 ? true : filter === "All" ? true : filterConnected;
 
   return (
-    <AppShell
-      title="Hotlist CRM"
-      right={<CampaignPicker value={campaignId} onChange={setCampaignId} />}
-    >
-      <p className="text-[#8892A4] mb-4">
-        {campaignId ? "Creators for this campaign, scored and organized by stage" : "Your shortlisted creators, organized by stage"}
-      </p>
-
-      {/* Heat map + scoring, per campaign */}
-      {campaignId ? (
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-[#F0F4FF]">Fit & reach map</h2>
+    <div className="aspen-scope">
+      <div className="flex gap-[16px] flex-wrap mb-[20px]">
+        <div className="flex-[1_1_420px] min-w-[300px] bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
+          <div className="flex items-center justify-between gap-[12px] mb-[6px]">
+            <h3 className="font-heading font-bold text-[17px] m-0">Fit &amp; reach map</h3>
             <button
               onClick={rescore}
-              disabled={scoring}
-              className="px-3 h-9 rounded-lg bg-[#00D97E] text-[#05080F] text-xs font-bold disabled:opacity-40 inline-flex items-center gap-1.5"
+              disabled={!campaignId || scoring}
+              className="border-0 bg-accent text-cream text-[13px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer ah35 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {scoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              Score creators
+              {scoring ? "Scoring…" : "Score creators"}
             </button>
           </div>
-          <AffiliateHeatMap creators={scored} />
+          <div className="text-[13px] text-subtle mb-[14px]">
+            {campaignId
+              ? "Scored on product fit against this campaign. The best-match zone is highlighted."
+              : "Create a campaign and pick it in the sidebar to score its creators."}
+          </div>
+          {campaignId ? <AffiliateHeatMap creators={scored} /> : null}
         </div>
-      ) : (
-        <p className="text-xs text-[#8892A4] mb-4">
-          Pick a campaign above to score its creators on product fit and see the heat map.
-        </p>
-      )}
-
-      <div className="flex gap-1.5 mb-6 flex-wrap">
-        {PLATFORM_FILTERS.map((pf) => (
-          <button
-            key={pf}
-            onClick={() => setFilter(pf)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-              filter === pf ? "bg-[#00D97E] text-[#05080F]" : "bg-white/[0.05] text-[#8892A4] hover:text-white"
-            }`}
-          >
-            {pf}
-          </button>
-        ))}
+        <div className="flex-[1_1_240px] min-w-[240px] bg-dark text-cream rounded-[20px] p-[22px] flex flex-col justify-between">
+          <div>
+            <h3 className="font-heading font-bold text-[17px] m-0">
+              {filtered.length} creator{filtered.length === 1 ? "" : "s"}, {STAGES.length} stages
+            </h3>
+            <p className="text-[13.5px] text-on-dark leading-[1.55] m-[10px_0_0]">
+              Drag a card to move it. Every stage change logs against the campaign, so the outreach
+              cascade never double-messages anyone.
+            </p>
+          </div>
+          <div className="flex gap-[7px] flex-wrap mt-[20px]">
+            {PLATFORM_FILTERS.map((label) => {
+              const on = filter === label;
+              return (
+                <button
+                  key={label}
+                  onClick={() => setFilter(label)}
+                  className="text-[12.5px] font-bold p-[8px_13px] rounded-[10px] cursor-pointer"
+                  style={{
+                    border: `1.5px solid ${on ? "#FAF7F1" : "#3A3546"}`,
+                    background: on ? "#FAF7F1" : "transparent",
+                    color: on ? "#17141E" : "#B8B2C2",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <DataGate
@@ -205,7 +245,7 @@ function HotlistPage() {
         empty={filtered.length === 0}
         label="Creators load once this platform is connected"
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-[14px] overflow-x-auto pb-[12px]">
           {STAGES.map((col) => (
             <div
               key={col.key}
@@ -214,84 +254,73 @@ function HotlistPage() {
                 if (dragging) moveTo(dragging, col.key);
                 setDragging(null);
               }}
-              className="bg-[#0C1222] rounded-xl p-4 min-w-[260px] w-[260px] shrink-0"
+              className="min-w-[262px] w-[262px] shrink-0 bg-sand-deep rounded-[18px] p-[14px]"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-sm">{col.label}</h4>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#8892A4]">
-                    {byStage[col.key].length}
-                  </span>
-                </div>
+              <div className="flex items-center gap-[8px] mb-[12px]">
+                <span className="font-bold text-[14px]">{col.label}</span>
+                <span className="text-[11px] font-bold text-subtle bg-surface p-[2px_8px] rounded-[7px]">
+                  {byStage[col.key].length}
+                </span>
               </div>
-              <div className="space-y-2.5">
+              <div className="flex flex-col gap-[9px]">
                 {byStage[col.key].map((c) => {
-                  const pb = platBadge(c.platform);
+                  const mark = platMark(c.platform);
                   return (
                     <div
                       key={c.id}
                       draggable
                       onDragStart={() => setDragging(c.id)}
                       onDragEnd={() => setDragging(null)}
-                      className="bg-[#131D2E] border border-white/[0.07] rounded-lg p-3.5 cursor-grab active:cursor-grabbing"
+                      className="bg-surface border-[1.5px] border-border rounded-[14px] p-[13px] cursor-grab active:cursor-grabbing"
                     >
-                      <div className="flex items-start gap-2.5">
+                      <div className="flex gap-[10px] items-center">
                         {c.avatar_url ? (
-                          <img className="w-9 h-9 rounded-full bg-white/5 shrink-0" src={c.avatar_url} alt={c.creator_name} />
+                          <img
+                            src={c.avatar_url}
+                            alt=""
+                            className="w-[30px] h-[30px] rounded-[9px] shrink-0 object-cover"
+                          />
                         ) : (
-                          <div className="w-9 h-9 rounded-full bg-white/5 shrink-0 flex items-center justify-center text-[10px] font-bold text-[#8892A4]">
-                            {c.creator_name.slice(0, 2).toUpperCase()}
+                          <div
+                            className="w-[30px] h-[30px] rounded-[9px] text-surface grid place-items-center font-extrabold text-[11px] shrink-0"
+                            style={{ background: mark.color }}
+                          >
+                            {mark.glyph}
                           </div>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <GripVertical className="w-3.5 h-3.5 text-[#4B5563]" />
-                            <Link
-                              to="/app/creators/$id"
-                              params={{ id: c.external_id ?? slugify(c.creator_name) }}
-                              className="font-bold text-sm truncate hover:text-[#00D97E] transition-colors"
-                            >
-                              {c.creator_name}
-                            </Link>
-                          </div>
-                          {c.platform ? (
-                            <span
-                              className="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                              style={{ background: pb.bg, color: pb.color }}
-                            >
-                              {c.platform}
-                            </span>
-                          ) : null}
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {typeof c.score === "number" ? (
-                              <span
-                                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                style={{ background: "rgba(0,217,126,0.15)", color: "#00D97E" }}
-                              >
-                                {c.score}% fit
-                              </span>
-                            ) : null}
-                            {c.cpm ? (
-                              <span
-                                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                style={{ background: "rgba(245,158,11,0.1)", color: "#F59E0B" }}
-                              >
-                                CPM {c.cpm}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {STAGES.filter((s) => s.key !== (c.stage ?? "saved")).map((s) => (
-                              <button
-                                key={s.key}
-                                onClick={() => moveTo(c.id, s.key)}
-                                className="text-[10px] text-[#8892A4] hover:text-[#00D97E]"
-                              >
-                                → {s.label}
-                              </button>
-                            ))}
-                          </div>
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            to="/app/creators/$id"
+                            params={{ id: c.id }}
+                            className="text-[13.5px] font-bold leading-[1.3] block truncate"
+                          >
+                            {c.creator_name}
+                          </Link>
                         </div>
+                      </div>
+                      <div className="flex gap-[6px] mt-[10px] flex-wrap">
+                        {typeof c.score === "number" ? (
+                          <span className="text-[10.5px] font-bold bg-tint text-accent-ink p-[3px_7px] rounded-[6px]">
+                            {c.score}% fit
+                          </span>
+                        ) : null}
+                        {c.cpm ? (
+                          <span className="text-[10.5px] font-bold bg-sand text-muted p-[3px_7px] rounded-[6px]">
+                            {c.cpm}
+                          </span>
+                        ) : null}
+                      </div>
+                      {/* Keyboard/no-drag fallback, as the dark version had. */}
+                      <div className="flex gap-[8px] mt-[9px] flex-wrap">
+                        {STAGES.filter((s) => s.key !== (c.stage ?? "saved")).map((s) => (
+                          <button
+                            key={s.key}
+                            onClick={() => moveTo(c.id, s.key)}
+                            className="border-0 bg-transparent p-0 text-[10.5px] font-semibold text-subtle cursor-pointer ah20"
+                          >
+                            → {s.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   );
@@ -301,6 +330,6 @@ function HotlistPage() {
           ))}
         </div>
       </DataGate>
-    </AppShell>
+    </div>
   );
 }

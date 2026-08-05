@@ -461,9 +461,12 @@ body:not(:has(.aspen-scope)) main {
   background-size: 24px 24px !important;
 }
 
-/* CARD DEPTH */
-.bg-\[\#0C1222\].border.rounded-xl,
-.bg-\[\#0C1222\].border.rounded-lg {
+/* CARD DEPTH — gated off inside Aspen pages. These paint any
+   `bg-[#0C1222] border rounded-xl` element with a navy gradient at
+   !important, which beat the cream repaint of DataGate's placeholder panel
+   (see `.aspen-scope .datagate-panel` further down). */
+body:not(:has(.aspen-scope)) .bg-\[\#0C1222\].border.rounded-xl,
+body:not(:has(.aspen-scope)) .bg-\[\#0C1222\].border.rounded-lg {
   background: linear-gradient(145deg, #131d2e 0%, #0c1222 100%) !important;
   border-color: rgba(255, 255, 255, 0.09) !important;
   box-shadow:
@@ -472,22 +475,25 @@ body:not(:has(.aspen-scope)) main {
     inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
 
-/* HOTLIST CARD DEPTH & HOVER */
-.bg-\[\#131D2E\].border.rounded-\[10px\],
-.bg-\[\#131D2E\].border.rounded-xl {
+/* HOTLIST CARD DEPTH & HOVER — gated off inside Aspen pages, as above. */
+body:not(:has(.aspen-scope)) .bg-\[\#131D2E\].border.rounded-\[10px\],
+body:not(:has(.aspen-scope)) .bg-\[\#131D2E\].border.rounded-xl {
   background: linear-gradient(145deg, #16223a 0%, #0e1929 100%) !important;
   transition: all 0.15s ease !important;
 }
-.bg-\[\#131D2E\].border.rounded-\[10px\]:hover,
-.bg-\[\#131D2E\].border.rounded-xl:hover {
+body:not(:has(.aspen-scope)) .bg-\[\#131D2E\].border.rounded-\[10px\]:hover,
+body:not(:has(.aspen-scope)) .bg-\[\#131D2E\].border.rounded-xl:hover {
   border-color: rgba(0, 217, 126, 0.28) !important;
   box-shadow: 0 4px 20px rgba(0, 217, 126, 0.09) !important;
   transform: translateY(-1px) !important;
 }
 
-/* TOPBAR GLASS BLUR */
-header.sticky,
-.sticky.top-0.z-20 {
+/* TOPBAR GLASS BLUR — gated off inside Aspen pages the same way the dot grid
+   above is. The Aspen app header is `sticky top-0`, so `header.sticky` matched
+   it and painted the cream bar near-black with !important, leaving the dark
+   `<h1>` invisible against it. */
+body:not(:has(.aspen-scope)) header.sticky,
+body:not(:has(.aspen-scope)) .sticky.top-0.z-20 {
   background: rgba(5, 8, 15, 0.92) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
@@ -2614,6 +2620,33 @@ body:not(:has(.aspen-scope)) {
   background: #faf7f1;
   color: #17141e;
   font-family: "Instrument Sans", ui-sans-serif, sans-serif;
+}
+
+/* The /app screens nest: the layout route (src/routes/app.tsx) wraps the whole
+   shell in a scope, and each screen route wraps its own block in another one so
+   it still gets the tokens if it is ever rendered on its own. Only the outer
+   scope owns the viewport — an inner one inheriting `min-height: 100vh` would
+   push every screen a header's worth taller than its content. Unlayered and
+   two-class specific so it beats the block above either way. */
+.aspen-scope .aspen-scope {
+  min-height: 0;
+}
+
+/* DataGate's "Waiting for API connection" / "No data to display" placeholder
+   ships dark (#0C1222 on white-alpha borders) for /admin and the screens still
+   on the old palette. Inside an Aspen page it has to read as a cream card, so
+   it is repainted here rather than by threading a variant prop through every
+   call site. Unlayered, so it beats the utilities the component sets. */
+.aspen-scope .datagate-panel {
+  background: #fffdf9;
+  border: 1.5px solid #e8e2d6;
+  border-radius: 20px;
+}
+.aspen-scope .datagate-panel span {
+  color: #8a8494;
+}
+.aspen-scope .datagate-panel span + span {
+  color: #a8a2b0;
 }
 
 /* The app's global dark rules set these on <body>; an Aspen page owns the

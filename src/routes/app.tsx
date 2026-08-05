@@ -18,7 +18,13 @@ export const Route = createFileRoute("/app")({
    switch between with `state.screen` now live in the app.*.tsx routes and
    render through the <Outlet /> below. */
 
-type AspenCampaign = { id: string; name: string };
+type AspenCampaign = {
+  id: string;
+  name: string;
+  goal: string | null;
+  start_date: string | null;
+  end_date: string | null;
+};
 
 /* The sidebar's CAMPAIGN block is the Aspen design's campaign selector, and it
    replaces the dark <CampaignPicker> that used to sit in each screen's header.
@@ -58,6 +64,16 @@ const SCREEN_META: [string, string, string][] = [
 ];
 
 const HOME_META: [string, string] = ["Home", "What moved across your campaigns today"];
+
+// "1 Aug – 30 Sep · Affiliate Sales", skipping whichever half is missing.
+function campaignSubtitle(c: AspenCampaign): string {
+  const fmt = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString(undefined, { day: "numeric", month: "short" }) : null;
+  const from = fmt(c.start_date);
+  const to = fmt(c.end_date);
+  const range = from && to ? `${from} – ${to}` : from ? `From ${from}` : to ? `Until ${to}` : null;
+  return [range, c.goal].filter(Boolean).join(" · ");
+}
 
 /* The sidebar nav, from the design's `nav` array. `match` is the path prefix
    that lights the item up; discovery also owns creator profiles, the way
@@ -175,7 +191,7 @@ function AppLayout() {
     queryFn: async () => {
       const { data } = await supabase
         .from("campaigns")
-        .select("id,name")
+        .select("id,name,goal,start_date,end_date")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       return (data ?? []) as AspenCampaign[];
@@ -216,8 +232,21 @@ function AppLayout() {
   if (loading || !user) return null;
 
   const initials = (user.email ?? "?").slice(0, 2).toUpperCase();
+  /* Campaign detail titles itself: the screen deliberately does not repeat the
+     campaign name in its own header card, so the name belongs up here with the
+     date range and goal as the subtitle. The shell already holds every campaign
+     for the switcher, so this is a lookup rather than another fetch. */
+  const detailId = pathname.startsWith("/app/campaigns/")
+    ? pathname.slice("/app/campaigns/".length).split("/")[0]
+    : null;
+  const detail = detailId ? campaigns.find((c) => c.id === detailId) : undefined;
+
   const meta = SCREEN_META.find(([prefix]) => pathname.startsWith(prefix));
-  const [title, subtitle] = meta ? [meta[1], meta[2]] : HOME_META;
+  let [title, subtitle] = meta ? [meta[1], meta[2]] : HOME_META;
+  if (detailId) {
+    title = detail?.name ?? "Campaign";
+    subtitle = detail ? campaignSubtitle(detail) : "";
+  }
 
   const isActive = (item: { to: string; match: readonly string[]; exact: boolean }) =>
     item.exact

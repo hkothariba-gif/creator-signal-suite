@@ -19,10 +19,9 @@ import type { Tables } from "@/integrations/supabase/types";
    same optimistic update and rollback as before. The design's cards only carry
    `cursor-grab`, so the drag handlers are re-attached here.
 
-   NOTE: <AffiliateHeatMap /> is the real scored-creator map and is still in its
-   dark palette — it replaces the design's decorative SVG, which drew fixed
-   circles. It needs an Aspen pass of its own; until then it sits in the card as
-   a dark inset rather than showing invented data. */
+   <AffiliateHeatMap /> is the real scored-creator map, in the Aspen palette. It
+   replaces the design's decorative SVG, which drew fixed circles, and renders
+   bare so the "Fit & reach map" card here is the only card around it. */
 
 export const Route = createFileRoute("/app/hotlist")({
   validateSearch: (search: { campaign?: string } & SearchSchemaInput) => ({

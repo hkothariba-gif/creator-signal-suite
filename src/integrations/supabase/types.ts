@@ -1302,6 +1302,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      campaign_spend_daily: {
+        Args: { p_campaign: string; p_org: string }
+        Returns: {
+          ads_with_spend: number
+          currency: string
+          day: string
+          spend_minor: number
+        }[]
+      }
       can_edit_org: { Args: { org: string }; Returns: boolean }
       is_org_admin: { Args: { org: string }; Returns: boolean }
       is_org_member: { Args: { org: string }; Returns: boolean }

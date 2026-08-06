@@ -558,13 +558,15 @@ function CampaignDetailPage() {
                       “{a.headline || a.name}”
                     </div>
                     {/* No ad_daily rows for this ad → omit the line entirely
-                        rather than print zeros. */}
+                        rather than print zeros. The ad's own currency, not the
+                        campaign's: the campaign total goes null once two
+                        currencies meet, and this ad's figure is still good. */}
                     <div className="text-[12px] text-subtle mt-[6px]">
-                      {adStat
+                      {adStat?.spendMinor != null && adStat.currency
                         ? [
-                            `${formatMoney(adStat.spendMinor, p?.spend.currency ?? "USD")} spent`,
+                            `${formatMoney(adStat.spendMinor, adStat.currency)} spent`,
                             adStat.cpaMinor != null
-                              ? `${formatMoney(adStat.cpaMinor, p?.spend.currency ?? "USD")} per conversion`
+                              ? `${formatMoney(adStat.cpaMinor, adStat.currency)} per conversion`
                               : null,
                           ]
                             .filter(Boolean)

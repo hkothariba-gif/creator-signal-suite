@@ -15,7 +15,13 @@ import { supabase } from "@/integrations/supabase/client";
 
    Divide-by-zero returns null rather than Infinity or NaN. Mixed currencies in
    one campaign are never summed together — the total goes null and the caller
-   is told how many currencies it saw. */
+   is told how many currencies it saw.
+
+   Spend is the organization's, not the reader's. Ads are private until shared,
+   so the campaign total, the daily series and the ad count come from the
+   campaign_spend_daily rollup rather than from ads this reader happens to be
+   able to select. Only the per-ad breakdown is reader-scoped, because that one
+   names ads. */
 
 export type MoneyTotal = {
   /** Sum in minor units, or null when nothing was recorded or currencies are mixed. */
@@ -28,6 +34,7 @@ export type MoneyTotal = {
 
 export type CampaignPerformance = {
   budget: MoneyTotal;
+  /** Every ad on this campaign across the org, shared or not. */
   spend: MoneyTotal;
   revenue: MoneyTotal;
   /** Conversions across this campaign's affiliate links. Null when no rows. */
@@ -36,10 +43,18 @@ export type CampaignPerformance = {
   budgetUsed: number | null;
   /** revenue / spend. Null unless spend > 0 and revenue is known. */
   roas: number | null;
-  /** How many ads have at least one ad_daily row. */
+  /** How many ads in the org have at least one ad_daily row on this campaign. */
   adsWithSpend: number;
-  /** ad_id → spend and cost per conversion, both minor units. */
-  perAd: Record<string, { spendMinor: number; cpaMinor: number | null }>;
+  /**
+   * ad_id → spend and cost per conversion, both minor units. Covers only the
+   * ads this reader can see, so it can be a subset of `spend`. Each ad carries
+   * its own currency: the campaign total goes null the moment two currencies
+   * meet, and a single-currency ad should still print its own figure.
+   */
+  perAd: Record<
+    string,
+    { spendMinor: number | null; cpaMinor: number | null; currency: string | null }
+  >;
   /** hotlist_id → clicks and revenue for links attributed to that creator. */
   perCreator: Record<string, { clicks: number; revenueMinor: number }>;
   /** Day-by-day spend and revenue, outer-joined so a spend-only day still plots. */
@@ -78,7 +93,26 @@ export function useCampaignPerformance(campaignId: string, orgId: string | undef
         .eq("id", campaignId)
         .maybeSingle();
 
-      // Ads on this campaign, then their recorded daily spend.
+      // Campaign spend, rolled up across the whole organization.
+      //
+      // Through an RPC rather than a table read because the ads read policy is
+      // `is_org_member AND (shared OR created_by = auth.uid())`: starting from
+      // the ads this reader can see gave a teammate who authored none of them
+      // an empty spend total, which the UI printed as "No spend recorded". The
+      // security-definer function sums ad_daily — already org-readable — behind
+      // its own membership check, and returns only day, currency and totals, so
+      // unshared ads stay unshared. See 20260806140000_campaign_spend_rollup.
+      const { data: spendDaily, error: spendError } = await supabase.rpc("campaign_spend_daily", {
+        p_org: orgId!,
+        p_campaign: campaignId,
+      });
+      // Never swallowed: a failed read is not a recorded zero, and letting it
+      // fall through to an empty array would print the very "No spend recorded"
+      // this rollup exists to correct.
+      if (spendError) throw spendError;
+
+      // Ads on this campaign — the ones this reader can see — for the per-ad
+      // breakdown only. The campaign total above does not depend on it.
       const { data: ads } = await supabase
         .from("ads")
         .select("id")
@@ -119,7 +153,10 @@ export function useCampaignPerformance(campaignId: string, orgId: string | undef
             }[],
           };
 
-      const spendRows = adDaily ?? [];
+      // Org-wide, for the campaign total and the daily series.
+      const spendRows = spendDaily ?? [];
+      // Visible-ad only, for the per-ad breakdown beside each ad card.
+      const perAdRows = adDaily ?? [];
       const revenueRows = affDaily ?? [];
 
       const budget: MoneyTotal =
@@ -145,13 +182,25 @@ export function useCampaignPerformance(campaignId: string, orgId: string | undef
       // Per-ad spend, and CPA against the campaign's conversions. There is no
       // per-ad conversion source — attribution lands on links, not ads — so the
       // spec defines CPA as this ad's spend over the campaign's conversions.
-      const perAdSpend = new Map<string, number>();
-      for (const r of spendRows) {
-        perAdSpend.set(r.ad_id, (perAdSpend.get(r.ad_id) ?? 0) + (r.spend_minor ?? 0));
+      //
+      // Only ads this reader can see appear here, so these lines can sum to
+      // less than the campaign total above. That is the intended split: the
+      // total is the organization's, the breakdown is what the reader is
+      // entitled to attribute to a named ad.
+      const perAdRowsById = new Map<string, typeof perAdRows>();
+      for (const r of perAdRows) {
+        perAdRowsById.set(r.ad_id, [...(perAdRowsById.get(r.ad_id) ?? []), r]);
       }
       const perAd: CampaignPerformance["perAd"] = {};
-      for (const [adId, spendMinor] of perAdSpend) {
-        perAd[adId] = { spendMinor, cpaMinor: ratio(spendMinor, conversions) };
+      for (const [adId, rows] of perAdRowsById) {
+        // sumMoney per ad, so one ad billed in two currencies goes null on its
+        // own rather than borrowing the campaign's currency.
+        const money = sumMoney(rows.map((r) => ({ currency: r.currency, minor: r.spend_minor })));
+        perAd[adId] = {
+          spendMinor: money.minor,
+          cpaMinor: ratio(money.minor, conversions),
+          currency: money.currency,
+        };
       }
 
       // Per-creator clicks and revenue, joined through affiliate_links.hotlist_id.
@@ -201,7 +250,10 @@ export function useCampaignPerformance(campaignId: string, orgId: string | undef
           revenue.currency && spend.currency && revenue.currency === spend.currency
             ? ratio(revenue.minor, spend.minor)
             : null,
-        adsWithSpend: perAdSpend.size,
+        // Org-wide too — the "across N ads" note counts every ad carrying
+        // spend, so it agrees with the total it annotates. The function
+        // repeats the same count on every row; with no rows there are no ads.
+        adsWithSpend: spendRows[0]?.ads_with_spend ?? 0,
         perAd,
         perCreator,
         series,

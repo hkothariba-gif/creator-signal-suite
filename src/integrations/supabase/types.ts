@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ad_corpus: {
@@ -70,6 +95,57 @@ export type Database = {
             columns: ["hotlist_id"]
             isOneToOne: false
             referencedRelation: "hotlist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_daily: {
+        Row: {
+          ad_id: string
+          clicks: number
+          created_at: string
+          currency: string
+          day: string
+          impressions: number
+          organization_id: string
+          spend_minor: number
+          updated_at: string
+        }
+        Insert: {
+          ad_id: string
+          clicks?: number
+          created_at?: string
+          currency?: string
+          day: string
+          impressions?: number
+          organization_id: string
+          spend_minor?: number
+          updated_at?: string
+        }
+        Update: {
+          ad_id?: string
+          clicks?: number
+          created_at?: string
+          currency?: string
+          day?: string
+          impressions?: number
+          organization_id?: string
+          spend_minor?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_daily_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_daily_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -308,6 +384,7 @@ export type Database = {
           created_at: string
           created_by: string
           destination_url: string
+          hotlist_id: string | null
           id: string
           label: string | null
           organization_id: string
@@ -320,6 +397,7 @@ export type Database = {
           created_at?: string
           created_by: string
           destination_url: string
+          hotlist_id?: string | null
           id?: string
           label?: string | null
           organization_id: string
@@ -332,6 +410,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           destination_url?: string
+          hotlist_id?: string | null
           id?: string
           label?: string | null
           organization_id?: string
@@ -351,6 +430,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_links_hotlist_id_fkey"
+            columns: ["hotlist_id"]
+            isOneToOne: false
+            referencedRelation: "hotlist"
             referencedColumns: ["id"]
           },
           {
@@ -438,7 +524,9 @@ export type Database = {
           brand_beliefs: string | null
           brief: string | null
           budget: string | null
+          budget_minor: number | null
           created_at: string
+          currency: string
           end_date: string | null
           goal: string | null
           id: string
@@ -457,7 +545,9 @@ export type Database = {
           brand_beliefs?: string | null
           brief?: string | null
           budget?: string | null
+          budget_minor?: number | null
           created_at?: string
+          currency?: string
           end_date?: string | null
           goal?: string | null
           id?: string
@@ -476,7 +566,9 @@ export type Database = {
           brand_beliefs?: string | null
           brief?: string | null
           budget?: string | null
+          budget_minor?: number | null
           created_at?: string
+          currency?: string
           end_date?: string | null
           goal?: string | null
           id?: string
@@ -1361,6 +1453,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       affiliate_event_type: ["click", "conversion"],

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.recompute_affiliate_daily(uuid) FROM anon, authenticated;

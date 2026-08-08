@@ -7,12 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
 import { findCreatorsForCampaign, type SourceStatus } from "@/lib/discover-creators.functions";
-import {
-  getAffiliatePerformance,
-  listAffiliateLinks,
-  type AffiliatePerformance,
-  type AffiliateLink,
-} from "@/lib/affiliate.functions";
+import { useCampaignPerformance, formatMoney } from "@/hooks/useCampaignPerformance";
 
 /* CAMPAIGN DETAIL — new Aspen screen, per SCREENS-TO-PORT.md §5.
 
@@ -22,11 +17,17 @@ import {
    attribution for this campaign, plus pause/resume, duplicate and archive,
    which the spec's header and footer call for and the schema can back.
 
-   Four things the spec asks for have no data behind them and show an honest
-   empty state rather than a zero that reads as real — see the notes at each
-   site: ad spend (nowhere in the schema), return/ROAS (needs spend),
-   per-creator clicks and revenue (attribution is per affiliate link, and links
-   carry no creator reference), and the brief's "Offer" row (no column). */
+   Spend, return and per-creator revenue are real as of
+   SPEC-spend-and-attribution.md: ad_daily carries per-ad daily spend,
+   campaigns.budget_minor the numeric budget, and affiliate_links.hotlist_id
+   attributes a tracking link to a creator. Every figure still degrades to an
+   honest empty state — "Not recorded", "Needs spend", "No link yet" — rather
+   than a zero that reads as real, and useCampaignPerformance returns null
+   rather than 0 so this screen can tell those apart.
+
+   Still genuinely absent: the brief's "Offer" row (no column), and any way to
+   enter spend from the UI — ad_daily rows are written by hand until that
+   affordance is designed. */
 
 export const Route = createFileRoute("/app/campaigns/$id")({
   component: CampaignDetailPage,
@@ -65,14 +66,6 @@ const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = 
 const STAGE_PILL: Record<string, { bg: string; fg: string }> = {
   live: { bg: "#DDF3E6", fg: "#0E7A3D" },
   contracted: { bg: "#FFECD9", fg: "#B33A12" },
-};
-
-const money = (minor: number, currency: string) => {
-  try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
-  } catch {
-    return `${(minor / 100).toFixed(2)} ${currency}`;
-  }
 };
 
 const fmtDate = (d: string | null) =>
@@ -133,54 +126,11 @@ function CampaignDetailPage() {
     },
   });
 
-  /* Attribution for this campaign specifically. Affiliate links carry a
-     campaign_id, so the org-wide performance can be narrowed to the links that
-     belong here. The org-wide `daily` series cannot be narrowed the same way —
-     it is aggregated across every link — so the weekly chart reads
-     affiliate_daily directly for just these link ids. */
-  const attribution = useQuery({
-    queryKey: ["campaign-attribution", id, orgId],
-    enabled: !!orgId,
-    queryFn: async () => {
-      const [perf, links] = (await Promise.all([
-        getAffiliatePerformance({ data: { organizationId: orgId! } }),
-        listAffiliateLinks({ data: { organizationId: orgId! } }),
-      ])) as [AffiliatePerformance, AffiliateLink[]];
-
-      const linkIds = new Set(links.filter((l) => l.campaignId === id).map((l) => l.id));
-      const mine = perf.byLink.filter((l) => l.linkId && linkIds.has(l.linkId));
-      const totals = mine.reduce(
-        (acc, l) => ({
-          clicks: acc.clicks + l.clicks,
-          conversions: acc.conversions + l.conversions,
-          revenueMinor: acc.revenueMinor + l.revenueMinor,
-        }),
-        { clicks: 0, conversions: 0, revenueMinor: 0 },
-      );
-
-      // Twelve weeks of attributed revenue for these links only. Best effort:
-      // if the table is not readable, the chart shows its empty state rather
-      // than borrowing the org-wide series, which would not be this campaign's.
-      let weeks: number[] | null = null;
-      if (linkIds.size > 0) {
-        const { data: daily } = await supabase
-          .from("affiliate_daily")
-          .select("day,revenue_minor")
-          .in("link_id", [...linkIds]);
-        if (daily) {
-          const now = Date.now();
-          const buckets = new Array(12).fill(0) as number[];
-          for (const row of daily) {
-            const weeksAgo = Math.floor((now - Date.parse(row.day)) / (7 * 24 * 3600 * 1000));
-            if (weeksAgo >= 0 && weeksAgo < 12) buckets[11 - weeksAgo] += row.revenue_minor ?? 0;
-          }
-          if (buckets.some((v) => v > 0)) weeks = buckets;
-        }
-      }
-
-      return { currency: perf.currency, totals, linkCount: linkIds.size, weeks };
-    },
-  });
+  /* Every derived number for this campaign — budget, spend, revenue, ROAS, the
+     per-ad and per-creator breakdowns and the daily series — comes from one
+     hook so the guard rails around absent data and mixed currencies live in a
+     single place. See src/hooks/useCampaignPerformance.ts. */
+  const perf = useCampaignPerformance(id, orgId);
 
   const refetchAll = () => {
     queryClient.invalidateQueries({ queryKey: ["campaign", id] });
@@ -210,6 +160,8 @@ function CampaignDetailPage() {
         platforms: c.platforms,
         goal: c.goal,
         budget: c.budget,
+        budget_minor: c.budget_minor,
+        currency: c.currency,
         brief: c.brief,
         target_audience: c.target_audience,
         never_say: c.never_say,
@@ -320,8 +272,39 @@ function CampaignDetailPage() {
   const dateRange =
     from && to ? `${from} – ${to}` : from ? `From ${from}` : to ? `Until ${to}` : "No dates set";
 
-  const attr = attribution.data;
+  const p = perf.data;
   const adRows = ads.data ?? [];
+
+  // Legacy free-text budget is display-only, and only when the numeric column
+  // has nothing. Once budget_minor is set it is the single source of truth.
+  const budgetText =
+    p?.budget.minor != null
+      ? formatMoney(p.budget.minor, p.budget.currency ?? "USD")
+      : (c.budget ?? null);
+  const spendText =
+    p?.spend.minor != null ? formatMoney(p.spend.minor, p.spend.currency ?? "USD") : null;
+  const over = (p?.budgetUsed ?? 0) > 1;
+
+  /* The daily series bucketed into the design's twelve weekly columns. Null
+     when nothing at all was recorded, so the panel can say so instead of
+     drawing twelve empty bars. */
+  const chart = (() => {
+    if (!p || p.series.length === 0) return null;
+    const now = Date.now();
+    const buckets = Array.from({ length: 12 }, () => ({ spendMinor: 0, revenueMinor: 0 }));
+    for (const row of p.series) {
+      const weeksAgo = Math.floor((now - Date.parse(row.day)) / (7 * 24 * 3600 * 1000));
+      if (weeksAgo < 0 || weeksAgo >= 12) continue;
+      const b = buckets[11 - weeksAgo];
+      b.spendMinor += row.spendMinor ?? 0;
+      b.revenueMinor += row.revenueMinor ?? 0;
+    }
+    const hasSpend = buckets.some((b) => b.spendMinor > 0);
+    const hasRevenue = buckets.some((b) => b.revenueMinor > 0);
+    if (!hasSpend && !hasRevenue) return null;
+    const max = Math.max(...buckets.map((b) => Math.max(b.spendMinor, b.revenueMinor)));
+    return { buckets, hasSpend, hasRevenue, max };
+  })();
 
   return (
     <div className="aspen-scope flex flex-col gap-[16px] max-w-[1080px]">
@@ -384,21 +367,38 @@ function CampaignDetailPage() {
           </div>
         </div>
 
-        {/* Footer strip. Budget is a free-text column ("$24,000"), and nothing
-            in the schema records spend, so the track stays empty and says so
-            rather than drawing a fill at an invented percentage. */}
+        {/* Footer strip, per spec §4. Four states, and the track is only drawn
+            when there is a budget to fill against — an empty bar with nothing
+            behind it reads as "0% spent" rather than "not known". */}
         <div className="flex items-center gap-[16px] mt-[22px] pt-[18px] border-t-[1.5px] border-border flex-wrap">
           <div className="flex-1 min-w-[240px]">
-            <div className="text-[13px] text-muted">
-              {c.budget ? (
-                <>
-                  Spend not tracked yet · budget <strong className="text-dark">{c.budget}</strong>
-                </>
-              ) : (
-                "No budget set · spend not tracked yet"
-              )}
-            </div>
-            <div className="h-[10px] rounded-full bg-sand mt-[8px]" />
+            {spendText && budgetText ? (
+              <>
+                <div className="text-[13px]" style={{ color: over ? "#F2542D" : "#4A4553" }}>
+                  <strong className={over ? "" : "text-dark"}>{spendText}</strong> of{" "}
+                  <strong className={over ? "" : "text-dark"}>{budgetText}</strong> spent
+                </div>
+                <div className="h-[10px] rounded-full bg-sand mt-[8px] overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-accent"
+                    style={{ width: `${Math.min(100, (p!.budgetUsed ?? 0) * 100)}%` }}
+                  />
+                </div>
+              </>
+            ) : budgetText ? (
+              <>
+                <div className="text-[13px] text-muted">
+                  No spend recorded · budget <strong className="text-dark">{budgetText}</strong>
+                </div>
+                <div className="h-[10px] rounded-full bg-sand mt-[8px]" />
+              </>
+            ) : spendText ? (
+              <div className="text-[13px] text-muted">
+                <strong className="text-dark">{spendText}</strong> spent · no budget set
+              </div>
+            ) : (
+              <div className="text-[13px] text-muted">No budget set · no spend recorded</div>
+            )}
           </div>
           <div className="text-[13px] text-subtle">{dateRange}</div>
         </div>
@@ -456,6 +456,7 @@ function CampaignDetailPage() {
               {rows.map((h) => {
                 const mark = platMark(h.platform);
                 const pill = STAGE_PILL[stageOf(h)] ?? { bg: "#F5F1E9", fg: "#8A8494" };
+                const creatorStat = p?.perCreator[h.id];
                 return (
                   <Link
                     key={h.id}
@@ -479,12 +480,28 @@ function CampaignDetailPage() {
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="text-[14px] font-bold truncate">{h.creator_name}</div>
-                      {/* Clicks and revenue are per affiliate link, and links carry
-                          no creator reference — so only the deal is shown. */}
+                      {/* Clicks and revenue arrive through affiliate_links.hotlist_id.
+                          A creator with no link attributed to them says so rather
+                          than showing two zeros. */}
                       <div className="text-[12px] text-subtle mt-[2px]">
-                        {h.cpm ? h.cpm : "No deal terms yet"}
+                        {creatorStat ? (
+                          <>
+                            {h.cpm ? `${h.cpm} · ` : ""}
+                            {creatorStat.clicks.toLocaleString()} click
+                            {creatorStat.clicks === 1 ? "" : "s"}
+                          </>
+                        ) : h.cpm ? (
+                          `${h.cpm} · No link yet`
+                        ) : (
+                          "No link yet"
+                        )}
                       </div>
                     </div>
+                    {creatorStat ? (
+                      <span className="w-[62px] shrink-0 text-right text-[13px] font-bold">
+                        {formatMoney(creatorStat.revenueMinor, p?.revenue.currency ?? "USD")}
+                      </span>
+                    ) : null}
                     <span
                       className="text-[11px] font-bold p-[4px_9px] rounded-[7px] shrink-0 capitalize"
                       style={{ background: pill.bg, color: pill.fg }}
@@ -519,6 +536,7 @@ function CampaignDetailPage() {
               {adRows.map((a) => {
                 const mark = platMark(a.target_platform);
                 const live = a.status === "saved" || a.status === "live";
+                const adStat = p?.perAd[a.id];
                 return (
                   <div key={a.id} className="bg-cream rounded-[14px] p-[13px_15px]">
                     <div className="flex items-center gap-[9px]">
@@ -539,10 +557,21 @@ function CampaignDetailPage() {
                     <div className="text-[14.5px] font-semibold mt-[8px] leading-[1.45]">
                       “{a.headline || a.name}”
                     </div>
-                    {/* Spend and cost per conversion have no source in the
-                        schema; saying so beats printing $0.00. */}
+                    {/* No ad_daily rows for this ad → omit the line entirely
+                        rather than print zeros. The ad's own currency, not the
+                        campaign's: the campaign total goes null once two
+                        currencies meet, and this ad's figure is still good. */}
                     <div className="text-[12px] text-subtle mt-[6px]">
-                      Spend and cost per conversion aren’t tracked yet
+                      {adStat?.spendMinor != null && adStat.currency
+                        ? [
+                            `${formatMoney(adStat.spendMinor, adStat.currency)} spent`,
+                            adStat.cpaMinor != null
+                              ? `${formatMoney(adStat.cpaMinor, adStat.currency)} per conversion`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")
+                        : null}
                     </div>
                   </div>
                 );
@@ -558,29 +587,64 @@ function CampaignDetailPage() {
           <ProofStat
             label="Attributed revenue"
             value={
-              attr
-                ? money(attr.totals.revenueMinor, attr.currency)
-                : attribution.isLoading
+              p?.revenue.minor != null
+                ? formatMoney(p.revenue.minor, p.revenue.currency ?? "USD")
+                : perf.isLoading
                   ? "…"
-                  : "—"
+                  : p && p.revenue.currencyCount > 1
+                    ? `${p.revenue.currencyCount} currencies`
+                    : "Not recorded"
+            }
+            small={p?.revenue.minor == null}
+          />
+          <ProofStat
+            label="Spend"
+            value={
+              p?.spend.minor != null
+                ? formatMoney(p.spend.minor, p.spend.currency ?? "USD")
+                : perf.isLoading
+                  ? "…"
+                  : p && p.spend.currencyCount > 1
+                    ? `${p.spend.currencyCount} currencies`
+                    : "Not recorded"
+            }
+            small={p?.spend.minor == null}
+            note={
+              p && p.adsWithSpend > 0
+                ? `across ${p.adsWithSpend} ad${p.adsWithSpend === 1 ? "" : "s"}`
+                : undefined
             }
           />
-          <ProofStat label="Spend" value="Not tracked" small />
-          <ProofStat label="Return" value="Needs spend" small />
+          <ProofStat
+            label="Return"
+            value={p?.roas != null ? `${p.roas.toFixed(1)}x` : "Needs spend"}
+            small={p?.roas == null}
+            note={
+              p?.roas != null && p.revenue.minor != null && p.spend.minor != null
+                ? `${formatMoney(p.revenue.minor, p.revenue.currency ?? "USD")} from ${formatMoney(p.spend.minor, p.spend.currency ?? "USD")}`
+                : undefined
+            }
+          />
           <ProofStat
             label="Conversions"
             value={
-              attr ? attr.totals.conversions.toLocaleString() : attribution.isLoading ? "…" : "—"
+              p?.conversions != null
+                ? p.conversions.toLocaleString()
+                : perf.isLoading
+                  ? "…"
+                  : "Not recorded"
             }
+            small={p?.conversions == null}
           />
         </div>
         <div className="flex-1 min-w-[280px]">
-          {attr?.weeks ? (
+          {chart ? (
             <>
-              <div className="flex items-end gap-[5px] h-[96px]">
-                {attr.weeks.map((v, i) => {
-                  const max = Math.max(...attr.weeks!);
-                  const h = max > 0 ? Math.max(4, (v / max) * 100) : 4;
+              <div className="relative flex items-end gap-[5px] h-[96px]">
+                {/* Revenue is the filled series; spend rides the same axis as a
+                    line so the two are comparable at a glance. */}
+                {chart.buckets.map((b, i) => {
+                  const h = chart.max > 0 ? Math.max(4, (b.revenueMinor / chart.max) * 100) : 4;
                   return (
                     <div
                       key={i}
@@ -592,16 +656,48 @@ function CampaignDetailPage() {
                     />
                   );
                 })}
+                {chart.hasSpend ? (
+                  <svg
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                  >
+                    <polyline
+                      points={chart.buckets
+                        .map((b, i) => {
+                          const x = (i / (chart.buckets.length - 1 || 1)) * 100;
+                          const y = 100 - (chart.max > 0 ? (b.spendMinor / chart.max) * 100 : 0);
+                          return `${x},${y}`;
+                        })
+                        .join(" ")}
+                      fill="none"
+                      stroke="#8A8494"
+                      strokeWidth="2"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </svg>
+                ) : null}
               </div>
-              <div className="text-[12.5px] text-subtle mt-[10px]">
-                Attributed revenue, last 12 weeks
+              <div className="flex items-center gap-[14px] mt-[10px] flex-wrap">
+                <div className="text-[12.5px] text-subtle">Last 12 weeks</div>
+                {/* Legend only when both series carry data. */}
+                {chart.hasSpend && chart.hasRevenue ? (
+                  <div className="flex items-center gap-[12px] text-[12px] text-subtle">
+                    <span className="inline-flex items-center gap-[5px]">
+                      <span className="w-[10px] h-[10px] rounded-[3px] bg-accent" /> Revenue
+                    </span>
+                    <span className="inline-flex items-center gap-[5px]">
+                      <span className="w-[12px] h-[2px] bg-subtle" /> Spend
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </>
           ) : (
             <div className="text-[13px] text-on-dark leading-[1.55]">
-              {attr && attr.linkCount === 0
-                ? "No tracking links point at this campaign yet — create one on Affiliate & payouts to see revenue over time."
-                : "No attributed revenue for this campaign yet."}
+              {perf.isLoading
+                ? "Loading…"
+                : "Nothing recorded for this campaign yet — attributed revenue needs a tracking link, spend needs ad_daily rows."}
             </div>
           )}
         </div>
@@ -645,7 +741,17 @@ function CampaignDetailPage() {
   );
 }
 
-function ProofStat({ label, value, small }: { label: string; value: string; small?: boolean }) {
+function ProofStat({
+  label,
+  value,
+  small,
+  note,
+}: {
+  label: string;
+  value: string;
+  small?: boolean;
+  note?: string;
+}) {
   return (
     <div>
       <div
@@ -656,6 +762,7 @@ function ProofStat({ label, value, small }: { label: string; value: string; smal
         {value}
       </div>
       <div className="text-[12.5px] text-subtle mt-[4px]">{label}</div>
+      {note ? <div className="text-[11.5px] text-[#6E687A] mt-[2px]">{note}</div> : null}
     </div>
   );
 }

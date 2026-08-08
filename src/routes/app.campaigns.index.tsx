@@ -6,6 +6,7 @@ import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
 import { DataGate } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { formatMoney } from "@/hooks/useCampaignPerformance";
 import type { Tables } from "@/integrations/supabase/types";
 
 /* CAMPAIGNS — the `v.isCampaigns` block of src/aspen/AspenApp.tsx, on the live
@@ -42,6 +43,8 @@ const platColor = (p: string) =>
         : p === "LinkedIn"
           ? "#0A66C2"
           : "#8A8494";
+
+const CURRENCIES = ["USD", "GBP", "EUR", "CAD", "AUD"];
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
   active: { bg: "#DDF3E6", fg: "#0E7A3D", label: "Active" },
@@ -165,7 +168,15 @@ function CampaignsPage() {
                   >
                     {s.label}
                   </span>
-                  {c.budget ? <span className="text-[14px] font-bold">{c.budget}</span> : null}
+                  {/* Numeric budget wins; the legacy text column is a fallback
+                      for rows created before budget_minor existed. */}
+                  {c.budget_minor != null || c.budget ? (
+                    <span className="text-[14px] font-bold">
+                      {c.budget_minor != null
+                        ? formatMoney(c.budget_minor, c.currency ?? "USD")
+                        : c.budget}
+                    </span>
+                  ) : null}
                   {c.status === "draft" ? (
                     <button
                       onClick={() => setStatus(c, "active")}
@@ -239,16 +250,37 @@ export function CampaignDrawer({
   const [product, setProduct] = useState("");
   const [platform, setPlatform] = useState<Platform>("All");
   const [goal, setGoal] = useState("Brand Awareness");
+  // Budget is a number the brand types, stored in minor units. The legacy
+  // free-text `budget` column is no longer written — it stays readable for rows
+  // created before this, and campaigns.budget_minor is the source of truth.
   const [budget, setBudget] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [brief, setBrief] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Accepts "24000", "24,000", "$24,000.50". Anything else is rejected rather
+  // than silently stored as a wrong number — the same trap the SQL backfill fell
+  // into. Empty means no budget, which is distinct from a budget of zero.
+  const parseBudget = (v: string): number | null | "invalid" => {
+    const t = v.trim();
+    if (!t) return null;
+    if (/[A-Za-z]/.test(t) || /[-–—/]/.test(t)) return "invalid";
+    const stripped = t.replace(/[^0-9.]/g, "");
+    if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(stripped)) return "invalid";
+    return Math.round(parseFloat(stripped) * 100);
+  };
+
   const create = async () => {
     if (!user) return;
     if (!name.trim()) {
       toast.error("Campaign Name is required.");
+      return;
+    }
+    const budgetMinor = parseBudget(budget);
+    if (budgetMinor === "invalid") {
+      toast.error("Budget must be a plain amount, e.g. 24000 or $24,000. Ranges aren't supported.");
       return;
     }
     setSaving(true);
@@ -261,7 +293,8 @@ export function CampaignDrawer({
         product_description: product.trim() || null,
         platforms,
         goal,
-        budget: budget || null,
+        budget_minor: budgetMinor,
+        currency,
         start_date: startDate || null,
         end_date: endDate || null,
         brief: brief.trim() || null,
@@ -374,14 +407,30 @@ export function CampaignDrawer({
               </select>
             </Field>
           </div>
-          <Field label="BUDGET">
-            <input
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              placeholder="$0.00"
-              className={field}
-            />
-          </Field>
+          <div className="grid grid-cols-[1fr_120px] gap-[16px]">
+            <Field label="BUDGET">
+              <input
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                inputMode="decimal"
+                placeholder="24000"
+                className={field}
+              />
+            </Field>
+            <Field label="CURRENCY">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className={field}
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
             <Field label="START DATE">
               <input

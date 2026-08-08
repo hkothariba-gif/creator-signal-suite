@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ad_corpus: {
@@ -1277,6 +1302,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      campaign_spend_daily: {
+        Args: { p_campaign: string; p_org: string }
+        Returns: {
+          ads_with_spend: number
+          currency: string
+          day: string
+          spend_minor: number
+        }[]
+      }
       can_edit_org: { Args: { org: string }; Returns: boolean }
       is_org_admin: { Args: { org: string }; Returns: boolean }
       is_org_member: { Args: { org: string }; Returns: boolean }
@@ -1428,6 +1462,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       affiliate_event_type: ["click", "conversion"],

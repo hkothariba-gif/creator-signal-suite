@@ -2648,6 +2648,14 @@ body:not(:has(.aspen-scope)) {
 .aspen-scope .datagate-panel span + span {
   color: #a8a2b0;
 }
+.aspen-scope .datagate-panel .datagate-empty-title {
+  color: #17141e;
+  font-family: var(--font-heading, inherit);
+}
+.aspen-scope .datagate-panel .datagate-empty-hint {
+  color: #8a8494;
+}
+
 
 /* The app's global dark rules set these on <body>; an Aspen page owns the
    whole viewport, so the page background has to follow it. */

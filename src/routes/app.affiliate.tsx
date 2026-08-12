@@ -243,7 +243,13 @@ function AffiliatePage() {
         </button>
       </div>
 
-      <DataGate connected={true} loading={loading} empty={links.length === 0}>
+      <DataGate
+        connected={true}
+        loading={loading}
+        empty={links.length === 0}
+        emptyTitle="No tracking links yet"
+        emptyHint="Create a link per creator above. Clicks, conversions and revenue then show here, and payouts follow the same rows."
+      >
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] overflow-hidden">
           <div className="flex gap-[12px] p-[14px_22px] border-b-[1.5px] border-border-soft text-[10.5px] font-bold tracking-[0.12em] text-subtle">
             <span className="flex-[2]">CREATOR / LINK</span>

@@ -221,6 +221,27 @@ function DiscoveryPage() {
           {loading ? "Searching…" : "Search"}
         </button>
       </div>
+      {/* Search only reaches YouTube today. The other three are named here as
+          not connected rather than left implied, so nobody runs a query
+          expecting Reddit or LinkedIn results and reads zero as no match. */}
+      <div className="flex items-center gap-[8px] mb-[14px] flex-wrap">
+        <span className="text-[11px] font-bold tracking-[0.12em] text-subtle">SEARCHING</span>
+        <span className="text-[12px] font-bold p-[5px_10px] rounded-[9px] bg-dark text-cream">
+          YouTube
+        </span>
+        {["Reddit", "X", "LinkedIn"].map((p) => (
+          <span
+            key={p}
+            title="Not connected yet"
+            className="text-[12px] font-bold p-[5px_10px] rounded-[9px] bg-sand text-subtle"
+          >
+            {p} · not connected
+          </span>
+        ))}
+        <Link to="/app/platforms" className="text-[12.5px] font-bold text-accent no-underline">
+          Connect platforms →
+        </Link>
+      </div>
       <div className="text-[13.5px] text-subtle mb-[22px]">
         {campName ? (
           <>
@@ -235,12 +256,16 @@ function DiscoveryPage() {
         )}
       </div>
 
+
       <DataGate
         connected={ytReady}
         loading={status.isLoading || loading}
         empty={searched && results.length === 0}
         label="Creator search runs through the YouTube connection"
+        emptyTitle="Nothing matched that search"
+        emptyHint="Try a broader phrase, or the words your buyers would use for the problem rather than your product name."
       >
+
         {results.length > 0 ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[16px]">
             {results.map((c) => {

@@ -244,7 +244,18 @@ function HotlistPage() {
         loading={loading || status.isLoading}
         empty={filtered.length === 0}
         label="Creators load once this platform is connected"
+        emptyTitle="No creators on this hotlist yet"
+        emptyHint="Run a discovery search and add the creators you like. They land here staged, scored and ready for outreach."
+        emptyAction={
+          <Link
+            to="/app/discovery"
+            className="inline-block bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[12px] no-underline"
+          >
+            Find creators
+          </Link>
+        }
       >
+
         <div className="flex gap-[14px] overflow-x-auto pb-[12px]">
           {STAGES.map((col) => (
             <div

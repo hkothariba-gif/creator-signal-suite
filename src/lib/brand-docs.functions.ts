@@ -36,6 +36,30 @@ export const listBrandDocs = createServerFn({ method: "GET" })
     return (rows ?? []) as BrandDocRow[];
   });
 
+export type BrandDocWithCampaign = BrandDocRow & {
+  campaign_id: string;
+  campaign_name: string | null;
+};
+
+// Settings shows everything the workspace has uploaded, across campaigns, so a
+// user can see what we hold without opening each campaign in turn.
+export const listAllBrandDocs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<BrandDocWithCampaign[]> => {
+    const { data: rows, error } = await context.supabase
+      .from("brand_docs")
+      .select(
+        "id,file_name,storage_path,status,excerpt_count,error,created_at,campaign_id,campaigns(name)",
+      )
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r) => {
+      const { campaigns, ...rest } = r as typeof r & { campaigns: { name: string } | null };
+      return { ...rest, campaign_name: campaigns?.name ?? null } as BrandDocWithCampaign;
+    });
+  });
+
+
 export const processBrandDoc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { docId: string }) => data)

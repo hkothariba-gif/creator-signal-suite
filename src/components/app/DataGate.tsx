@@ -28,11 +28,27 @@ type DataGateProps = {
   loading?: boolean;
   /** Optional label naming the integration the panel waits on. */
   label?: string;
+  /** Headline for the empty state. Falls back to the flat "No data to display". */
+  emptyTitle?: string;
+  /** One line explaining what lives in this panel once it has data. */
+  emptyHint?: string;
+  /** The next step out of the empty state — a button or link. */
+  emptyAction?: ReactNode;
   className?: string;
   children: ReactNode;
 };
 
-export function DataGate({ connected, empty, loading, label, className, children }: DataGateProps) {
+export function DataGate({
+  connected,
+  empty,
+  loading,
+  label,
+  emptyTitle,
+  emptyHint,
+  emptyAction,
+  className,
+  children,
+}: DataGateProps) {
   if (loading) {
     return (
       <div className={panelClass(className)}>
@@ -49,14 +65,26 @@ export function DataGate({ connected, empty, loading, label, className, children
     );
   }
   if (empty) {
+    // An empty panel with nothing to click is a dead end, so every screen that
+    // can name its next step passes one in. The bare copy stays the default for
+    // panels where there is nothing useful to offer.
     return (
       <div className={panelClass(className)}>
-        <span className="text-sm font-semibold text-[#8892A4]">{EMPTY_COPY}</span>
+        <span className="datagate-empty-title text-[15px] font-bold text-[#8892A4]">
+          {emptyTitle ?? EMPTY_COPY}
+        </span>
+        {emptyHint ? (
+          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-[#5A6478]">
+            {emptyHint}
+          </span>
+        ) : null}
+        {emptyAction ? <div className="mt-4">{emptyAction}</div> : null}
       </div>
     );
   }
   return <>{children}</>;
 }
+
 
 // The `datagate-panel` hook lets the Aspen pages repaint this placeholder for a
 // cream surface without every call site passing a variant — see the

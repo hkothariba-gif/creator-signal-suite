@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
 import { findCreatorsForCampaign, type SourceStatus } from "@/lib/discover-creators.functions";
 import { useCampaignPerformance, formatMoney } from "@/hooks/useCampaignPerformance";
+import { CampaignDocuments } from "@/components/app/CampaignDocuments";
 
 /* CAMPAIGN DETAIL — new Aspen screen, per SCREENS-TO-PORT.md §5.
 
@@ -580,6 +581,18 @@ function CampaignDetailPage() {
           </DataGate>
         </div>
       </div>
+
+      {/* Uploads were write-only until now: nothing showed what the campaign
+          holds or whether extraction succeeded. */}
+      <CampaignDocuments
+        campaignId={id}
+        sheetName={
+          (c.target_audience as { lookalike_sheet_name?: string | null } | null)
+            ?.lookalike_sheet_name ?? null
+        }
+      />
+
+
 
       {/* ── Proof band ── */}
       <div className="bg-dark text-cream rounded-[22px] p-[26px] flex gap-[26px] items-center flex-wrap">

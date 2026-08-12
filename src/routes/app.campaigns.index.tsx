@@ -132,7 +132,36 @@ function CampaignsPage() {
         ))}
       </div>
 
-      <DataGate connected={true} loading={loading} empty={visible.length === 0}>
+      <DataGate
+        connected={true}
+        loading={loading}
+        empty={visible.length === 0}
+        emptyTitle={
+          tab === "all" ? "No campaigns yet" : `Nothing in ${tab === "draft" ? "draft" : tab}`
+        }
+        emptyHint={
+          tab === "all"
+            ? "A campaign holds your product description, its buyer, the creators you shortlist and the ads built from them."
+            : "Switch to All to see every campaign, whatever its stage."
+        }
+        emptyAction={
+          tab === "all" ? (
+            <button
+              onClick={() => setDrawer(true)}
+              className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[12px] cursor-pointer"
+            >
+              Create your first campaign
+            </button>
+          ) : (
+            <button
+              onClick={() => setTab("all")}
+              className="border-[1.5px] border-border bg-transparent text-[13.5px] font-bold p-[9px_15px] rounded-[12px] cursor-pointer"
+            >
+              Show all campaigns
+            </button>
+          )
+        }
+      >
         <div className="flex flex-col gap-[12px]">
           {visible.map((c) => {
             const s = STATUS_STYLE[c.status] ?? { bg: "#F5F1E9", fg: "#8A8494", label: c.status };

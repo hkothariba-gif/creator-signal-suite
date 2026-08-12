@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth, type OrgRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { listAllBrandDocs } from "@/lib/brand-docs.functions";
 
 /* SETTINGS — the `v.isSettings` block of src/aspen/AspenApp.tsx, on the live
    hooks the dark version used. Shell, header and title come from the /app

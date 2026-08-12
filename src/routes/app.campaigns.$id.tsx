@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
 import { findCreatorsForCampaign, type SourceStatus } from "@/lib/discover-creators.functions";
 import { useCampaignPerformance, formatMoney } from "@/hooks/useCampaignPerformance";
+import { CampaignDocuments } from "@/components/app/CampaignDocuments";
 
 /* CAMPAIGN DETAIL — new Aspen screen, per SCREENS-TO-PORT.md §5.
 

@@ -240,7 +240,10 @@ function DiscoveryPage() {
         loading={status.isLoading || loading}
         empty={searched && results.length === 0}
         label="Creator search runs through the YouTube connection"
+        emptyTitle="Nothing matched that search"
+        emptyHint="Try a broader phrase, or the words your buyers would use for the problem rather than your product name."
       >
+
         {results.length > 0 ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[16px]">
             {results.map((c) => {

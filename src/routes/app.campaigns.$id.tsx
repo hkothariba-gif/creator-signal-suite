@@ -581,6 +581,18 @@ function CampaignDetailPage() {
         </div>
       </div>
 
+      {/* Uploads were write-only until now: nothing showed what the campaign
+          holds or whether extraction succeeded. */}
+      <CampaignDocuments
+        campaignId={id}
+        sheetName={
+          (c.target_audience as { lookalike_sheet_name?: string | null } | null)
+            ?.lookalike_sheet_name ?? null
+        }
+      />
+
+
+
       {/* ── Proof band ── */}
       <div className="bg-dark text-cream rounded-[22px] p-[26px] flex gap-[26px] items-center flex-wrap">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-[20px] flex-1 min-w-[300px]">

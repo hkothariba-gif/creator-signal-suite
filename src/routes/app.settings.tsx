@@ -40,10 +40,68 @@ function SettingsPage() {
     <div className="aspen-scope max-w-[760px] flex flex-col gap-[16px]">
       <WorkspaceCard />
       <TeamCard />
+      <DocumentsCard />
       <BillingCard />
     </div>
   );
 }
+
+/* ---------- Documents (read-only; managing them lives on the campaign) ---------- */
+
+function DocumentsCard() {
+  const { user } = useAuth();
+  const docs = useQuery({
+    queryKey: ["all-brand-docs", user?.id],
+    enabled: !!user,
+    queryFn: () => listAllBrandDocs(),
+  });
+  const rows = docs.data ?? [];
+
+  return (
+    <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
+      <h3 className="font-heading font-bold text-[17px] m-0">Documents</h3>
+      <div className="text-[13px] text-subtle mt-[3px]">
+        Every file uploaded across your campaigns. Add, re-extract or delete on the campaign it
+        belongs to.
+      </div>
+      <DataGate
+        connected={true}
+        loading={docs.isLoading}
+        empty={rows.length === 0}
+        emptyTitle="No documents uploaded yet"
+        emptyHint="Open a campaign and add a product page or sales deck. We pull real excerpts from it for your ad drafts."
+        className="mt-[16px]"
+      >
+        <div className="mt-[16px] flex flex-col gap-[9px]">
+          {rows.map((d) => (
+            <div
+              key={d.id}
+              className="flex items-center gap-[12px] flex-wrap rounded-[14px] border-[1.5px] border-border-soft p-[12px_14px]"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-[14px] truncate">{d.file_name}</div>
+                <div className="text-[12.5px] text-subtle truncate">
+                  {d.campaign_name ?? "Campaign removed"}
+                  {d.status === "processed" ? ` · ${d.excerpt_count} excerpts` : ""}
+                  {d.status === "failed" ? ` · ${d.error ?? "extraction failed"}` : ""}
+                  {d.status === "uploaded" ? " · not extracted yet" : ""}
+                </div>
+              </div>
+              <Link
+                to="/app/campaigns/$id"
+                params={{ id: d.campaign_id }}
+                className="text-[12.5px] font-bold text-accent no-underline shrink-0"
+              >
+                Open campaign →
+              </Link>
+            </div>
+          ))}
+        </div>
+      </DataGate>
+    </div>
+  );
+}
+
 
 /* ---------- Workspace (stored in Supabase, not localStorage) ---------- */
 

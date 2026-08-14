@@ -255,16 +255,24 @@ function HomePage() {
             <span className="text-[12.5px] font-semibold text-on-dark">Last 30 days</span>
           </div>
           {salesReady ? (
-            <div className="flex items-baseline gap-[12px] mt-[14px]">
+            <div className="mt-[14px]">
               <span className="font-heading font-extrabold text-[42px] tracking-[-0.03em]">
-                {dash}
+                {revenue.isLoading ? "…" : revenue.isError ? dash : formatMoney(revenue.data)}
               </span>
+              <div className="text-[13px] text-on-dark mt-[4px]">
+                {revenue.isError
+                  ? "Could not load attributed revenue — reload the page"
+                  : revenue.data && revenue.data.minor > 0
+                    ? `${revenue.data.conversions} conversion${revenue.data.conversions === 1 ? "" : "s"} through your affiliate links`
+                    : "No attributed revenue in the last 30 days yet"}
+              </div>
             </div>
           ) : (
             <div className="mt-[14px] text-[13.5px] text-on-dark leading-[1.55]">
               Waiting for API connection — revenue loads from your sales connection.
             </div>
           )}
+
         </div>
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_4px]">Quick actions</h3>

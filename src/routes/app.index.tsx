@@ -19,6 +19,22 @@ export const Route = createFileRoute("/app/")({
   component: HomePage,
 });
 
+// affiliate_daily stores minor units and a currency per row; the tile shows the
+// dominant currency rather than mixing two into one figure.
+function formatMoney(v?: { minor: number; currency: string }) {
+  if (!v) return "—";
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: v.currency || "USD",
+      maximumFractionDigits: 0,
+    }).format(v.minor / 100);
+  } catch {
+    return `${(v.minor / 100).toFixed(0)} ${v.currency}`;
+  }
+}
+
+
 function HomePage() {
   const { user } = useAuth();
   const status = useConnectorStatus();

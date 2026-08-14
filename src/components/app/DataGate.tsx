@@ -34,9 +34,19 @@ type DataGateProps = {
   emptyHint?: string;
   /** The next step out of the empty state — a button or link. */
   emptyAction?: ReactNode;
+  /** True when the query behind this panel failed. Takes priority over `empty`
+   *  so a backend failure never renders as "no data". */
+  error?: boolean;
+  /** Headline for the error state. */
+  errorTitle?: string;
+  /** What went wrong, in the user's words. */
+  errorHint?: string;
+  /** Retry control for the error state. */
+  errorAction?: ReactNode;
   className?: string;
   children: ReactNode;
 };
+
 
 export function DataGate({
   connected,

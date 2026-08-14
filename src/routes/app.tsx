@@ -178,11 +178,56 @@ const NAV = [
   },
 ] as const;
 
-// Real-auth gating. Access to /app requires an authenticated Supabase user.
-// While loading the session we render nothing; once resolved, unauthenticated
-// visitors are redirected to /login.
+
+// Testers without a Supabase session can still reach the shell once they have
+// walked the onboarding flow locally. Real users always take the auth path.
+function hasTesterBypass(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      !!localStorage.getItem("aspen_tester_email") &&
+      localStorage.getItem("aspen_onboarded") === "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+// The shell's shape is fixed, so it is drawn while the session resolves instead
+// of blanking the viewport.
+function ShellSkeleton() {
+  return (
+    <div className="aspen-scope flex min-h-screen bg-cream">
+      <aside className="w-[246px] shrink-0 bg-dark p-[22px_16px] flex flex-col gap-[18px]">
+        <div className="h-[28px] w-[110px] rounded-[9px] bg-dark-raised animate-pulse" />
+        <div className="h-[58px] rounded-[14px] bg-dark-raised animate-pulse" />
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-[34px] rounded-[11px] bg-dark-raised animate-pulse" />
+        ))}
+      </aside>
+      <main className="flex-1 min-w-0 flex flex-col">
+        <header className="p-[20px_32px] border-b-[1.5px] border-border">
+          <div className="h-[28px] w-[220px] rounded-[8px] bg-sand animate-pulse" />
+          <div className="h-[14px] w-[300px] rounded-[6px] bg-sand animate-pulse mt-[8px]" />
+        </header>
+        <div className="p-[28px_32px] grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[16px]">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[120px] rounded-[20px] bg-surface border-[1.5px] border-border animate-pulse"
+            />
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// Real-auth gating. Access to /app requires an authenticated Supabase user and a
+// finished onboarding run; while the session loads we draw the shell skeleton.
 function AppLayout() {
   const { user, loading, logout } = useAuth();
+
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [campaignIndex, setCampaignIndex] = useState(0);

@@ -87,6 +87,30 @@ function HomePage() {
     },
   });
 
+  // Attributed revenue, last 30 days, summed from the affiliate daily rollup.
+  // The tile used to print an em dash even when the sales connection was live.
+  const orgId = user?.organization?.id;
+  const revenue = useQuery({
+    queryKey: ["home-revenue", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("affiliate_daily")
+        .select("revenue_minor,conversions,currency")
+        .eq("organization_id", orgId!)
+        .gte("day", since);
+      if (error) throw error;
+      const rows = data ?? [];
+      return {
+        minor: rows.reduce((s, r) => s + (r.revenue_minor ?? 0), 0),
+        conversions: rows.reduce((s, r) => s + (r.conversions ?? 0), 0),
+        currency: rows[0]?.currency ?? "USD",
+      };
+    },
+  });
+
+
   const rows = hotlist.data ?? [];
   const topCreators = rows.filter((r) => r.score != null).slice(0, 4);
   const scored = rows.filter((r) => r.score != null);

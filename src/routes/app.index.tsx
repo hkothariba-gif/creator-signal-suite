@@ -194,14 +194,19 @@ function HomePage() {
               Open inbox →
             </Link>
           </div>
-          <DataGate
-            connected={emailReady}
-            empty
-            loading={status.isLoading}
-            label="Activity loads from your email connection"
-          >
-            <></>
-          </DataGate>
+          {/* Also an empty DataGate before: connected accounts saw a panel that
+              could never fill. The activity feed arrives with the outreach
+              phase, so the panel says that outright. */}
+          <div className="rounded-[16px] border-[1.5px] border-dashed border-border bg-cream p-[22px] text-center">
+            <div className="text-[14px] font-bold text-muted">
+              {emailReady ? "Nothing logged yet" : "Activity loads from your email connection"}
+            </div>
+            <div className="text-[13px] text-subtle mt-[6px] leading-[1.5]">
+              {emailReady
+                ? "Sends, replies and stage moves will appear here as your campaigns run."
+                : "Connect an inbox on the Outreach page and sends and replies show up here."}
+            </div>
+          </div>
         </div>
 
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
@@ -212,8 +217,12 @@ function HomePage() {
             connected={perfReady}
             loading={status.isLoading || hotlist.isLoading}
             empty={topCreators.length === 0}
+            error={hotlist.isError || status.isError}
+            errorTitle="Could not load creator scores"
+            errorHint="The request to your hotlist failed. Reload the page to try again."
             label="Scores load from the creator performance connection"
           >
+
             <div className="flex flex-col gap-[16px]">
               {topCreators.map((c) => (
                 <div key={c.id}>

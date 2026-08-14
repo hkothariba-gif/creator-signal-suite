@@ -51,7 +51,7 @@ export const useAspenCampaign = () => useContext(CampaignContext);
    matched longest-prefix-first so /app/creators/$id wins over /app. */
 const SCREEN_META: [string, string, string][] = [
   ["/app/campaigns", "Campaigns", "Every campaign, its platforms and its stage"],
-  ["/app/discovery", "Creator discovery", "Search YouTube, Reddit, X and LinkedIn in one query"],
+  ["/app/discovery", "Creator discovery", "YouTube search — more platforms as they connect"],
   ["/app/creators", "Creator profile", "Fit, contact paths and stage"],
   ["/app/hotlist", "Hotlist CRM", "Creators for this campaign, scored and staged"],
   ["/app/outreach", "Outreach inbox", "Email, X, Reddit and LinkedIn in one thread list"],
@@ -198,9 +198,19 @@ function AppLayout() {
     },
   });
 
+  // Two guards, not one. An unauthenticated visitor goes to login; a signed-in
+  // user who never finished onboarding has no organization, so every org-scoped
+  // screen inside the shell would fail in its own way. Send them to /onboarding
+  // once, from here, instead of letting each screen invent an empty state.
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
+    if (loading) return;
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (!user.onboarded && !hasTesterBypass()) navigate({ to: "/onboarding" });
   }, [loading, user, navigate]);
+
 
   const connectorStatus = useConnectorStatus();
 
@@ -229,7 +239,10 @@ function AppLayout() {
     hotlist: hotlistCount.data ? String(hotlistCount.data) : "",
   };
 
-  if (loading || !user) return null;
+  // Returning null here used to blank the whole viewport while the session
+  // resolved. The shell's shape is known before the data is, so draw it.
+  if (loading || !user) return <ShellSkeleton />;
+
 
   const initials = (user.email ?? "?").slice(0, 2).toUpperCase();
   /* Campaign detail titles itself: the screen deliberately does not repeat the
@@ -296,20 +309,19 @@ function AppLayout() {
                   <Link
                     key={i.to}
                     to={i.to}
-                    className="flex items-center justify-between gap-[8px] w-full text-left border-0 cursor-pointer p-[9px_11px] rounded-[11px] text-[14.5px] font-semibold"
-                    style={{
-                      background: on ? "#F2542D" : "transparent",
-                      color: on ? "#FAF7F1" : "#B8B2C2",
-                    }}
+                    aria-current={on ? "page" : undefined}
+                    className={`flex items-center justify-between gap-[8px] w-full text-left border-0 cursor-pointer p-[9px_11px] rounded-[11px] text-[14.5px] font-semibold ${
+                      on ? "bg-accent text-cream" : "bg-transparent text-dark-muted"
+                    }`}
                   >
                     {i.label}
                     <span
-                      className="text-[11px] font-bold"
-                      style={{ color: on ? "#FFD9CC" : "#6E6879" }}
+                      className={`text-[11px] font-bold ${on ? "text-cream" : "text-subtle"}`}
                     >
                       {i.count ? (badges[i.count] ?? "") : ""}
                     </span>
                   </Link>
+
                 );
               })}
             </div>
@@ -334,9 +346,15 @@ function AppLayout() {
             </div>
             <button
               onClick={async () => {
-                await logout();
+                try {
+                  await logout();
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Could not log out — try again");
+                  return;
+                }
                 navigate({ to: "/login" });
               }}
+
               className="border-0 bg-transparent text-subtle text-[11.5px] font-bold cursor-pointer ah20 shrink-0"
               title="Log out"
             >

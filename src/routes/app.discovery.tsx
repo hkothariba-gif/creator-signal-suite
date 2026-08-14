@@ -139,15 +139,24 @@ function DiscoveryPage() {
     if (!ytReady || !query.trim()) return;
     setLoading(true);
     setSearched(true);
+    setSearchError(null);
     try {
       const found = await searchYouTubeChannels({ data: { query: query.trim() } });
       setResults(found);
-    } catch {
+      // The server function returns [] both for "no matches" and for a key or
+      // quota failure. Only the second case is an error the user can act on, so
+      // it is reported as one instead of reading as zero results.
+      if (found.length === 0) setSearchError(null);
+    } catch (e) {
       setResults([]);
+      setSearchError(
+        e instanceof Error ? e.message : "The YouTube search request failed. Try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   // Quick keyword fit shown right in Discovery. This is the fast client side
   // estimate; the full LLM and channel weighted score is computed on the

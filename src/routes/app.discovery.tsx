@@ -279,11 +279,23 @@ function DiscoveryPage() {
       <DataGate
         connected={ytReady}
         loading={status.isLoading || loading}
-        empty={searched && results.length === 0}
+        empty={searched && !searchError && results.length === 0}
+        error={!!searchError}
+        errorTitle="Search failed"
+        errorHint={searchError ?? undefined}
+        errorAction={
+          <button
+            onClick={handleSearch}
+            className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer"
+          >
+            Try that search again
+          </button>
+        }
         label="Creator search runs through the YouTube connection"
         emptyTitle="Nothing matched that search"
         emptyHint="Try a broader phrase, or the words your buyers would use for the problem rather than your product name."
       >
+
 
         {results.length > 0 ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[16px]">

@@ -19,6 +19,22 @@ export const Route = createFileRoute("/app/")({
   component: HomePage,
 });
 
+// affiliate_daily stores minor units and a currency per row; the tile shows the
+// dominant currency rather than mixing two into one figure.
+function formatMoney(v?: { minor: number; currency: string }) {
+  if (!v) return "—";
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: v.currency || "USD",
+      maximumFractionDigits: 0,
+    }).format(v.minor / 100);
+  } catch {
+    return `${(v.minor / 100).toFixed(0)} ${v.currency}`;
+  }
+}
+
+
 function HomePage() {
   const { user } = useAuth();
   const status = useConnectorStatus();
@@ -71,6 +87,30 @@ function HomePage() {
     },
   });
 
+  // Attributed revenue, last 30 days, summed from the affiliate daily rollup.
+  // The tile used to print an em dash even when the sales connection was live.
+  const orgId = user?.organization?.id;
+  const revenue = useQuery({
+    queryKey: ["home-revenue", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("affiliate_daily")
+        .select("revenue_minor,conversions,currency")
+        .eq("organization_id", orgId!)
+        .gte("day", since);
+      if (error) throw error;
+      const rows = data ?? [];
+      return {
+        minor: rows.reduce((s, r) => s + (r.revenue_minor ?? 0), 0),
+        conversions: rows.reduce((s, r) => s + (r.conversions ?? 0), 0),
+        currency: rows[0]?.currency ?? "USD",
+      };
+    },
+  });
+
+
   const rows = hotlist.data ?? [];
   const topCreators = rows.filter((r) => r.score != null).slice(0, 4);
   const scored = rows.filter((r) => r.score != null);
@@ -120,12 +160,14 @@ function HomePage() {
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
           <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">CAMPAIGNS</div>
           <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
-            {counts.data ? counts.data.campaigns : dash}
+            {counts.isError ? dash : counts.data ? counts.data.campaigns : dash}
           </div>
           <div className="text-[13px] text-muted">
-            {campaignBreakdown.data
-              ? `${campaignBreakdown.data.active} active · ${campaignBreakdown.data.draft} draft · ${campaignBreakdown.data.completed} done`
-              : "Loading"}
+            {campaignBreakdown.isError || counts.isError
+              ? "Could not load your campaigns — reload the page"
+              : campaignBreakdown.data
+                ? `${campaignBreakdown.data.active} active · ${campaignBreakdown.data.draft} draft · ${campaignBreakdown.data.completed} done`
+                : "Loading"}
           </div>
         </div>
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
@@ -133,34 +175,41 @@ function HomePage() {
             CREATORS IN HOTLIST
           </div>
           <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
-            {counts.data ? counts.data.hotlist : dash}
+            {counts.isError ? dash : counts.data ? counts.data.hotlist : dash}
           </div>
           <div className="text-[13px] text-muted">
-            {hotlist.data ? `${addedThisWeek} added this week` : "Loading"}
+            {hotlist.isError || counts.isError
+              ? "Could not load your hotlist — reload the page"
+              : hotlist.data
+                ? `${addedThisWeek} added this week`
+                : "Loading"}
           </div>
         </div>
+        {/* This tile used to render an empty DataGate with no children, so it
+            could never show anything at all. Until the inbox sync lands it says
+            what it is waiting for, in plain words, and links to the setup. */}
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
           <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">
             PENDING OUTREACH
           </div>
-          {emailReady ? (
-            <>
-              <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
-                {dash}
-              </div>
-              <div className="text-[13px] text-muted">Counts arrive with the inbox sync</div>
-            </>
-          ) : (
-            <DataGate
-              connected={emailReady}
-              empty
-              loading={status.isLoading}
-              label="Needs your email connection"
+          <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
+            {dash}
+          </div>
+          <div className="text-[13px] text-muted">
+            {emailReady
+              ? "Counts arrive with the inbox sync"
+              : "Connect your email to count replies waiting on you"}
+          </div>
+          {emailReady ? null : (
+            <Link
+              to="/app/outreach"
+              className="inline-block mt-[10px] text-[12.5px] font-bold text-accent no-underline"
             >
-              <></>
-            </DataGate>
+              Connect email →
+            </Link>
           )}
         </div>
+
         <div className="bg-tint rounded-[20px] p-[20px]">
           <div className="text-[12.5px] font-bold tracking-[0.1em] text-accent-ink">
             AVG BRAND FIT
@@ -185,14 +234,19 @@ function HomePage() {
               Open inbox →
             </Link>
           </div>
-          <DataGate
-            connected={emailReady}
-            empty
-            loading={status.isLoading}
-            label="Activity loads from your email connection"
-          >
-            <></>
-          </DataGate>
+          {/* Also an empty DataGate before: connected accounts saw a panel that
+              could never fill. The activity feed arrives with the outreach
+              phase, so the panel says that outright. */}
+          <div className="rounded-[16px] border-[1.5px] border-dashed border-border bg-cream p-[22px] text-center">
+            <div className="text-[14px] font-bold text-muted">
+              {emailReady ? "Nothing logged yet" : "Activity loads from your email connection"}
+            </div>
+            <div className="text-[13px] text-subtle mt-[6px] leading-[1.5]">
+              {emailReady
+                ? "Sends, replies and stage moves will appear here as your campaigns run."
+                : "Connect an inbox on the Outreach page and sends and replies show up here."}
+            </div>
+          </div>
         </div>
 
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
@@ -203,8 +257,12 @@ function HomePage() {
             connected={perfReady}
             loading={status.isLoading || hotlist.isLoading}
             empty={topCreators.length === 0}
+            error={hotlist.isError || status.isError}
+            errorTitle="Could not load creator scores"
+            errorHint="The request to your hotlist failed. Reload the page to try again."
             label="Scores load from the creator performance connection"
           >
+
             <div className="flex flex-col gap-[16px]">
               {topCreators.map((c) => (
                 <div key={c.id}>
@@ -237,16 +295,24 @@ function HomePage() {
             <span className="text-[12.5px] font-semibold text-on-dark">Last 30 days</span>
           </div>
           {salesReady ? (
-            <div className="flex items-baseline gap-[12px] mt-[14px]">
+            <div className="mt-[14px]">
               <span className="font-heading font-extrabold text-[42px] tracking-[-0.03em]">
-                {dash}
+                {revenue.isLoading ? "…" : revenue.isError ? dash : formatMoney(revenue.data)}
               </span>
+              <div className="text-[13px] text-on-dark mt-[4px]">
+                {revenue.isError
+                  ? "Could not load attributed revenue — reload the page"
+                  : revenue.data && revenue.data.minor > 0
+                    ? `${revenue.data.conversions} conversion${revenue.data.conversions === 1 ? "" : "s"} through your affiliate links`
+                    : "No attributed revenue in the last 30 days yet"}
+              </div>
             </div>
           ) : (
             <div className="mt-[14px] text-[13.5px] text-on-dark leading-[1.55]">
               Waiting for API connection — revenue loads from your sales connection.
             </div>
           )}
+
         </div>
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_4px]">Quick actions</h3>

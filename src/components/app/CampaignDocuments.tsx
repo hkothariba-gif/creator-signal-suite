@@ -92,9 +92,13 @@ export function CampaignDocuments({
       .single();
     setUploading(false);
     if (error || !row) {
-      toast.error(error?.message ?? "Could not save the document");
+      // The file is already in storage at this point. Without this rollback it
+      // stays there forever, invisible to the user and to every list query.
+      await supabase.storage.from("brand-docs").remove([path]);
+      toast.error(error?.message ?? "Could not save the document — nothing was kept");
       return;
     }
+
     await load();
     setBusyId(row.id);
     try {

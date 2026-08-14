@@ -1,10 +1,12 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useConnectorStatus } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import "@/aspen/aspen.css";
+
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -51,7 +53,7 @@ export const useAspenCampaign = () => useContext(CampaignContext);
    matched longest-prefix-first so /app/creators/$id wins over /app. */
 const SCREEN_META: [string, string, string][] = [
   ["/app/campaigns", "Campaigns", "Every campaign, its platforms and its stage"],
-  ["/app/discovery", "Creator discovery", "Search YouTube, Reddit, X and LinkedIn in one query"],
+  ["/app/discovery", "Creator discovery", "YouTube search — more platforms as they connect"],
   ["/app/creators", "Creator profile", "Fit, contact paths and stage"],
   ["/app/hotlist", "Hotlist CRM", "Creators for this campaign, scored and staged"],
   ["/app/outreach", "Outreach inbox", "Email, X, Reddit and LinkedIn in one thread list"],
@@ -176,11 +178,56 @@ const NAV = [
   },
 ] as const;
 
-// Real-auth gating. Access to /app requires an authenticated Supabase user.
-// While loading the session we render nothing; once resolved, unauthenticated
-// visitors are redirected to /login.
+
+// Testers without a Supabase session can still reach the shell once they have
+// walked the onboarding flow locally. Real users always take the auth path.
+function hasTesterBypass(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return (
+      !!localStorage.getItem("aspen_tester_email") &&
+      localStorage.getItem("aspen_onboarded") === "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+// The shell's shape is fixed, so it is drawn while the session resolves instead
+// of blanking the viewport.
+function ShellSkeleton() {
+  return (
+    <div className="aspen-scope flex min-h-screen bg-cream">
+      <aside className="w-[246px] shrink-0 bg-dark p-[22px_16px] flex flex-col gap-[18px]">
+        <div className="h-[28px] w-[110px] rounded-[9px] bg-dark-raised animate-pulse" />
+        <div className="h-[58px] rounded-[14px] bg-dark-raised animate-pulse" />
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-[34px] rounded-[11px] bg-dark-raised animate-pulse" />
+        ))}
+      </aside>
+      <main className="flex-1 min-w-0 flex flex-col">
+        <header className="p-[20px_32px] border-b-[1.5px] border-border">
+          <div className="h-[28px] w-[220px] rounded-[8px] bg-sand animate-pulse" />
+          <div className="h-[14px] w-[300px] rounded-[6px] bg-sand animate-pulse mt-[8px]" />
+        </header>
+        <div className="p-[28px_32px] grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[16px]">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[120px] rounded-[20px] bg-surface border-[1.5px] border-border animate-pulse"
+            />
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// Real-auth gating. Access to /app requires an authenticated Supabase user and a
+// finished onboarding run; while the session loads we draw the shell skeleton.
 function AppLayout() {
   const { user, loading, logout } = useAuth();
+
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [campaignIndex, setCampaignIndex] = useState(0);
@@ -198,9 +245,19 @@ function AppLayout() {
     },
   });
 
+  // Two guards, not one. An unauthenticated visitor goes to login; a signed-in
+  // user who never finished onboarding has no organization, so every org-scoped
+  // screen inside the shell would fail in its own way. Send them to /onboarding
+  // once, from here, instead of letting each screen invent an empty state.
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
+    if (loading) return;
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (!user.onboarded && !hasTesterBypass()) navigate({ to: "/onboarding" });
   }, [loading, user, navigate]);
+
 
   const connectorStatus = useConnectorStatus();
 
@@ -229,7 +286,10 @@ function AppLayout() {
     hotlist: hotlistCount.data ? String(hotlistCount.data) : "",
   };
 
-  if (loading || !user) return null;
+  // Returning null here used to blank the whole viewport while the session
+  // resolved. The shell's shape is known before the data is, so draw it.
+  if (loading || !user) return <ShellSkeleton />;
+
 
   const initials = (user.email ?? "?").slice(0, 2).toUpperCase();
   /* Campaign detail titles itself: the screen deliberately does not repeat the
@@ -296,20 +356,19 @@ function AppLayout() {
                   <Link
                     key={i.to}
                     to={i.to}
-                    className="flex items-center justify-between gap-[8px] w-full text-left border-0 cursor-pointer p-[9px_11px] rounded-[11px] text-[14.5px] font-semibold"
-                    style={{
-                      background: on ? "#F2542D" : "transparent",
-                      color: on ? "#FAF7F1" : "#B8B2C2",
-                    }}
+                    aria-current={on ? "page" : undefined}
+                    className={`flex items-center justify-between gap-[8px] w-full text-left border-0 cursor-pointer p-[9px_11px] rounded-[11px] text-[14.5px] font-semibold ${
+                      on ? "bg-accent text-cream" : "bg-transparent text-dark-muted"
+                    }`}
                   >
                     {i.label}
                     <span
-                      className="text-[11px] font-bold"
-                      style={{ color: on ? "#FFD9CC" : "#6E6879" }}
+                      className={`text-[11px] font-bold ${on ? "text-cream" : "text-subtle"}`}
                     >
                       {i.count ? (badges[i.count] ?? "") : ""}
                     </span>
                   </Link>
+
                 );
               })}
             </div>
@@ -334,9 +393,15 @@ function AppLayout() {
             </div>
             <button
               onClick={async () => {
-                await logout();
+                try {
+                  await logout();
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Could not log out — try again");
+                  return;
+                }
                 navigate({ to: "/login" });
               }}
+
               className="border-0 bg-transparent text-subtle text-[11.5px] font-bold cursor-pointer ah20 shrink-0"
               title="Log out"
             >

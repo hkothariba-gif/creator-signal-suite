@@ -30,47 +30,66 @@ function InvitePage() {
         await refresh();
         setState("done");
         setMessage(`You joined ${data?.organization?.name ?? "the workspace"} as ${data?.role}.`);
-        setTimeout(() => navigate({ to: "/app" }), 1500);
+        // A brand-new member has no brand profile yet, so the shell would bounce
+        // them straight back out. Send them through onboarding first.
+        const next = user?.onboarded ? "/app" : "/onboarding";
+        setTimeout(() => navigate({ to: next }), 1500);
       });
   }, [loading, user, token, navigate, refresh]);
 
   return (
-    <div className="min-h-screen bg-[#05080F] text-[#F0F4FF] flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-2xl bg-[#0C1222] border border-white/10 p-8 text-center">
-        <span className="text-lg font-extrabold tracking-tight">
-          Aspen<span className="text-[#00D97E]">Reach</span>
+    <div className="aspen-scope min-h-screen bg-cream text-dark flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-[22px] bg-surface border-[1.5px] border-border p-[30px] text-center">
+        <span className="font-heading font-extrabold text-[19px] tracking-[-0.02em]">
+          aspen
         </span>
         <div className="mt-6">
           {loading ? (
-            <p className="text-sm text-[#8892A4]">Loading</p>
+            <p className="text-[13.5px] text-subtle">Loading</p>
           ) : !user ? (
             <>
-              <h1 className="text-xl font-bold">You have been invited</h1>
-              <p className="mt-2 text-sm text-[#8892A4]">
-                Sign in or create an account with the email address the invitation was sent to, then open this link again.
+              <h1 className="font-heading font-extrabold text-[22px] tracking-[-0.02em] m-0">
+                You have been invited
+              </h1>
+              <p className="mt-2 text-[13.5px] text-muted leading-[1.55]">
+                Sign in or create an account with the email address the invitation was sent to, then
+                open this link again.
               </p>
               <div className="mt-6 flex gap-3 justify-center">
-                <Link to="/login" className="px-5 py-2.5 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold">
+                <Link
+                  to="/login"
+                  className="p-[11px_18px] rounded-[12px] bg-accent text-cream text-[14px] font-bold no-underline"
+                >
                   Sign in
                 </Link>
-                <Link to="/signup" className="px-5 py-2.5 rounded-lg border border-white/15 text-sm font-semibold">
+                <Link
+                  to="/signup"
+                  className="p-[11px_18px] rounded-[12px] border-[1.5px] border-border text-[14px] font-bold no-underline text-muted"
+                >
                   Create account
                 </Link>
               </div>
             </>
           ) : state === "accepting" ? (
-            <p className="text-sm text-[#8892A4]">Accepting your invitation</p>
+            <p className="text-[13.5px] text-subtle">Accepting your invitation</p>
           ) : state === "done" ? (
             <>
-              <h1 className="text-xl font-bold text-[#00D97E]">Welcome aboard</h1>
-              <p className="mt-2 text-sm text-[#8892A4]">{message}</p>
+              <h1 className="font-heading font-extrabold text-[22px] tracking-[-0.02em] m-0 text-accent">
+                Welcome aboard
+              </h1>
+              <p className="mt-2 text-[13.5px] text-muted leading-[1.55]">{message}</p>
             </>
           ) : (
             <>
-              <h1 className="text-xl font-bold">Invitation problem</h1>
-              <p className="mt-2 text-sm text-[#8892A4]">{message}</p>
-              <Link to="/app" className="mt-6 inline-block px-5 py-2.5 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold">
-                Go to the app
+              <h1 className="font-heading font-extrabold text-[22px] tracking-[-0.02em] m-0">
+                Invitation problem
+              </h1>
+              <p className="mt-2 text-[13.5px] text-muted leading-[1.55]">{message}</p>
+              <Link
+                to={user?.onboarded ? "/app" : "/onboarding"}
+                className="mt-6 inline-block p-[11px_18px] rounded-[12px] bg-accent text-cream text-[14px] font-bold no-underline"
+              >
+                {user?.onboarded ? "Go to the app" : "Finish setting up"}
               </Link>
             </>
           )}
@@ -79,3 +98,4 @@ function InvitePage() {
     </div>
   );
 }
+

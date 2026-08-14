@@ -41,11 +41,19 @@ const searchYouTubeChannels = createServerFn({ method: "GET" })
   .inputValidator((data: { query: string }) => data)
   .handler(async ({ data }): Promise<CreatorResult[]> => {
     const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
-    if (!key) return [];
+    // Throwing rather than returning [] — a missing key or a quota rejection is
+    // not "no creators matched", and the screen needs to be able to say so.
+    if (!key) throw new Error("YouTube is not configured on the server yet.");
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(data.query)}&type=channel&maxResults=12&key=${key}`,
     );
-    if (!res.ok) return [];
+    if (!res.ok)
+      throw new Error(
+        res.status === 403
+          ? "YouTube rejected the search — the daily quota is likely used up. Try again tomorrow."
+          : `YouTube returned an error (${res.status}). Try again in a moment.`,
+      );
+
     const json = (await res.json()) as {
       items?: Array<{
         id: { channelId: string };
@@ -74,6 +82,8 @@ function DiscoveryPage() {
   const [results, setResults] = useState<CreatorResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
   const [campText, setCampText] = useState<string>("");
   const [campName, setCampName] = useState<string>("");
   // external_id → hotlist row id, so a result can link to its real profile.
@@ -139,15 +149,24 @@ function DiscoveryPage() {
     if (!ytReady || !query.trim()) return;
     setLoading(true);
     setSearched(true);
+    setSearchError(null);
     try {
       const found = await searchYouTubeChannels({ data: { query: query.trim() } });
       setResults(found);
-    } catch {
+      // The server function returns [] both for "no matches" and for a key or
+      // quota failure. Only the second case is an error the user can act on, so
+      // it is reported as one instead of reading as zero results.
+      if (found.length === 0) setSearchError(null);
+    } catch (e) {
       setResults([]);
+      setSearchError(
+        e instanceof Error ? e.message : "The YouTube search request failed. Try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   // Quick keyword fit shown right in Discovery. This is the fast client side
   // estimate; the full LLM and channel weighted score is computed on the
@@ -260,11 +279,23 @@ function DiscoveryPage() {
       <DataGate
         connected={ytReady}
         loading={status.isLoading || loading}
-        empty={searched && results.length === 0}
+        empty={searched && !searchError && results.length === 0}
+        error={!!searchError}
+        errorTitle="Search failed"
+        errorHint={searchError ?? undefined}
+        errorAction={
+          <button
+            onClick={handleSearch}
+            className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer"
+          >
+            Try that search again
+          </button>
+        }
         label="Creator search runs through the YouTube connection"
         emptyTitle="Nothing matched that search"
         emptyHint="Try a broader phrase, or the words your buyers would use for the problem rather than your product name."
       >
+
 
         {results.length > 0 ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[16px]">
@@ -347,9 +378,10 @@ function DiscoveryPage() {
               Nothing to look at yet
             </div>
             <p className="text-[14.5px] text-muted leading-[1.6] m-[10px_auto_0] max-w-[340px]">
-              Describe who you want to reach and Aspen searches YouTube, Reddit, X and LinkedIn at
-              once.
+              Describe who you want to reach and Aspen searches YouTube for matching channels.
+              Reddit, X and LinkedIn join as they connect.
             </p>
+
           </div>
         )}
       </DataGate>

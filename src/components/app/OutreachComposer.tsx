@@ -160,16 +160,23 @@ export function OutreachComposer({
     }
   };
 
+  // Re-skinned to the Aspen tokens: this renders inside cream cards on the
+  // Outreach page and inside a cream modal on the creator profile, so the old
+  // dark palette read as a different product.
+  const inputClass =
+    "mt-1 w-full h-10 px-3 rounded-[11px] bg-cream border-[1.5px] border-border text-[14px] text-dark focus:outline-none focus:border-accent";
+  const labelClass = "text-[12px] font-bold tracking-[0.04em] text-subtle";
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-[#F0F4FF] flex items-center gap-2">
-          <Mail className="w-4 h-4 text-[#00D97E]" /> Reach out to {creatorName}
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="font-heading font-bold text-[17px] text-dark flex items-center gap-2 m-0">
+          <Mail className="w-4 h-4 text-accent" /> Reach out to {creatorName}
         </h3>
         <button
           onClick={discover}
           disabled={discovering}
-          className="text-xs font-semibold px-3 h-8 rounded-lg border border-white/10 text-[#8892A4] hover:text-white inline-flex items-center gap-1.5 disabled:opacity-50"
+          className="text-[12px] font-bold px-3 h-8 rounded-[10px] border-[1.5px] border-border text-muted hover:border-dark inline-flex items-center gap-1.5 disabled:opacity-50"
         >
           {discovering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
           Find contacts
@@ -181,13 +188,19 @@ export function OutreachComposer({
         {(Object.keys(CHANNEL_LABEL) as Channel[]).map((ch) => (
           <button
             key={ch}
+            aria-pressed={channel === ch}
             onClick={() => {
               setChannel(ch);
               const first = contacts.find((c) => c.channel === ch);
               setAddress(first ? first.address : "");
+              // Subject belongs to email; keeping it across a channel switch
+              // left a stale line behind on X and Reddit.
+              if (ch !== "email") setSubject("");
             }}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-              channel === ch ? "bg-[#00D97E] text-[#05080F]" : "bg-white/[0.05] text-[#8892A4] hover:text-white"
+            className={`px-3 py-1.5 rounded-[10px] text-[12px] font-bold transition-colors ${
+              channel === ch
+                ? "bg-accent text-cream"
+                : "bg-sand text-muted hover:text-dark"
             }`}
           >
             {CHANNEL_LABEL[ch]}
@@ -197,17 +210,18 @@ export function OutreachComposer({
 
       {/* Discovered contacts for this channel */}
       {loading ? (
-        <p className="text-xs text-[#5A6478]">Loading contacts…</p>
+        <p className="text-[12.5px] text-subtle">Loading contacts…</p>
       ) : channel !== "linkedin" ? (
         <div>
-          <label className="text-xs text-[#8892A4]">
+          <label className={labelClass} htmlFor="outreach-address">
             {channel === "email" ? "Email address" : channel === "x" ? "X username or user id" : "Reddit username"}
           </label>
           <input
+            id="outreach-address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder={channel === "email" ? "creator@example.com" : "@handle"}
-            className="mt-1 w-full h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E]"
+            className={inputClass}
           />
           {forChannel.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -215,31 +229,31 @@ export function OutreachComposer({
                 <button
                   key={c.id}
                   onClick={() => setAddress(c.address)}
-                  className="text-[10px] px-2 py-1 rounded-full bg-white/[0.05] text-[#8892A4] hover:text-white inline-flex items-center gap-1"
+                  className="text-[11px] font-bold px-2 py-1 rounded-[8px] bg-sand text-muted hover:text-dark inline-flex items-center gap-1"
                 >
                   <Plus className="w-3 h-3" /> {c.address}
-                  <span className="text-[#5A6478]">· {c.source.replace("_", " ")}</span>
+                  <span className="text-subtle">· {c.source.replace("_", " ")}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
       ) : (
-        <p className="text-xs text-[#8892A4]">
+        <p className="text-[12.5px] text-muted leading-[1.55]">
           LinkedIn doesn't allow automated cold messages. We'll open a prefilled compose window for you to send
           manually, and log it in the thread.
         </p>
       )}
 
       {channel === "email" && (
-        <p className="text-[11px] text-[#5A6478]">
+        <p className="text-[11.5px] text-subtle">
           Sending as{" "}
           {identity ? (
-            <span className="text-[#00D97E]">{identity}</span>
+            <span className="font-bold text-accent">{identity}</span>
           ) : (
             <>
               the platform sender —{" "}
-              <span className="text-[#8892A4]">connect your own inbox on the Outreach page</span>
+              <span className="text-muted">connect your own inbox on the Outreach page</span>
             </>
           )}
         </p>
@@ -247,11 +261,14 @@ export function OutreachComposer({
 
       {channel === "email" && sequences.length > 0 && (
         <div>
-          <label className="text-xs text-[#8892A4]">Send</label>
+          <label className={labelClass} htmlFor="outreach-sequence">
+            Send
+          </label>
           <select
+            id="outreach-sequence"
             value={sequenceId}
             onChange={(e) => setSequenceId(e.target.value)}
-            className="mt-1 w-full h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E]"
+            className={inputClass}
           >
             <option value="">One-off message</option>
             {sequences.map((s) => (
@@ -264,7 +281,7 @@ export function OutreachComposer({
       )}
 
       {channel === "email" && sequenceId ? (
-        <p className="text-xs text-[#8892A4]">
+        <p className="text-[12.5px] text-muted leading-[1.55]">
           The sequence's own subject and messages will be used, personalized with the creator's
           name. It stops automatically if they reply.
         </p>
@@ -272,23 +289,29 @@ export function OutreachComposer({
         <>
           {channel === "email" && (
             <div>
-              <label className="text-xs text-[#8892A4]">Subject</label>
+              <label className={labelClass} htmlFor="outreach-subject">
+                Subject
+              </label>
               <input
+                id="outreach-subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="mt-1 w-full h-10 px-3 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E]"
+                className={inputClass}
               />
             </div>
           )}
 
           <div>
-            <label className="text-xs text-[#8892A4]">Message</label>
+            <label className={labelClass} htmlFor="outreach-body">
+              Message
+            </label>
             <textarea
+              id="outreach-body"
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={6}
               placeholder={`Hi ${creatorName}, we love your content and think you'd be a great fit for…`}
-              className="mt-1 w-full px-3 py-2 rounded-lg bg-[#05080F] border border-white/10 text-sm text-white focus:outline-none focus:border-[#00D97E] resize-y"
+              className="mt-1 w-full px-3 py-2 rounded-[11px] bg-cream border-[1.5px] border-border text-[14px] text-dark focus:outline-none focus:border-accent resize-y"
             />
           </div>
         </>
@@ -296,14 +319,17 @@ export function OutreachComposer({
 
       <div className="flex gap-2 justify-end">
         {onClose && (
-          <button onClick={onClose} className="px-4 h-10 rounded-lg border border-white/10 text-sm text-[#8892A4] hover:text-white">
+          <button
+            onClick={onClose}
+            className="px-4 h-10 rounded-[11px] border-[1.5px] border-border text-[14px] font-bold text-muted hover:border-dark"
+          >
             Close
           </button>
         )}
         <button
           onClick={send}
           disabled={sending}
-          className="px-5 h-10 rounded-lg bg-[#00D97E] text-[#05080F] text-sm font-bold inline-flex items-center gap-1.5 disabled:opacity-50"
+          className="px-5 h-10 rounded-[11px] bg-accent text-cream text-[14px] font-bold inline-flex items-center gap-1.5 disabled:opacity-50"
         >
           {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           {channel === "linkedin" ? "Open compose" : channel === "email" && sequenceId ? "Enroll" : "Send"}
@@ -312,3 +338,4 @@ export function OutreachComposer({
     </div>
   );
 }
+

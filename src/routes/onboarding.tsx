@@ -67,8 +67,21 @@ function OnboardingPage() {
     return out;
   };
 
-  const seedFirstCampaign = async (values: Submission): Promise<string | null> => {
-    if (!user) return null; // tester bypass: no session, skip DB writes
+  type SeedResult = {
+    campaignId: string | null;
+    failedUploads: string[];
+    totalUploads: number;
+    criteriaFailed: boolean;
+  };
+
+  const seedFirstCampaign = async (values: Submission): Promise<SeedResult> => {
+    const result: SeedResult = {
+      campaignId: null,
+      failedUploads: [],
+      totalUploads: values.docs.length + (values.sheet ? 1 : 0),
+      criteriaFailed: false,
+    };
+    if (!user) return result; // tester bypass: no session, skip DB writes
     const desc = values.brief.trim();
     const name = (desc.split("\n")[0] || "My first campaign").slice(0, 60) || "My first campaign";
     const platformsArr = platformLabels(values.platforms);
@@ -98,10 +111,13 @@ function OnboardingPage() {
 
     if (error || !inserted) {
       console.error("seed campaign failed", error);
-      return null;
+      return result;
     }
+    result.campaignId = inserted.id;
 
-    // Upload lookalike sheet (best-effort) and patch the campaign.
+    // Uploads are best-effort but no longer silent: every failure is collected
+    // by file name so `finish()` can tell the user exactly what did not land
+    // instead of showing a success toast over three lost files.
     if (values.sheet) {
       const safeName = values.sheet.name.replace(/[^\w.\-]+/g, "_");
       const path = `${user.id}/${inserted.id}/${Date.now()}-${safeName}`;
@@ -113,11 +129,13 @@ function OnboardingPage() {
         await supabase.from("campaigns").update({ target_audience: audience }).eq("id", inserted.id);
       } else {
         console.error("lookalike upload failed", up.error);
+        result.failedUploads.push(values.sheet.name);
       }
     }
 
-    // Upload brand docs against the campaign (best-effort). Extraction into the
-    // grounding corpus runs server-side; failures never block onboarding.
+    // Upload brand docs against the campaign. Extraction into the grounding
+    // corpus runs server-side; an extraction failure leaves the doc listed for a
+    // retry on the campaign page and is not counted as an upload failure.
     for (const f of values.docs) {
       try {
         const safeName = f.name.replace(/[^\w.\-]+/g, "_");
@@ -125,23 +143,33 @@ function OnboardingPage() {
         const up = await supabase.storage
           .from("brand-docs")
           .upload(path, f, { upsert: false, contentType: f.type || undefined });
-        if (up.error) continue;
-        const { data: doc } = await supabase
+        if (up.error) {
+          console.error("brand doc upload failed", f.name, up.error);
+          result.failedUploads.push(f.name);
+          continue;
+        }
+        const { data: doc, error: docError } = await supabase
           .from("brand_docs")
           .insert({ user_id: user.id, campaign_id: inserted.id, file_name: f.name, storage_path: path })
           .select("id")
           .single();
-        if (doc) {
-          processBrandDoc({ data: { docId: doc.id } }).catch(() => {
-            // Extraction needs the LLM key; the doc stays listed for a retry later.
-          });
+        if (docError || !doc) {
+          // Roll the storage object back so nothing is orphaned.
+          await supabase.storage.from("brand-docs").remove([path]);
+          result.failedUploads.push(f.name);
+          continue;
         }
+        processBrandDoc({ data: { docId: doc.id } }).catch(() => {
+          // Extraction needs the LLM key; the doc stays listed for a retry later.
+        });
       } catch (e) {
         console.error("brand doc upload failed", e);
+        result.failedUploads.push(f.name);
       }
     }
 
-    // Fire generate-search-criteria (non-blocking; ignore failures).
+    // Search criteria. A failure here leaves Discovery with nothing to work
+    // from, so it is recorded on the campaign and reported rather than ignored.
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -161,13 +189,18 @@ function OnboardingPage() {
       if (res.ok) {
         const criteria = await res.json();
         await supabase.from("campaigns").update({ search_criteria: criteria }).eq("id", inserted.id);
+      } else {
+        result.criteriaFailed = true;
+        console.error("generate-search-criteria failed", res.status);
       }
     } catch (e) {
+      result.criteriaFailed = true;
       console.error("generate-search-criteria failed", e);
     }
 
-    return inserted.id;
+    return result;
   };
+
 
   const finish = async (values: Submission) => {
     if (submitting) return;
@@ -191,17 +224,32 @@ function OnboardingPage() {
     try {
       localStorage.setItem("aspen_onboarded", "true");
     } catch {}
-    const campaignId = await seedFirstCampaign(values);
+    const seeded = await seedFirstCampaign(values);
     setSubmitting(false);
-    if (campaignId) {
-      toast.success("Your first campaign is ready.");
-      navigate({ to: "/app/ads", search: { campaign: campaignId } });
+    if (seeded.campaignId) {
+      const failed = seeded.failedUploads.length;
+      if (failed > 0) {
+        // Never a success toast over lost files. Name the count and the files.
+        toast.error(
+          `${seeded.totalUploads - failed} of ${seeded.totalUploads} files uploaded. ${seeded.failedUploads.join(", ")} did not save — add them again from the campaign page.`,
+          { duration: 10000 },
+        );
+      } else if (seeded.criteriaFailed) {
+        toast.warning(
+          "Campaign created, but we could not build its search criteria. Open the campaign and run it again before searching.",
+          { duration: 8000 },
+        );
+      } else {
+        toast.success("Your first campaign is ready.");
+      }
+      navigate({ to: "/app/ads", search: { campaign: seeded.campaignId } });
     } else if (user) {
       toast.error("Could not create your campaign. You can create one from the Campaigns page.");
       navigate({ to: "/app/campaigns" });
     } else {
       navigate({ to: "/app/campaigns" });
     }
+
   };
 
   return (

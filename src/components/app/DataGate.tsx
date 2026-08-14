@@ -34,9 +34,19 @@ type DataGateProps = {
   emptyHint?: string;
   /** The next step out of the empty state — a button or link. */
   emptyAction?: ReactNode;
+  /** True when the query behind this panel failed. Takes priority over `empty`
+   *  so a backend failure never renders as "no data". */
+  error?: boolean;
+  /** Headline for the error state. */
+  errorTitle?: string;
+  /** What went wrong, in the user's words. */
+  errorHint?: string;
+  /** Retry control for the error state. */
+  errorAction?: ReactNode;
   className?: string;
   children: ReactNode;
 };
+
 
 export function DataGate({
   connected,
@@ -46,6 +56,10 @@ export function DataGate({
   emptyTitle,
   emptyHint,
   emptyAction,
+  error,
+  errorTitle,
+  errorHint,
+  errorAction,
   className,
   children,
 }: DataGateProps) {
@@ -53,6 +67,23 @@ export function DataGate({
     return (
       <div className={panelClass(className)}>
         <span className="text-sm text-[#8892A4]">Loading</span>
+      </div>
+    );
+  }
+  // A failed request is not an empty result. It gets its own state so the user
+  // can tell "nothing here yet" apart from "we could not reach the data".
+  if (error) {
+    return (
+      <div className={panelClass(className)}>
+        <span className="datagate-empty-title text-[15px] font-bold text-[#8892A4]">
+          {errorTitle ?? "Could not load this panel"}
+        </span>
+        {errorHint ? (
+          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-[#5A6478]">
+            {errorHint}
+          </span>
+        ) : null}
+        {errorAction ? <div className="mt-4">{errorAction}</div> : null}
       </div>
     );
   }
@@ -64,6 +95,7 @@ export function DataGate({
       </div>
     );
   }
+
   if (empty) {
     // An empty panel with nothing to click is a dead end, so every screen that
     // can name its next step passes one in. The bare copy stays the default for

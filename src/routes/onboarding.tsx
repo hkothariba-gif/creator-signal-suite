@@ -224,17 +224,32 @@ function OnboardingPage() {
     try {
       localStorage.setItem("aspen_onboarded", "true");
     } catch {}
-    const campaignId = await seedFirstCampaign(values);
+    const seeded = await seedFirstCampaign(values);
     setSubmitting(false);
-    if (campaignId) {
-      toast.success("Your first campaign is ready.");
-      navigate({ to: "/app/ads", search: { campaign: campaignId } });
+    if (seeded.campaignId) {
+      const failed = seeded.failedUploads.length;
+      if (failed > 0) {
+        // Never a success toast over lost files. Name the count and the files.
+        toast.error(
+          `${seeded.totalUploads - failed} of ${seeded.totalUploads} files uploaded. ${seeded.failedUploads.join(", ")} did not save — add them again from the campaign page.`,
+          { duration: 10000 },
+        );
+      } else if (seeded.criteriaFailed) {
+        toast.warning(
+          "Campaign created, but we could not build its search criteria. Open the campaign and run it again before searching.",
+          { duration: 8000 },
+        );
+      } else {
+        toast.success("Your first campaign is ready.");
+      }
+      navigate({ to: "/app/ads", search: { campaign: seeded.campaignId } });
     } else if (user) {
       toast.error("Could not create your campaign. You can create one from the Campaigns page.");
       navigate({ to: "/app/campaigns" });
     } else {
       navigate({ to: "/app/campaigns" });
     }
+
   };
 
   return (

@@ -41,11 +41,19 @@ const searchYouTubeChannels = createServerFn({ method: "GET" })
   .inputValidator((data: { query: string }) => data)
   .handler(async ({ data }): Promise<CreatorResult[]> => {
     const key = process.env.YOUTUBE_API_KEY || process.env.YOU_TUBE_API;
-    if (!key) return [];
+    // Throwing rather than returning [] — a missing key or a quota rejection is
+    // not "no creators matched", and the screen needs to be able to say so.
+    if (!key) throw new Error("YouTube is not configured on the server yet.");
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(data.query)}&type=channel&maxResults=12&key=${key}`,
     );
-    if (!res.ok) return [];
+    if (!res.ok)
+      throw new Error(
+        res.status === 403
+          ? "YouTube rejected the search — the daily quota is likely used up. Try again tomorrow."
+          : `YouTube returned an error (${res.status}). Try again in a moment.`,
+      );
+
     const json = (await res.json()) as {
       items?: Array<{
         id: { channelId: string };
@@ -74,6 +82,8 @@ function DiscoveryPage() {
   const [results, setResults] = useState<CreatorResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
   const [campText, setCampText] = useState<string>("");
   const [campName, setCampName] = useState<string>("");
   // external_id → hotlist row id, so a result can link to its real profile.

@@ -120,12 +120,14 @@ function HomePage() {
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
           <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">CAMPAIGNS</div>
           <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
-            {counts.data ? counts.data.campaigns : dash}
+            {counts.isError ? dash : counts.data ? counts.data.campaigns : dash}
           </div>
           <div className="text-[13px] text-muted">
-            {campaignBreakdown.data
-              ? `${campaignBreakdown.data.active} active · ${campaignBreakdown.data.draft} draft · ${campaignBreakdown.data.completed} done`
-              : "Loading"}
+            {campaignBreakdown.isError || counts.isError
+              ? "Could not load your campaigns — reload the page"
+              : campaignBreakdown.data
+                ? `${campaignBreakdown.data.active} active · ${campaignBreakdown.data.draft} draft · ${campaignBreakdown.data.completed} done`
+                : "Loading"}
           </div>
         </div>
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
@@ -133,34 +135,41 @@ function HomePage() {
             CREATORS IN HOTLIST
           </div>
           <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
-            {counts.data ? counts.data.hotlist : dash}
+            {counts.isError ? dash : counts.data ? counts.data.hotlist : dash}
           </div>
           <div className="text-[13px] text-muted">
-            {hotlist.data ? `${addedThisWeek} added this week` : "Loading"}
+            {hotlist.isError || counts.isError
+              ? "Could not load your hotlist — reload the page"
+              : hotlist.data
+                ? `${addedThisWeek} added this week`
+                : "Loading"}
           </div>
         </div>
+        {/* This tile used to render an empty DataGate with no children, so it
+            could never show anything at all. Until the inbox sync lands it says
+            what it is waiting for, in plain words, and links to the setup. */}
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
           <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">
             PENDING OUTREACH
           </div>
-          {emailReady ? (
-            <>
-              <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
-                {dash}
-              </div>
-              <div className="text-[13px] text-muted">Counts arrive with the inbox sync</div>
-            </>
-          ) : (
-            <DataGate
-              connected={emailReady}
-              empty
-              loading={status.isLoading}
-              label="Needs your email connection"
+          <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
+            {dash}
+          </div>
+          <div className="text-[13px] text-muted">
+            {emailReady
+              ? "Counts arrive with the inbox sync"
+              : "Connect your email to count replies waiting on you"}
+          </div>
+          {emailReady ? null : (
+            <Link
+              to="/app/outreach"
+              className="inline-block mt-[10px] text-[12.5px] font-bold text-accent no-underline"
             >
-              <></>
-            </DataGate>
+              Connect email →
+            </Link>
           )}
         </div>
+
         <div className="bg-tint rounded-[20px] p-[20px]">
           <div className="text-[12.5px] font-bold tracking-[0.1em] text-accent-ink">
             AVG BRAND FIT

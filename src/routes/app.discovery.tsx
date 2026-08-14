@@ -378,9 +378,10 @@ function DiscoveryPage() {
               Nothing to look at yet
             </div>
             <p className="text-[14.5px] text-muted leading-[1.6] m-[10px_auto_0] max-w-[340px]">
-              Describe who you want to reach and Aspen searches YouTube, Reddit, X and LinkedIn at
-              once.
+              Describe who you want to reach and Aspen searches YouTube for matching channels.
+              Reddit, X and LinkedIn join as they connect.
             </p>
+
           </div>
         )}
       </DataGate>

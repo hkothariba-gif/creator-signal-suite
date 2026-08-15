@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, StatCard } from "@/components/app/AppShell";
+import { Card, StatCard } from "@/components/app/Card";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";

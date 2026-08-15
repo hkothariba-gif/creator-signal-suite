@@ -3,8 +3,11 @@
 One prompt per batch. Run them **in order**. Each is self-contained: paste it, let it
 finish, check the result, then move to the next.
 
-Companion file: `B1-TOKEN-MAP.md` (the hex → token table). Batches B2-1…B2-5 reference it,
-so it needs to be in the repo — step 3 of the setup below covers that.
+Companion files, all four of which must sit in `aspen-handoff/` in the repo:
+`B1-TOKEN-MAP.md` (hex → token table), `aspen-uiux-audit-and-remediation-plan.md` (the
+findings the batches cite by ID), and `aspen-stage-1-uiux-pass.md` (what was already fixed).
+
+The typecheck command is `npx tsc --noEmit -p tsconfig.json`. This repo has no `tsgo`.
 
 ---
 
@@ -53,24 +56,32 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 
 ## B2-0 — Delete the dead code (do this first)
 
-> Before any token work, resolve findings C5 and C6 from
-> `aspen-handoff/aspen-uiux-audit-and-remediation-plan.md`. These files hold ~80 of the
-> repo's hex literals and are candidates for deletion, so migrating them would be wasted
-> work.
+> Read `aspen-handoff/aspen-uiux-audit-and-remediation-plan.md`, findings C5 and C6.
 >
-> 1. Confirm by search that `src/components/app/AppShell.tsx` and
->    `src/components/app/CampaignPicker.tsx` are imported by no route. If confirmed,
->    delete both files and any now-unused imports or exports that referenced them.
-> 2. `src/components/app/AuthenticAdStudio.tsx` (666 lines) has zero imports. Do **not**
->    delete it and do **not** migrate it. Report its status and stop — I'll decide.
-> 3. `src/components/app/AdsLibrary.tsx` is unrouted but wanted (it closes finding H1).
->    Leave it in place, unmigrated, for now.
+> A previous pass established the real dependency picture, so work from this rather than
+> re-deriving it:
 >
-> Do not change anything else. Then run `npx tsgo --noEmit -p tsconfig.json` and fix any
-> errors caused by the deletions. Report: files deleted, files whose imports changed,
-> typecheck result.
-
----
+> - `AppShell.tsx` exports four things. `AppShell` and `Wordmark` are dead. `Card` and
+>   `StatCard` are **live** — used by `admin.tsx`, `AdsLibrary.tsx` and `AuthenticAdStudio.tsx`.
+> - `CampaignPicker.tsx`'s only importer is `AuthenticAdStudio.tsx`.
+> - `AuthenticAdStudio.tsx` (666 lines, 71 hex literals, zero importers) **is being deleted.**
+>   It is superseded by the Ads Engine spec in `aspen-handoff/ADS-ENGINE-SPEC.md`. It stays
+>   recoverable from git history.
+>
+> Do this:
+>
+> 1. Delete `src/components/app/AuthenticAdStudio.tsx`.
+> 2. Delete `src/components/app/CampaignPicker.tsx` — its only importer is now gone.
+> 3. Move `Card` and `StatCard` out of `AppShell.tsx` into a new
+>    `src/components/app/Card.tsx`, moving their code verbatim. No restyling, no token
+>    migration — that happens in a later batch.
+> 4. Repoint the importers of `Card` / `StatCard` at the new module. Import lines only;
+>    change nothing else in those files.
+> 5. Delete `src/components/app/AppShell.tsx` once it is empty of live exports.
+> 6. Leave `AdsLibrary.tsx` in place and unmigrated — it is wanted for finding H1.
+>
+> Then `npx tsc --noEmit -p tsconfig.json`. Report: files deleted, files created, importers
+> repointed, typecheck result.
 
 ## B2-1 — Token migration: campaigns, outreach, platforms
 
@@ -98,7 +109,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > - The rendered colour must be identical before and after, except for the seven
 >   deliberate snap-to-nearest substitutions in section 2 of the token map.
 >
-> Then run `npx tsgo --noEmit -p tsconfig.json`. Report in one line per file: literals
+> Then run `npx tsc --noEmit -p tsconfig.json`. Report in one line per file: literals
 > replaced, and the typecheck result.
 
 ---
@@ -125,7 +136,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > token usage. Its few literals are hover states and chart colours — treat them carefully
 > and preserve exact hover behaviour.
 >
-> Then `npx tsgo --noEmit -p tsconfig.json`. Report per file plus typecheck.
+> Then `npx tsc --noEmit -p tsconfig.json`. Report per file plus typecheck.
 
 ---
 
@@ -150,7 +161,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > Put them in `@theme` proper, not inside `.aspen-scope` — these names don't collide with
 > the shadcn theme.
 >
-> Then `npx tsgo --noEmit -p tsconfig.json`. Report per file plus typecheck.
+> Then `npx tsc --noEmit -p tsconfig.json`. Report per file plus typecheck.
 
 ---
 
@@ -186,7 +197,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > `PLATFORM_CHROME` const at the top of the file with a comment explaining why they stay
 > literal. Do tokenise its `#00D97E` and `#0a66c2` normally.
 >
-> Then `npx tsgo --noEmit -p tsconfig.json`. Report per file plus typecheck.
+> Then `npx tsc --noEmit -p tsconfig.json`. Report per file plus typecheck.
 
 ---
 
@@ -210,7 +221,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > - Any hex inside comments
 >
 > List anything else that remains, with file:line, and don't fix it — I want to see it.
-> Then `npx tsgo --noEmit -p tsconfig.json` and report.
+> Then `npx tsc --noEmit -p tsconfig.json` and report.
 
 ---
 
@@ -249,7 +260,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > Presentation and error-handling only. Do not touch business logic, Supabase schema, RLS,
 > or edge functions.
 >
-> Then `npx tsgo --noEmit -p tsconfig.json`. Report: DataGate props added, count of query
+> Then `npx tsc --noEmit -p tsconfig.json`. Report: DataGate props added, count of query
 > branches wired per file, typecheck result.
 
 ---
@@ -281,7 +292,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > Then check every `/app` route at 375px wide and report any that still overflow
 > horizontally. Layout only — no colour, copy, or logic changes.
 >
-> `npx tsgo --noEmit -p tsconfig.json` at the end of each of the three steps.
+> `npx tsc --noEmit -p tsconfig.json` at the end of each of the three steps.
 
 ---
 
@@ -328,7 +339,7 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > distinct dashed, subtle treatment so they don't look identical to working ones.
 >
 > Stop and report after each group rather than doing all five at once.
-> `npx tsgo --noEmit -p tsconfig.json` before each report.
+> `npx tsc --noEmit -p tsconfig.json` before each report.
 
 ---
 

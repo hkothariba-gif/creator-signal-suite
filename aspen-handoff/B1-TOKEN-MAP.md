@@ -17,10 +17,12 @@ utilities must be inside one, or it silently falls back to shadcn's dark theme.
 Before migrating a file, confirm it renders inside `.aspen-scope`. `admin.tsx`,
 `health.tsx`, `invite.$token.tsx` currently do **not**.
 
-**b. Two files hold ~80 of the 254 literals and are both slated for deletion.**
-`AuthenticAdStudio.tsx` (~50, audit C6 — unrouted, 666 lines) and `AppShell.tsx`
-(~30, audit C5 — rendered by no route). Do not migrate either. Resolve C5/C6 first.
-That removes 31% of the problem by deletion rather than edits.
+**b. Two files hold ~100 of the literals and are mostly deleted in B2-0.**
+`AuthenticAdStudio.tsx` (71 literals, audit C6 — unrouted, 666 lines) is deleted outright.
+`AppShell.tsx` (44 literals, audit C5) is ~30 dead ones plus a live `Card`/`StatCard` pair
+used by `admin.tsx` and `AdsLibrary.tsx`; B2-0 extracts those two into `Card.tsx` and
+deletes the rest. Migrate neither before B2-0 runs — most of the work disappears.
+`Card.tsx` then gets migrated in B2-4, alongside its dark-theme consumers.
 
 **c. Two YouTube reds are live.** `--color-youtube: #f03` (Aspen) and
 `--color-yt-red: #ff0000` (legacy). `AdPreviewFrame` and the landing CSS use `#ff0000`.

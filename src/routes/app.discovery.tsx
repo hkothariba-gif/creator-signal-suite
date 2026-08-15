@@ -14,7 +14,8 @@ import { useAspenCampaign } from "@/routes/app";
    /app layout route.
 
    The campaign this scores against comes from the sidebar switcher now (see
-   the CAMPAIGN block in app.tsx) instead of the old header CampaignPicker; the
+   the CAMPAIGN block in app.tsx) instead of the old header picker, which was
+   deleted along with components/app/CampaignPicker.tsx; the
    `campaign` search param still overrides it so existing links keep working.
 
    Profile links point at hotlist row UUIDs, never a slug: a discovery result is

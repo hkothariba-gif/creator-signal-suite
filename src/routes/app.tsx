@@ -29,7 +29,9 @@ type AspenCampaign = {
 };
 
 /* The sidebar's CAMPAIGN block is the Aspen design's campaign selector, and it
-   replaces the dark <CampaignPicker> that used to sit in each screen's header.
+   replaced the dark picker that used to sit in each screen's header
+   (components/app/CampaignPicker.tsx, deleted once nothing rendered it; it is
+   in git history if that copy is ever needed again).
    Discovery, Hotlist and the Ads Center all scope to whatever is chosen here,
    so the selection is shared through context rather than re-picked per screen.
    `campaigns` is empty until the user has created one — screens fall back to

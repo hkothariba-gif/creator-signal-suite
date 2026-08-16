@@ -173,6 +173,14 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > - `src/routes/health.tsx` (~17)
 > - `src/components/app/AdsLibrary.tsx` (~12)
 > - `src/components/app/AdPreviewFrame.tsx` (~9)
+> - `src/components/app/Card.tsx` (the pair extracted in B2-0)
+>
+> Per-file counts in the map run ~70% low across every batch measured so far — expect
+> roughly 80 literals here, not 48. Don't stop at the estimate.
+>
+> Also pick up what B2-2 deferred for want of the dark ramp: three `#5A6478` and one
+> `#F0F4FF`. Leave `DataGate.tsx:127`'s `bg-[#0C1222]` alone — that class name is the hook
+> for the `!important` rules at `styles.css:468,479`; it belongs with the B5 inversion.
 >
 > **These files do not render inside `.aspen-scope`.** Aspen token names (`text-muted`,
 > `border-border`, `text-accent`) will silently fall back to the shadcn dark theme in them.
@@ -180,7 +188,8 @@ over — `git reset --hard HEAD` discards everything since your last commit. Tha
 > `--color-bg-elevated`, `--color-brand-green`, `--color-brand-muted`,
 > `--color-brand-violet`, `--color-brand-amber`.
 >
-> Three tokens are missing from that ramp. Add to the `@theme` block in `src/styles.css`:
+> Three tokens are missing from that ramp. **Add these first**, to the `@theme` block in
+> `src/styles.css` (in `@theme` proper, not inside `.aspen-scope` — they don't collide):
 >
 > ```css
 > --color-brand-ink:    #f0f4ff;  /* body text on dark */

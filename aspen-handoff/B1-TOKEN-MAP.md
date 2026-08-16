@@ -69,6 +69,23 @@ These hexes appear in components and already have an exact token. Pure find-and-
 
 \* = file slated for deletion (C5/C6). Skip.
 
+### 1a. Scoped names — only resolve inside `.aspen-scope`
+
+These four are **not** in `@theme` (see §0a). They work, but only inside a wrapper.
+Verify the wrapper per file before using them; outside one they fall back to shadcn dark.
+
+| Hex | Scoped token | Utility | Confirmed wrapped |
+| --- | --- | --- | --- |
+| `#F2542D` | `--color-accent` | `text-accent` `bg-accent` | campaigns.$id:227,237,311 · outreach:124 · campaigns.index:118,386 · platforms:99 · creators.$id:97,106,132,249 · ads:218,226,275 · `/app` layout app.tsx:202,320 |
+| `#E8E2D6` | `--color-border` | `border-border` | same set |
+| `#4A4553` | `--color-muted` | `text-muted` | same set |
+| — | `--font-sans` | `font-sans` | same set |
+
+Files with **no** wrapper of their own that still render inside one: `CampaignDocuments`
+(renders from campaigns.$id:587), `campaigns.index:386` modal (portals, carries its own
+class). Files with **no** wrapper at all: `admin.tsx`, `health.tsx`, `invite.$token.tsx`,
+`AdsLibrary.tsx`, `AdPreviewFrame.tsx` — the B2-4 set. Use `--color-brand-*` there.
+
 ---
 
 ## 2. Near-duplicates — snap to the existing token, do NOT add a new one
@@ -86,6 +103,11 @@ certainly hand-typed drift, not intent. Snapping them removes five would-be toke
 | `#FFE3DB` | ~1 | `#FFE4DA` | `--color-tint-deep` | CampaignDocuments:24 |
 | `#00c472` | ~5 | `#00C26F` | `--color-brand-green-dark` | health:130 (hover) |
 
+~~`#FFE3DB` → `--color-tint-deep`~~ — **struck (B2-3).** This row contradicted §3, which
+names the same hex `--color-danger-wash`. §3 wins: CampaignDocuments:24 is a *failed*
+state, and reading it as a tint is semantically wrong. `#FFE3DB` now renders exactly, so
+only **6** deliberate snaps remain, not 7.
+
 `#B03418` (CampaignDocuments:24 failed-state fg) is 6 steps from `--color-accent-ink`
 `#B33A12`, but it is semantically a *failure* colour sitting next to a *tint* — see §3.
 
@@ -94,6 +116,11 @@ certainly hand-typed drift, not intent. Snapping them removes five would-be toke
 ## 3. New tokens to add to the `@theme` block
 
 Nine tokens. Everything else in the sweep maps to §1 or §2.
+
+**Status (Aug 2026):** `--color-warn-ink` was added in B2-2; `--color-danger-wash` and
+`--color-danger-ink` in B2-3 — all three in `@theme` proper, verified reaching `:root` in
+the built CSS. **The three `--color-brand-*` below are still missing and B2-4 must add
+them first** — they also unblock three `#5A6478` and one `#F0F4FF` left behind in B2-2.
 
 ```css
 /* Danger / failure — distinct from accent, which is a brand colour not an alarm */
@@ -141,8 +168,12 @@ delete ~80 literals outright.
 | B2-1 | `app.campaigns.$id.tsx`, `app.outreach.tsx`, `app.campaigns.index.tsx`, `app.platforms.tsx` | ~52 | All already inside `.aspen-scope`. Safest, highest volume. |
 | B2-2 | `AffiliateHeatMap.tsx`, `CampaignIntelligence.tsx`, `DataGate.tsx`, `OutreachPanels.tsx` | ~38 | `DataGate` also needs the audit's default-inversion — do that in B5, not here. |
 | B2-3 | `app.creators.$id.tsx`, `app.hotlist.tsx`, `app.ads.tsx`, `CampaignDocuments.tsx` | ~21 | |
-| B2-4 | `admin.tsx`, `health.tsx`, `AdsLibrary.tsx`, `AdPreviewFrame.tsx` | ~48 | **Not `.aspen-scope`d.** Use the `--color-brand-*` dark ramp from §3, not Aspen names. Re-skinning these to cream is audit H13 — a separate, later job. |
+| B2-4 | `admin.tsx`, `health.tsx`, `AdsLibrary.tsx`, `AdPreviewFrame.tsx`, `Card.tsx` | ~80 | **Not `.aspen-scope`d.** Add §3's `--color-brand-ink` / `-dim` / `-danger` **first**, then use the `--color-brand-*` ramp, not Aspen names. Also picks up 3× `#5A6478` + 1× `#F0F4FF` deferred from B2-2. Re-skinning these to cream is audit H13 — a separate, later job. |
 | B2-5 | `app.community.tsx`, `app.tsx` | ~3 | Sweep-up. |
+
+**The per-file counts above run ~70% low.** Measured: B2-1 projected ~52, found 90;
+B2-2 ~38 → ~60; B2-3 ~21 → 36. The B1 sweep counted distinct values, not occurrences.
+B2-4's "~48" has been corrected to ~80 on that basis.
 
 Note for B2-1 and B2-3: many literals are in `style={{ }}` objects and lookup maps
 (`STATUS_STYLE`, `STAGE_PILL`, `PLATFORMS`), not `className`. Those become

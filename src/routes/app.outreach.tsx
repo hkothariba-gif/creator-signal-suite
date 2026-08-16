@@ -43,18 +43,18 @@ export const Route = createFileRoute("/app/outreach")({
 
 // The design's channel chips, in its brand colours.
 const CHANNEL: Record<string, { color: string; label: string }> = {
-  email: { color: "#F03", label: "Email" },
-  x: { color: "#17141E", label: "X" },
-  reddit: { color: "#FF4500", label: "Reddit" },
-  linkedin: { color: "#0A66C2", label: "LinkedIn" },
+  email: { color: "var(--color-youtube)", label: "Email" },
+  x: { color: "var(--color-dark)", label: "X" },
+  reddit: { color: "var(--color-reddit)", label: "Reddit" },
+  linkedin: { color: "var(--color-linkedin)", label: "LinkedIn" },
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  active: "#1FA463",
-  replied: "#F2542D",
-  bounced: "#C0341A",
-  closed: "#8A8494",
-  draft: "#8A8494",
+  active: "var(--color-success)",
+  replied: "var(--color-accent)",
+  bounced: "var(--color-accent-deep)",
+  closed: "var(--color-subtle)",
+  draft: "var(--color-subtle)",
 };
 
 function OutreachPage() {
@@ -141,9 +141,9 @@ function OutreachPage() {
                   onClick={() => setInbox(t.key)}
                   className="text-[12.5px] font-bold p-[8px_13px] rounded-[10px] cursor-pointer"
                   style={{
-                    border: `1.5px solid ${on ? "#17141E" : "#E8E2D6"}`,
-                    background: on ? "#17141E" : "#fff",
-                    color: on ? "#FAF7F1" : "#4A4553",
+                    border: `1.5px solid ${on ? "var(--color-dark)" : "var(--color-border)"}`,
+                    background: on ? "var(--color-dark)" : "var(--color-surface)",
+                    color: on ? "var(--color-cream)" : "var(--color-muted)",
                   }}
                 >
                   {t.label}
@@ -182,7 +182,7 @@ function OutreachPage() {
                   key={t.id}
                   onClick={() => openThread(t)}
                   className="text-left cursor-pointer bg-surface rounded-[15px] p-[14px_15px]"
-                  style={{ border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}` }}
+                  style={{ border: `1.5px solid ${on ? "var(--color-accent)" : "var(--color-border)"}` }}
                 >
                   <div className="flex items-center justify-between gap-[10px]">
                     <span className="text-[14.5px] font-bold truncate">
@@ -198,7 +198,7 @@ function OutreachPage() {
                   <div className="flex items-center gap-[9px] mt-[7px]">
                     <span
                       className="text-[11.5px] font-bold"
-                      style={{ color: STATUS_COLOR[t.status] ?? "#8A8494" }}
+                      style={{ color: STATUS_COLOR[t.status] ?? "var(--color-subtle)" }}
                     >
                       ● {t.status}
                     </span>
@@ -265,8 +265,8 @@ function OutreachPage() {
                         key={m.id}
                         className="rounded-[15px] p-[15px]"
                         style={{
-                          background: out ? "#FFF6F2" : "#FAF7F1",
-                          border: `1.5px solid ${out ? "#FFD9CC" : "#E8E2D6"}`,
+                          background: out ? "var(--color-accent-wash)" : "var(--color-cream)",
+                          border: `1.5px solid ${out ? "var(--color-accent-pale)" : "var(--color-border)"}`,
                           marginLeft: out ? "32px" : "0px",
                           marginRight: out ? "0px" : "32px",
                         }}
@@ -277,7 +277,7 @@ function OutreachPage() {
                           </span>
                           <span
                             className="text-[11px] font-semibold"
-                            style={{ color: m.status === "failed" ? "#C0341A" : "#8A8494" }}
+                            style={{ color: m.status === "failed" ? "var(--color-accent-deep)" : "var(--color-subtle)" }}
                           >
                             {m.status}
                           </span>
@@ -289,7 +289,7 @@ function OutreachPage() {
                           {m.body}
                         </div>
                         {m.error ? (
-                          <div className="text-[11.5px] text-[#C0341A] mt-[6px]">{m.error}</div>
+                          <div className="text-[11.5px] text-accent-deep mt-[6px]">{m.error}</div>
                         ) : null}
                       </div>
                     );

@@ -35,21 +35,21 @@ const TABS: { key: "all" | "active" | "draft" | "completed"; label: string }[] =
 // The design's platform chips, keyed to the same brand colours it used.
 const platColor = (p: string) =>
   p === "YouTube"
-    ? "#F03"
+    ? "var(--color-youtube)"
     : p === "Reddit"
-      ? "#FF4500"
+      ? "var(--color-reddit)"
       : p === "X"
-        ? "#17141E"
+        ? "var(--color-dark)"
         : p === "LinkedIn"
-          ? "#0A66C2"
-          : "#8A8494";
+          ? "var(--color-linkedin)"
+          : "var(--color-subtle)";
 
 const CURRENCIES = ["USD", "GBP", "EUR", "CAD", "AUD"];
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
-  active: { bg: "#DDF3E6", fg: "#0E7A3D", label: "Active" },
-  draft: { bg: "#F5F1E9", fg: "#8A8494", label: "Draft" },
-  completed: { bg: "#E7EDFB", fg: "#3159A8", label: "Completed" },
+  active: { bg: "var(--color-success-wash)", fg: "var(--color-success-ink)", label: "Active" },
+  draft: { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: "Draft" },
+  completed: { bg: "var(--color-info-wash)", fg: "var(--color-info-ink)", label: "Completed" },
 };
 
 function CampaignsPage() {
@@ -123,8 +123,8 @@ function CampaignsPage() {
             onClick={() => setTab(t.key)}
             className="border-0 bg-transparent cursor-pointer p-[0_0_13px] text-[14.5px] font-bold mb-[-1.5px]"
             style={{
-              color: tab === t.key ? "#17141E" : "#8A8494",
-              borderBottom: `2.5px solid ${tab === t.key ? "#F2542D" : "transparent"}`,
+              color: tab === t.key ? "var(--color-dark)" : "var(--color-subtle)",
+              borderBottom: `2.5px solid ${tab === t.key ? "var(--color-accent)" : "transparent"}`,
             }}
           >
             {t.label} ({counts[t.key]})
@@ -164,7 +164,7 @@ function CampaignsPage() {
       >
         <div className="flex flex-col gap-[12px]">
           {visible.map((c) => {
-            const s = STATUS_STYLE[c.status] ?? { bg: "#F5F1E9", fg: "#8A8494", label: c.status };
+            const s = STATUS_STYLE[c.status] ?? { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: c.status };
             return (
               <div
                 key={c.id}

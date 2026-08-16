@@ -27,8 +27,8 @@ const CARDS: {
   {
     key: "youtube",
     glyph: "▶",
-    color: "#F03",
-    bandBg: "#FFF0EF",
+    color: "var(--color-youtube)",
+    bandBg: "var(--color-tint-youtube)",
     title: "Creator partnerships",
     subtitle: "Video sponsorships and integrations",
     tag: "Video",
@@ -37,8 +37,8 @@ const CARDS: {
   {
     key: "reddit",
     glyph: "r/",
-    color: "#FF4500",
-    bandBg: "#FFF2EC",
+    color: "var(--color-reddit)",
+    bandBg: "var(--color-tint-reddit)",
     title: "Audience intelligence",
     subtitle: "Ad targeting from community signals",
     tag: "Ads",
@@ -47,8 +47,8 @@ const CARDS: {
   {
     key: "x",
     glyph: "X",
-    color: "#17141E",
-    bandBg: "#F5F1E9",
+    color: "var(--color-dark)",
+    bandBg: "var(--color-sand)",
     title: "Creator amplification",
     subtitle: "DM outreach, whitelisting and paid reach",
     tag: "Social",
@@ -57,8 +57,8 @@ const CARDS: {
   {
     key: "linkedin",
     glyph: "in",
-    color: "#0A66C2",
-    bandBg: "#EFF5FD",
+    color: "var(--color-linkedin)",
+    bandBg: "var(--color-tint-linkedin)",
     title: "Professional reviews",
     subtitle: "B2B thought leadership and advocacy",
     tag: "B2B",
@@ -128,7 +128,7 @@ function PlatformsPage() {
                 <div className="flex items-center justify-between gap-[12px] mt-[16px]">
                   <span
                     className="text-[12.5px] font-bold"
-                    style={{ color: connected ? "#0E7A3D" : "#8A8494" }}
+                    style={{ color: connected ? "var(--color-success-ink)" : "var(--color-subtle)" }}
                   >
                     {status.isLoading ? "Checking…" : connected ? "Connected" : "Not configured"}
                   </span>
@@ -167,8 +167,8 @@ function PlatformsPage() {
                     className="text-[11px] font-bold p-[4px_9px] rounded-[7px] shrink-0"
                     style={
                       connected
-                        ? { background: "#DDF3E6", color: "#0E7A3D" }
-                        : { background: "#F5F1E9", color: "#8A8494" }
+                        ? { background: "var(--color-success-wash)", color: "var(--color-success-ink)" }
+                        : { background: "var(--color-sand)", color: "var(--color-subtle)" }
                     }
                   >
                     {connected ? "✓ Configured" : "Not configured"}

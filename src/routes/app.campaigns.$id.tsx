@@ -50,23 +50,23 @@ type DiscoveryRun = {
 };
 
 const PLATFORMS: Record<string, { glyph: string; color: string }> = {
-  youtube: { glyph: "▶", color: "#F03" },
-  reddit: { glyph: "r/", color: "#FF4500" },
-  x: { glyph: "X", color: "#17141E" },
-  linkedin: { glyph: "in", color: "#0A66C2" },
+  youtube: { glyph: "▶", color: "var(--color-youtube)" },
+  reddit: { glyph: "r/", color: "var(--color-reddit)" },
+  x: { glyph: "X", color: "var(--color-dark)" },
+  linkedin: { glyph: "in", color: "var(--color-linkedin)" },
 };
 const platMark = (p: string | null | undefined) =>
-  PLATFORMS[(p ?? "").toLowerCase()] ?? { glyph: "·", color: "#8A8494" };
+  PLATFORMS[(p ?? "").toLowerCase()] ?? { glyph: "·", color: "var(--color-subtle)" };
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
-  active: { bg: "#DDF3E6", fg: "#0E7A3D", label: "Active" },
-  draft: { bg: "#F5F1E9", fg: "#8A8494", label: "Draft" },
-  completed: { bg: "#E7EDFB", fg: "#3159A8", label: "Completed" },
+  active: { bg: "var(--color-success-wash)", fg: "var(--color-success-ink)", label: "Active" },
+  draft: { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: "Draft" },
+  completed: { bg: "var(--color-info-wash)", fg: "var(--color-info-ink)", label: "Completed" },
 };
 
 const STAGE_PILL: Record<string, { bg: string; fg: string }> = {
-  live: { bg: "#DDF3E6", fg: "#0E7A3D" },
-  contracted: { bg: "#FFECD9", fg: "#B33A12" },
+  live: { bg: "var(--color-success-wash)", fg: "var(--color-success-ink)" },
+  contracted: { bg: "var(--color-tint)", fg: "var(--color-accent-ink)" },
 };
 
 const fmtDate = (d: string | null) =>
@@ -243,7 +243,7 @@ function CampaignDetailPage() {
     );
   }
 
-  const ss = STATUS_STYLE[c.status] ?? { bg: "#F5F1E9", fg: "#8A8494", label: c.status };
+  const ss = STATUS_STYLE[c.status] ?? { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: c.status };
   const rows = hotlist.data ?? [];
   const stageOf = (r: HotlistRow) => (r.stage ?? "saved").toLowerCase();
   // The board has a "negotiating" stage the funnel does not; those creators
@@ -375,7 +375,7 @@ function CampaignDetailPage() {
           <div className="flex-1 min-w-[240px]">
             {spendText && budgetText ? (
               <>
-                <div className="text-[13px]" style={{ color: over ? "#F2542D" : "#4A4553" }}>
+                <div className="text-[13px]" style={{ color: over ? "var(--color-accent)" : "var(--color-muted)" }}>
                   <strong className={over ? "" : "text-dark"}>{spendText}</strong> of{" "}
                   <strong className={over ? "" : "text-dark"}>{budgetText}</strong> spent
                 </div>
@@ -411,7 +411,7 @@ function CampaignDetailPage() {
           <div key={s.label} className="flex-1 min-w-[140px]">
             <div
               className="font-heading font-extrabold text-[30px] tracking-[-0.03em] leading-[1.1]"
-              style={{ color: i >= 3 ? "#F2542D" : "#17141E" }}
+              style={{ color: i >= 3 ? "var(--color-accent)" : "var(--color-dark)" }}
             >
               {hotlist.isLoading ? "—" : s.n}
             </div>
@@ -456,7 +456,7 @@ function CampaignDetailPage() {
             <div className="flex flex-col gap-[9px]">
               {rows.map((h) => {
                 const mark = platMark(h.platform);
-                const pill = STAGE_PILL[stageOf(h)] ?? { bg: "#F5F1E9", fg: "#8A8494" };
+                const pill = STAGE_PILL[stageOf(h)] ?? { bg: "var(--color-sand)", fg: "var(--color-subtle)" };
                 const creatorStat = p?.perCreator[h.id];
                 return (
                   <Link
@@ -550,7 +550,7 @@ function CampaignDetailPage() {
                       </span>
                       <span
                         className="ml-[auto] text-[12px] font-bold capitalize"
-                        style={{ color: live ? "#0E7A3D" : "#8A8494" }}
+                        style={{ color: live ? "var(--color-success-ink)" : "var(--color-subtle)" }}
                       >
                         {a.status}
                       </span>
@@ -664,7 +664,7 @@ function CampaignDetailPage() {
                       className="flex-1 rounded-[5px_5px_0_0]"
                       style={{
                         height: `${h}%`,
-                        background: i >= 9 ? "#F2542D" : i >= 5 ? "#FFD84D" : "#3A3546",
+                        background: i >= 9 ? "var(--color-accent)" : i >= 5 ? "var(--color-highlight)" : "var(--color-dark-line)",
                       }}
                     />
                   );
@@ -684,7 +684,7 @@ function CampaignDetailPage() {
                         })
                         .join(" ")}
                       fill="none"
-                      stroke="#8A8494"
+                      className="stroke-subtle"
                       strokeWidth="2"
                       vectorEffect="non-scaling-stroke"
                     />
@@ -775,7 +775,7 @@ function ProofStat({
         {value}
       </div>
       <div className="text-[12.5px] text-subtle mt-[4px]">{label}</div>
-      {note ? <div className="text-[11.5px] text-[#6E687A] mt-[2px]">{note}</div> : null}
+      {note ? <div className="text-[11.5px] text-dark-muted mt-[2px]">{note}</div> : null}
     </div>
   );
 }
@@ -790,7 +790,7 @@ function BriefRow({
   missing?: string;
 }) {
   return (
-    <div className="flex gap-[14px] items-baseline p-[12px_0] border-t-[1px] border-[#F0EBE1]">
+    <div className="flex gap-[14px] items-baseline p-[12px_0] border-t-[1px] border-border-soft">
       <div className="w-[92px] shrink-0 text-[12.5px] font-bold uppercase tracking-[0.06em] text-subtle">
         {label}
       </div>
@@ -856,8 +856,8 @@ function DiscoveryRunPanel({ run, onDismiss }: { run: DiscoveryRun; onDismiss: (
                     className="text-[11px] font-bold p-[3px_8px] rounded-[6px]"
                     style={
                       s.ok
-                        ? { background: "#DDF3E6", color: "#0E7A3D" }
-                        : { background: "#FFECD9", color: "#B33A12" }
+                        ? { background: "var(--color-success-wash)", color: "var(--color-success-ink)" }
+                        : { background: "var(--color-tint)", color: "var(--color-accent-ink)" }
                     }
                   >
                     {s.ok ? "OK" : "FAIL"}

@@ -20,6 +20,13 @@
   --color-brand-off-white: #f8fafc;
   --color-brand-text-muted: #4a5568;
 
+  /* Dark-theme text ramp — the legacy shell plus admin / health / invite and
+     the ads components, none of which render inside `.aspen-scope`. In @theme
+     proper, not the scope block: these names do not collide with shadcn. */
+  --color-brand-ink: #f0f4ff; /* body text on dark */
+  --color-brand-dim: #5a6478; /* tertiary text on dark */
+  --color-brand-danger: #ff6b6b; /* failed states on dark */
+
   --color-yt-red: #ff0000;
   --color-reddit-orange: #ff4500;
   --color-x-black: #000000;

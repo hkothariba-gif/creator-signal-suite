@@ -81,7 +81,7 @@ function Panel({ title, accent, children }: { title: string; accent: string; chi
     <div className="rounded-2xl border border-white/[0.07] bg-bg-elevated p-5">
       <div className="flex items-center gap-2 mb-4">
         <span className="w-2 h-2 rounded-full" style={{ background: accent }} />
-        <h4 className="font-bold text-[#F0F4FF]">{title}</h4>
+        <h4 className="font-bold text-brand-ink">{title}</h4>
       </div>
       {children}
     </div>

@@ -39,12 +39,12 @@ function HealthPage() {
     : "N/A";
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#05080F]">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-bg-base">
       <div className="w-full max-w-md">
         <div className="mb-6">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-[#8892A4] hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-brand-muted hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to home
@@ -53,13 +53,13 @@ function HealthPage() {
 
         <div
           className="rounded-2xl p-8"
-          style={{ background: "#0C1222", border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ background: "var(--color-bg-surface)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-lg bg-white/5">
-              <Activity className="w-5 h-5 text-[#00D97E]" />
+              <Activity className="w-5 h-5 text-brand-green" />
             </div>
-            <h1 className="text-xl font-bold text-[#F0F4FF]">System Health</h1>
+            <h1 className="text-xl font-bold text-brand-ink">System Health</h1>
           </div>
 
           <div className="space-y-4">
@@ -69,10 +69,10 @@ function HealthPage() {
               style={{ background: "rgba(255,255,255,0.03)" }}
             >
               <div className="flex items-center gap-3">
-                <Server className="w-5 h-5 text-[#8892A4]" />
+                <Server className="w-5 h-5 text-brand-muted" />
                 <div>
-                  <p className="text-sm font-medium text-[#F0F4FF]">Supabase</p>
-                  <p className="text-xs text-[#8892A4]">Database connection</p>
+                  <p className="text-sm font-medium text-brand-ink">Supabase</p>
+                  <p className="text-xs text-brand-muted">Database connection</p>
                 </div>
               </div>
               <StatusBadge status={status} />
@@ -84,13 +84,13 @@ function HealthPage() {
               style={{ background: "rgba(255,255,255,0.03)" }}
             >
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-[#8892A4]" />
+                <Clock className="w-5 h-5 text-brand-muted" />
                 <div>
-                  <p className="text-sm font-medium text-[#F0F4FF]">Latency</p>
-                  <p className="text-xs text-[#8892A4]">Round-trip time</p>
+                  <p className="text-sm font-medium text-brand-ink">Latency</p>
+                  <p className="text-xs text-brand-muted">Round-trip time</p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-[#F0F4FF]">
+              <span className="text-sm font-semibold text-brand-ink">
                 {data?.latency != null ? `${data.latency} ms` : isLoading ? "..." : "N/A"}
               </span>
             </div>
@@ -101,13 +101,13 @@ function HealthPage() {
               style={{ background: "rgba(255,255,255,0.03)" }}
             >
               <div className="flex items-center gap-3">
-                <Activity className="w-5 h-5 text-[#8892A4]" />
+                <Activity className="w-5 h-5 text-brand-muted" />
                 <div>
-                  <p className="text-sm font-medium text-[#F0F4FF]">Last checked</p>
-                  <p className="text-xs text-[#8892A4]">Auto-refresh every 30s</p>
+                  <p className="text-sm font-medium text-brand-ink">Last checked</p>
+                  <p className="text-xs text-brand-muted">Auto-refresh every 30s</p>
                 </div>
               </div>
-              <span className="text-sm text-[#8892A4]">{checkedAt}</span>
+              <span className="text-sm text-brand-muted">{checkedAt}</span>
             </div>
           </div>
 
@@ -127,7 +127,7 @@ function HealthPage() {
             <button
               onClick={() => refetch()}
               disabled={isLoading}
-              className="inline-flex items-center justify-center rounded-lg bg-[#00D97E] px-4 py-2 text-sm font-semibold text-[#05080F] hover:bg-[#00c472] transition-colors disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-bg-base hover:bg-brand-green-dark transition-colors disabled:opacity-60"
             >
               {isLoading ? "Checking…" : "Check now"}
             </button>
@@ -141,7 +141,7 @@ function HealthPage() {
 function StatusBadge({ status }: { status: "ok" | "error" | "checking" }) {
   if (status === "ok") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#00D97E]/10 px-2.5 py-1 text-xs font-semibold text-[#00D97E] border border-[#00D97E]/20">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-green/10 px-2.5 py-1 text-xs font-semibold text-brand-green border border-brand-green/20">
         <CheckCircle2 className="w-3.5 h-3.5" />
         Connected
       </span>

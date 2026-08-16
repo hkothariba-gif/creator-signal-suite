@@ -79,7 +79,7 @@ export function DataGate({
           {errorTitle ?? "Could not load this panel"}
         </span>
         {errorHint ? (
-          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-[#5A6478]">
+          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-brand-dim">
             {errorHint}
           </span>
         ) : null}
@@ -91,7 +91,7 @@ export function DataGate({
     return (
       <div className={panelClass(className)}>
         <span className="text-sm font-semibold text-brand-muted">{WAITING_COPY}</span>
-        {label ? <span className="mt-1 text-xs text-[#5A6478]">{label}</span> : null}
+        {label ? <span className="mt-1 text-xs text-brand-dim">{label}</span> : null}
       </div>
     );
   }
@@ -106,7 +106,7 @@ export function DataGate({
           {emptyTitle ?? EMPTY_COPY}
         </span>
         {emptyHint ? (
-          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-[#5A6478]">
+          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-brand-dim">
             {emptyHint}
           </span>
         ) : null}

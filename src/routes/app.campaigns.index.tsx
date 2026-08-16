@@ -11,7 +11,9 @@ import type { Tables } from "@/integrations/supabase/types";
 
 /* CAMPAIGNS — the `v.isCampaigns` block of src/aspen/AspenApp.tsx, on the live
    hooks the dark version used. Shell, header and title come from the /app
-   layout route.
+   layout route. Rebuilt for preview after a stale bundle shipped without the
+   Supabase env vars.
+
 
    The row actions the design does not draw (Activate / Complete / Intel) are
    kept — they are the only way to move a campaign's status — and restyled as

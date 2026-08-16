@@ -33,11 +33,11 @@ const STAGES: { key: string; label: string }[] = [
 
 const platMark = (p: string | null | undefined) => {
   const v = (p ?? "").toLowerCase();
-  if (v === "youtube") return { glyph: "▶", color: "#F03" };
-  if (v === "reddit") return { glyph: "r/", color: "#FF4500" };
-  if (v === "linkedin") return { glyph: "in", color: "#0A66C2" };
-  if (v === "x") return { glyph: "X", color: "#17141E" };
-  return { glyph: "·", color: "#8A8494" };
+  if (v === "youtube") return { glyph: "▶", color: "var(--color-youtube)" };
+  if (v === "reddit") return { glyph: "r/", color: "var(--color-reddit)" };
+  if (v === "linkedin") return { glyph: "in", color: "var(--color-linkedin)" };
+  if (v === "x") return { glyph: "X", color: "var(--color-dark)" };
+  return { glyph: "·", color: "var(--color-subtle)" };
 };
 
 function CreatorProfilePage() {
@@ -208,9 +208,9 @@ function CreatorProfilePage() {
                 onClick={() => !on && moveTo(s.key)}
                 className="text-[13px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer"
                 style={{
-                  border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}`,
-                  background: on ? "#F2542D" : "transparent",
-                  color: on ? "#FAF7F1" : "#4A4553",
+                  border: `1.5px solid ${on ? "var(--color-accent)" : "var(--color-border)"}`,
+                  background: on ? "var(--color-accent)" : "transparent",
+                  color: on ? "var(--color-cream)" : "var(--color-muted)",
                 }}
               >
                 {s.label}

@@ -59,11 +59,11 @@ type ProfileData = {
 // The design's platform glyph + brand colour, keyed off the stored platform.
 const platMark = (p: string | null) => {
   const v = (p ?? "").toLowerCase();
-  if (v === "youtube") return { glyph: "▶", color: "#F03" };
-  if (v === "reddit") return { glyph: "r/", color: "#FF4500" };
-  if (v === "linkedin") return { glyph: "in", color: "#0A66C2" };
-  if (v === "x") return { glyph: "X", color: "#17141E" };
-  return { glyph: "·", color: "#8A8494" };
+  if (v === "youtube") return { glyph: "▶", color: "var(--color-youtube)" };
+  if (v === "reddit") return { glyph: "r/", color: "var(--color-reddit)" };
+  if (v === "linkedin") return { glyph: "in", color: "var(--color-linkedin)" };
+  if (v === "x") return { glyph: "X", color: "var(--color-dark)" };
+  return { glyph: "·", color: "var(--color-subtle)" };
 };
 
 function HotlistPage() {
@@ -226,9 +226,9 @@ function HotlistPage() {
                   onClick={() => setFilter(label)}
                   className="text-[12.5px] font-bold p-[8px_13px] rounded-[10px] cursor-pointer"
                   style={{
-                    border: `1.5px solid ${on ? "#FAF7F1" : "#3A3546"}`,
-                    background: on ? "#FAF7F1" : "transparent",
-                    color: on ? "#17141E" : "#B8B2C2",
+                    border: `1.5px solid ${on ? "var(--color-cream)" : "var(--color-dark-line)"}`,
+                    background: on ? "var(--color-cream)" : "transparent",
+                    color: on ? "var(--color-dark)" : "var(--color-on-dark)",
                   }}
                 >
                   {label}

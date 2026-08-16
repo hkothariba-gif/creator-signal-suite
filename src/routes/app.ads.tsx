@@ -263,8 +263,8 @@ function AdsCenterPage() {
       className="text-[11.5px] font-bold p-[5px_10px] rounded-[8px]"
       style={
         on
-          ? { background: "#DDF3E6", color: "#0E7A3D" }
-          : { background: "#F5F1E9", color: "#8A8494" }
+          ? { background: "var(--color-success-wash)", color: "var(--color-success-ink)" }
+          : { background: "var(--color-sand)", color: "var(--color-subtle)" }
       }
     >
       {on ? label : `${label} · Not connected`}
@@ -342,9 +342,9 @@ function AdsCenterPage() {
                               title={`${t.count} mention${t.count === 1 ? "" : "s"} · ${t.sources.join(", ")}`}
                               className="text-[12.5px] font-semibold p-[7px_11px] rounded-[10px] cursor-pointer text-left"
                               style={{
-                                border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}`,
-                                background: on ? "#FFECD9" : "#FAF7F1",
-                                color: on ? "#B33A12" : "#4A4553",
+                                border: `1.5px solid ${on ? "var(--color-accent)" : "var(--color-border)"}`,
+                                background: on ? "var(--color-tint)" : "var(--color-cream)",
+                                color: on ? "var(--color-accent-ink)" : "var(--color-muted)",
                               }}
                             >
                               {t.text}

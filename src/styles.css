@@ -80,6 +80,11 @@
   --color-info-ink: #3159a8;
   /* Warning mid-tone — the amber band in the affiliate heat map. */
   --color-warn-ink: #c98a2e;
+  /* Danger / failure — distinct from accent, which is a brand colour not an
+     alarm. Deliberately in @theme proper, not .aspen-scope: these names do not
+     collide with the shadcn theme. */
+  --color-danger-wash: #ffe3db;
+  --color-danger-ink: #b03418;
 
   --color-youtube: #f03;
   --color-reddit: #ff4500;

@@ -19,9 +19,9 @@ import {
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 const STATUS: Record<BrandDocRow["status"], { label: string; bg: string; fg: string }> = {
-  uploaded: { label: "Queued", bg: "#F5F1E9", fg: "#8A8494" },
-  processed: { label: "Mined", bg: "#DDF3E6", fg: "#0E7A3D" },
-  failed: { label: "Failed", bg: "#FFE3DB", fg: "#B03418" },
+  uploaded: { label: "Queued", bg: "var(--color-sand)", fg: "var(--color-subtle)" },
+  processed: { label: "Mined", bg: "var(--color-success-wash)", fg: "var(--color-success-ink)" },
+  failed: { label: "Failed", bg: "var(--color-danger-wash)", fg: "var(--color-danger-ink)" },
 };
 
 function when(iso: string) {

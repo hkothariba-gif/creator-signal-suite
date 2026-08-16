@@ -78,6 +78,8 @@
   --color-success: #1fa463;
   --color-info-wash: #e7edfb;
   --color-info-ink: #3159a8;
+  /* Warning mid-tone — the amber band in the affiliate heat map. */
+  --color-warn-ink: #c98a2e;
 
   --color-youtube: #f03;
   --color-reddit: #ff4500;

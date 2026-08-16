@@ -108,7 +108,7 @@ export function EmailAccountsCard() {
                 <button
                   onClick={() => disconnect(provider)}
                   disabled={spinning}
-                  className="shrink-0 inline-flex items-center gap-[6px] border-[1.5px] border-border bg-transparent text-[12.5px] font-bold text-subtle rounded-[9px] px-[13px] h-[32px] cursor-pointer transition-colors hover:border-[#C4442A] hover:text-[#C4442A] disabled:opacity-50"
+                  className="shrink-0 inline-flex items-center gap-[6px] border-[1.5px] border-border bg-transparent text-[12.5px] font-bold text-subtle rounded-[9px] px-[13px] h-[32px] cursor-pointer transition-colors hover:border-accent-deep hover:text-accent-deep disabled:opacity-50"
                 >
                   {spinning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   Disconnect
@@ -158,9 +158,9 @@ export function DeliveryMetricsPanel({ campaignId }: { campaignId?: string }) {
         <>
           <div className="grid grid-cols-3 gap-[9px]">
             {[
-              { label: "Sent", value: metrics.totals.sent, color: "#17141E" },
-              { label: "Replies", value: metrics.totals.replies, color: "#F2542D" },
-              { label: "Failed", value: metrics.totals.failed, color: "#8A8494" },
+              { label: "Sent", value: metrics.totals.sent, color: "var(--color-dark)" },
+              { label: "Replies", value: metrics.totals.replies, color: "var(--color-accent)" },
+              { label: "Failed", value: metrics.totals.failed, color: "var(--color-subtle)" },
             ].map((s) => (
               <div
                 key={s.label}
@@ -281,7 +281,7 @@ export function SequencesPanel({ campaignId }: { campaignId?: string }) {
   };
 
   const ghostBtn =
-    "border-[1.5px] border-[#34303F] bg-transparent text-[11.5px] font-bold rounded-[8px] px-[11px] h-[28px] cursor-pointer transition-colors";
+    "border-[1.5px] border-dark-line bg-transparent text-[11.5px] font-bold rounded-[8px] px-[11px] h-[28px] cursor-pointer transition-colors";
 
   return (
     <div className="bg-dark text-cream rounded-[20px] p-[22px]">
@@ -420,7 +420,10 @@ export function SequencesPanel({ campaignId }: { campaignId?: string }) {
                 </div>
                 <span
                   className="text-[11.5px] font-bold shrink-0"
-                  style={{ color: s.active_enrollments > 0 ? "#FFD84D" : "#8A8494" }}
+                  style={{
+                    color:
+                      s.active_enrollments > 0 ? "var(--color-highlight)" : "var(--color-subtle)",
+                  }}
                 >
                   {s.active_enrollments > 0 ? "Running" : "Paused"}
                 </span>
@@ -496,7 +499,7 @@ export function SequencesPanel({ campaignId }: { campaignId?: string }) {
         </div>
       )}
 
-      <p className="text-[11.5px] text-[#6E687A] leading-[1.5] m-[16px_0_0]">
+      <p className="text-[11.5px] text-dark-muted leading-[1.5] m-[16px_0_0]">
         Use <code className="text-highlight font-bold">{"{{creator_name}}"}</code> to personalize a
         step.
       </p>

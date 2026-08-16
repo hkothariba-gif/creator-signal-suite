@@ -66,7 +66,7 @@ export function DataGate({
   if (loading) {
     return (
       <div className={panelClass(className)}>
-        <span className="text-sm text-[#8892A4]">Loading</span>
+        <span className="text-sm text-brand-muted">Loading</span>
       </div>
     );
   }
@@ -75,7 +75,7 @@ export function DataGate({
   if (error) {
     return (
       <div className={panelClass(className)}>
-        <span className="datagate-empty-title text-[15px] font-bold text-[#8892A4]">
+        <span className="datagate-empty-title text-[15px] font-bold text-brand-muted">
           {errorTitle ?? "Could not load this panel"}
         </span>
         {errorHint ? (
@@ -90,7 +90,7 @@ export function DataGate({
   if (!connected) {
     return (
       <div className={panelClass(className)}>
-        <span className="text-sm font-semibold text-[#8892A4]">{WAITING_COPY}</span>
+        <span className="text-sm font-semibold text-brand-muted">{WAITING_COPY}</span>
         {label ? <span className="mt-1 text-xs text-[#5A6478]">{label}</span> : null}
       </div>
     );
@@ -102,7 +102,7 @@ export function DataGate({
     // panels where there is nothing useful to offer.
     return (
       <div className={panelClass(className)}>
-        <span className="datagate-empty-title text-[15px] font-bold text-[#8892A4]">
+        <span className="datagate-empty-title text-[15px] font-bold text-brand-muted">
           {emptyTitle ?? EMPTY_COPY}
         </span>
         {emptyHint ? (

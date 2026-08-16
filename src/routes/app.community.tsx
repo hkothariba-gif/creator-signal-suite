@@ -31,8 +31,8 @@ function CommunityPage() {
             onClick={() => setTab(i)}
             className="border-0 bg-transparent cursor-pointer p-[0_0_13px] text-[14.5px] font-bold whitespace-nowrap mb-[-1.5px]"
             style={{
-              color: tab === i ? "#17141E" : "#8A8494",
-              borderBottom: `2.5px solid ${tab === i ? "#F2542D" : "transparent"}`,
+              color: tab === i ? "var(--color-dark)" : "var(--color-subtle)",
+              borderBottom: `2.5px solid ${tab === i ? "var(--color-accent)" : "transparent"}`,
             }}
           >
             {label}

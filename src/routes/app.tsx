@@ -431,7 +431,7 @@ function AppLayout() {
               >
                 <span
                   className="w-[8px] h-[8px] rounded-full"
-                  style={{ background: platformsConnected > 0 ? "#1FA463" : "#C9C1B4" }}
+                  style={{ background: platformsConnected > 0 ? "var(--color-success)" : "var(--color-sand-dark)" }}
                 ></span>
                 {connectorStatus.isLoading
                   ? "Checking platforms…"

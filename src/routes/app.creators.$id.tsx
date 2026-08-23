@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
 import { OutreachComposer } from "@/components/app/OutreachComposer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,6 +46,10 @@ function CreatorProfilePage() {
   const status = useConnectorStatus();
   const [row, setRow] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
+  // The fetch discarded its error, so an unreachable database and a deleted
+  // creator both landed on the same "nothing here" panel.
+  const [failed, setFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [composing, setComposing] = useState(false);
 
   useEffect(() => {
@@ -53,13 +57,14 @@ function CreatorProfilePage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("hotlist")
         .select("*")
         .eq("user_id", user.id)
         .eq("id", id)
         .maybeSingle();
       if (!cancelled) {
+        setFailed(!!error);
         setRow(data ?? null);
         setLoading(false);
       }
@@ -67,7 +72,7 @@ function CreatorProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, id]);
+  }, [user?.id, id, reloadKey]);
 
   const moveTo = async (stage: string) => {
     if (!row) return;
@@ -96,7 +101,36 @@ function CreatorProfilePage() {
     return (
       <div className="aspen-scope flex flex-col gap-[16px] max-w-[920px]">
         {back}
-        <div className="text-[14px] text-subtle p-[48px_0] text-center">Loading…</div>
+        <div
+          className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
+          aria-hidden
+        >
+          <div className="flex items-center gap-[14px]">
+            <div className="w-[64px] h-[64px] rounded-full bg-sand animate-pulse shrink-0" />
+            <div className="flex-1">
+              <div className="h-[22px] w-[45%] rounded-[7px] bg-sand animate-pulse" />
+              <div className="h-[14px] w-[30%] rounded-[6px] bg-sand animate-pulse mt-[9px]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // A failed read is not a missing creator.
+  if (failed) {
+    return (
+      <div className="aspen-scope flex flex-col gap-[16px] max-w-[920px]">
+        {back}
+        <DataGate
+          connected={true}
+          error
+          errorTitle="Could not load this creator"
+          errorHint="They are still on your hotlist — we could not fetch their profile just now."
+          errorAction={<RetryButton onClick={() => setReloadKey((k) => k + 1)} />}
+        >
+          <></>
+        </DataGate>
       </div>
     );
   }
@@ -233,6 +267,10 @@ function CreatorProfilePage() {
             connected={platformConnected}
             empty
             loading={status.isLoading}
+            error={status.isError}
+            errorTitle="Could not check this platform"
+            errorHint="We could not reach the service that reports which integrations are live."
+            errorAction={<RetryButton onClick={() => status.refetch()} />}
             label={
               platform
                 ? `Metrics load from the ${platform} connection`

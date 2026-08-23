@@ -238,11 +238,12 @@ function AppLayout() {
     queryKey: ["shell-campaigns", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("campaigns")
         .select("id,name,goal,start_date,end_date")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       return (data ?? []) as AspenCampaign[];
     },
   });
@@ -267,10 +268,11 @@ function AppLayout() {
     queryKey: ["shell-hotlist-count", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("hotlist")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user!.id);
+      if (error) throw error;
       return count ?? 0;
     },
   });
@@ -285,7 +287,9 @@ function AppLayout() {
   // something to look at.
   const badges: Record<string, string> = {
     campaigns: campaigns.length ? String(campaigns.length) : "",
-    hotlist: hotlistCount.data ? String(hotlistCount.data) : "",
+    // A failed count is not a zero count, so the badge shows nothing either way
+    // rather than a number we cannot stand behind.
+    hotlist: hotlistCount.isError ? "" : hotlistCount.data ? String(hotlistCount.data) : "",
   };
 
   // Returning null here used to blank the whole viewport while the session
@@ -333,9 +337,20 @@ function AppLayout() {
             <div className="text-[10.5px] font-bold tracking-[0.12em] text-subtle">CAMPAIGN</div>
             <div className="flex items-center justify-between gap-[8px] mt-[6px]">
               <span className="font-bold text-[14px] text-cream truncate">
-                {campaignQuery.isLoading ? "Loading…" : (selected?.name ?? "No campaigns yet")}
+                {campaignQuery.isLoading
+                  ? "Loading…"
+                  : campaignQuery.isError
+                    ? "Campaigns unavailable"
+                    : (selected?.name ?? "No campaigns yet")}
               </span>
-              {campaigns.length > 1 ? (
+              {campaignQuery.isError ? (
+                <button
+                  onClick={() => campaignQuery.refetch()}
+                  className="border-0 bg-transparent text-subtle text-[12px] font-bold cursor-pointer ah20 shrink-0 underline"
+                >
+                  Retry
+                </button>
+              ) : campaigns.length > 1 ? (
                 <button
                   onClick={() => setCampaignIndex((c) => (c + 1) % campaigns.length)}
                   className="border-0 bg-transparent text-subtle text-[13px] font-bold cursor-pointer ah20 shrink-0"
@@ -346,6 +361,30 @@ function AppLayout() {
               ) : null}
             </div>
           </div>
+
+          {connectorStatus.isError || hotlistCount.isError ? (
+            <div
+              role="alert"
+              className="bg-dark-raised rounded-[12px] p-[10px_12px] text-[12px] text-on-dark leading-[1.45]"
+            >
+              <div>
+                {connectorStatus.isError && hotlistCount.isError
+                  ? "Platform status and the hotlist count could not be loaded."
+                  : connectorStatus.isError
+                    ? "Platform status could not be loaded."
+                    : "The hotlist count could not be loaded."}
+              </div>
+              <button
+                onClick={() => {
+                  if (connectorStatus.isError) void connectorStatus.refetch();
+                  if (hotlistCount.isError) void hotlistCount.refetch();
+                }}
+                className="border-0 bg-transparent text-cream text-[12px] font-bold underline cursor-pointer p-0 mt-[5px]"
+              >
+                Try again
+              </button>
+            </div>
+          ) : null}
 
           {NAV.map((g) => (
             <div key={g.title} className="flex flex-col gap-[3px]">
@@ -431,11 +470,19 @@ function AppLayout() {
               >
                 <span
                   className="w-[8px] h-[8px] rounded-full"
-                  style={{ background: platformsConnected > 0 ? "var(--color-success)" : "var(--color-sand-dark)" }}
+                  style={{
+                    background: connectorStatus.isError
+                      ? "var(--color-danger-ink)"
+                      : platformsConnected > 0
+                        ? "var(--color-success)"
+                        : "var(--color-sand-dark)",
+                  }}
                 ></span>
                 {connectorStatus.isLoading
                   ? "Checking platforms…"
-                  : `${platformsConnected} of 4 platforms connected`}
+                  : connectorStatus.isError
+                    ? "Platform status unavailable"
+                    : `${platformsConnected} of 4 platforms connected`}
               </Link>
               <Link
                 to="/app/campaigns"

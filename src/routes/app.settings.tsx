@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth, type OrgRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, RowsSkeleton, useConnectorStatus } from "@/components/app/DataGate";
 import { listAllBrandDocs } from "@/lib/brand-docs.functions";
 
 /* SETTINGS — the `v.isSettings` block of src/aspen/AspenApp.tsx, on the live
@@ -69,6 +69,10 @@ function DocumentsCard() {
         connected={true}
         loading={docs.isLoading}
         empty={rows.length === 0}
+        error={docs.isError}
+        errorTitle="Could not load your documents"
+        errorHint="Your files are safe — we just could not fetch the list. Retry, or open a campaign to see the documents attached to it."
+        errorAction={<RetryButton onClick={() => docs.refetch()} />}
         emptyTitle="No documents uploaded yet"
         emptyHint="Open a campaign and add a product page or sales deck. We pull real excerpts from it for your ad drafts."
         className="mt-[16px]"
@@ -203,9 +207,10 @@ function TeamCard() {
         .order("created_at", { ascending: true });
       if (error) throw new Error(error.message);
       const ids = (members ?? []).map((m) => m.user_id);
-      const { data: profiles } = ids.length
+      const { data: profiles, error: profilesError } = ids.length
         ? await supabase.from("profiles").select("id, email").in("id", ids)
-        : { data: [] as { id: string; email: string | null }[] };
+        : { data: [] as { id: string; email: string | null }[], error: null };
+      if (profilesError) throw new Error(profilesError.message);
       const emailById = new Map((profiles ?? []).map((p) => [p.id, p.email ?? ""]));
       return (members ?? []).map((m) => ({
         ...m,
@@ -352,7 +357,17 @@ function TeamCard() {
 
       <div className="flex flex-col">
         {membersQuery.isLoading ? (
-          <div className="text-[13.5px] text-subtle p-[13px_0]">Loading…</div>
+          <RowsSkeleton rows={3} className="p-[13px_0]" />
+        ) : membersQuery.isError ? (
+          <div className="p-[16px_0] text-center">
+            <div className="text-[14.5px] font-bold">Could not load your team</div>
+            <p className="text-[13px] text-muted leading-[1.5] max-w-[380px] mx-[auto] mt-[6px]">
+              Nobody has been removed — we could not fetch the member list.
+            </p>
+            <div className="mt-[14px]">
+              <RetryButton onClick={() => membersQuery.refetch()} />
+            </div>
+          </div>
         ) : (
           members.map((m) => (
             <div
@@ -394,6 +409,18 @@ function TeamCard() {
             </div>
           ))
         )}
+
+        {invitesQuery.isError ? (
+          <div className="flex items-center gap-[10px] p-[13px_0] border-t-[1px] border-border-soft">
+            <span className="text-[13px] text-muted">Pending invitations could not be loaded.</span>
+            <button
+              onClick={() => invitesQuery.refetch()}
+              className="border-0 bg-transparent underline text-[13px] font-bold text-accent cursor-pointer p-0"
+            >
+              Try again
+            </button>
+          </div>
+        ) : null}
 
         {invites.map((i) => (
           <div
@@ -438,7 +465,15 @@ function BillingCard() {
   return (
     <div className="bg-tint rounded-[20px] p-[24px]">
       <h3 className="font-heading font-bold text-[17px] m-0 text-accent-ink">Billing</h3>
-      <DataGate connected={connected} loading={status.isLoading} label="Stripe billing">
+      <DataGate
+        connected={connected}
+        loading={status.isLoading}
+        error={status.isError}
+        errorTitle="Could not load billing status"
+        errorHint="We could not check your billing connection. Your plan and any pricing you have been quoted are unchanged."
+        errorAction={<RetryButton onClick={() => status.refetch()} />}
+        label="Stripe billing"
+      >
         <p className="text-[14.5px] leading-[1.6] text-accent-ink-soft m-[10px_0_0]">
           You're on early-access pricing — locked for 12 months after launch. Nothing is charged
           until your cohort opens.

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { SearchSchemaInput } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -321,6 +321,10 @@ function AdsCenterPage() {
               connected={anySource}
               loading={status.isLoading || intelLoading}
               empty={!intel || intel.total === 0}
+              error={status.isError}
+              errorTitle="Could not check your connections"
+              errorHint="We could not reach the service that reports which integrations are live, so there is no ranked language to show."
+              errorAction={<RetryButton onClick={() => status.refetch()} />}
               label="Signals come from your platform connections"
             >
               <div className="flex flex-col gap-[16px]">

@@ -68,6 +68,11 @@ function OutreachPage() {
   const [selected, setSelected] = useState<OutreachThread | null>(null);
   const [messages, setMessages] = useState<OutreachMessage[]>([]);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
+  /* try/finally with no catch let a failed load fall through as an unhandled
+     rejection, leaving `threads` empty — so a broken inbox drew the "No
+     conversations yet" illustration. Both loads now record the failure. */
+  const [threadsFailed, setThreadsFailed] = useState(false);
+  const [messagesFailed, setMessagesFailed] = useState(false);
   const [replying, setReplying] = useState(false);
   const [inbox, setInbox] = useState<"open" | "archived">("open");
 
@@ -90,10 +95,13 @@ function OutreachPage() {
 
   const loadThreads = async () => {
     setLoading(true);
+    setThreadsFailed(false);
     try {
       const rows = await listThreads({ data: { campaignId } });
       setThreads(rows);
       if (selected && !rows.find((r) => r.id === selected.id)) setSelected(null);
+    } catch {
+      setThreadsFailed(true);
     } finally {
       setLoading(false);
     }
@@ -108,8 +116,12 @@ function OutreachPage() {
     setSelected(t);
     setReplying(false);
     setLoadingMsgs(true);
+    setMessagesFailed(false);
     try {
       setMessages(await getThreadMessages({ data: { threadId: t.id } }));
+    } catch {
+      setMessages([]);
+      setMessagesFailed(true);
     } finally {
       setLoadingMsgs(false);
     }
@@ -153,8 +165,25 @@ function OutreachPage() {
           </div>
 
           {loading ? (
-            <div className="text-[13.5px] text-subtle p-[24px_0] text-center">
-              Loading conversations…
+            <div className="flex flex-col gap-[10px] p-[8px_0]" aria-hidden>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-[74px] rounded-[15px] bg-sand animate-pulse" />
+              ))}
+            </div>
+          ) : threadsFailed ? (
+            <div className="bg-surface border-[1.5px] border-border rounded-[18px] p-[32px_22px] text-center">
+              <div className="font-heading font-extrabold text-[18px] tracking-[-0.02em]">
+                Could not load your conversations
+              </div>
+              <p className="text-[13.5px] text-muted leading-[1.55] m-[8px_auto_16px] max-w-[260px]">
+                Nothing has been sent or lost — we could not fetch your inbox just now.
+              </p>
+              <button
+                onClick={() => void loadThreads()}
+                className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer"
+              >
+                Try again
+              </button>
             </div>
           ) : visible.length === 0 ? (
             <div className="bg-surface border-[1.5px] border-border rounded-[18px] p-[32px_22px] text-center">
@@ -254,7 +283,21 @@ function OutreachPage() {
               </div>
               <div className="flex flex-col gap-[12px] mt-[18px]">
                 {loadingMsgs ? (
-                  <div className="text-[13px] text-subtle">Loading messages…</div>
+                  <div className="flex flex-col gap-[12px]" aria-hidden>
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="h-[64px] rounded-[15px] bg-sand animate-pulse" />
+                    ))}
+                  </div>
+                ) : messagesFailed ? (
+                  <div className="text-[13px] text-muted">
+                    Could not load this conversation.
+                    <button
+                      onClick={() => void openThread(selected)}
+                      className="ml-[8px] border-0 bg-transparent underline text-[13px] font-bold text-accent cursor-pointer p-0"
+                    >
+                      Try again
+                    </button>
+                  </div>
                 ) : messages.length === 0 ? (
                   <div className="text-[13px] text-subtle">No messages in this thread yet.</div>
                 ) : (

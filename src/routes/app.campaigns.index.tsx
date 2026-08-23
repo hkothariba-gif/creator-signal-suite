@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
-import { DataGate } from "@/components/app/DataGate";
+import { DataGate, RetryButton } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatMoney } from "@/hooks/useCampaignPerformance";
@@ -63,6 +63,10 @@ function CampaignsPage() {
   const [intel, setIntel] = useState<{ id: string; name: string } | null>(null);
   const [rows, setRows] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  /* A toast is transient; once it fades an empty `rows` reads as "no campaigns
+     yet", which is a different and much worse claim than "we could not load
+     them". The failure is held in state so the panel can say which it is. */
+  const [failed, setFailed] = useState(false);
 
   const refresh = async () => {
     if (!user) return;
@@ -73,6 +77,7 @@ function CampaignsPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
+    setFailed(!!error);
     setRows(data ?? []);
     setLoading(false);
   };
@@ -136,6 +141,10 @@ function CampaignsPage() {
         connected={true}
         loading={loading}
         empty={visible.length === 0}
+        error={failed}
+        errorTitle="Could not load your campaigns"
+        errorHint="Your campaigns are safe — we could not fetch the list just now."
+        errorAction={<RetryButton onClick={() => void refresh()} />}
         emptyTitle={
           tab === "all" ? "No campaigns yet" : `Nothing in ${tab === "draft" ? "draft" : tab}`
         }

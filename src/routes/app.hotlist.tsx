@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { SearchSchemaInput } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
 import { AffiliateHeatMap, type HeatCreator } from "@/components/app/AffiliateHeatMap";
 import { scoreCampaignCreators } from "@/lib/creators.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,6 +73,9 @@ function HotlistPage() {
   const status = useConnectorStatus();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  // See app.campaigns.index.tsx: an empty list after a failed fetch reads as
+  // "you have no creators", which is not what happened.
+  const [failed, setFailed] = useState(false);
   const [filter, setFilter] = useState("All");
   const [dragging, setDragging] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
@@ -88,6 +91,7 @@ function HotlistPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
+    setFailed(!!error);
     setRows(data ?? []);
     setLoading(false);
   };
@@ -243,6 +247,10 @@ function HotlistPage() {
         connected={connected}
         loading={loading || status.isLoading}
         empty={filtered.length === 0}
+        error={failed || status.isError}
+        errorTitle="Could not load your hotlist"
+        errorHint="Your saved creators and their stages are unchanged — we could not fetch them just now."
+        errorAction={<RetryButton onClick={() => void refresh()} />}
         label="Creators load once this platform is connected"
         emptyTitle="No creators on this hotlist yet"
         emptyHint="Run a discovery search and add the creators you like. They land here staged, scored and ready for outreach."

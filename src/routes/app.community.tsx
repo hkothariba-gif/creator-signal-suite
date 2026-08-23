@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
 
 /* COMMUNITY SIGNALS — the `v.isCommunity` block of src/aspen/AspenApp.tsx, on
    the live connector gate the dark version used. Shell, header and title come
@@ -44,6 +44,10 @@ function CommunityPage() {
           connected={listeningReady}
           empty
           loading={status.isLoading}
+          error={status.isError}
+          errorTitle="Could not check your connections"
+          errorHint="We could not reach the service that reports which integrations are live, so this panel cannot tell whether social listening is connected."
+          errorAction={<RetryButton onClick={() => status.refetch()} />}
           label="Signals load from the social listening connection"
         >
           <></>

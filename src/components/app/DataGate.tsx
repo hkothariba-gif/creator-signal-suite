@@ -48,6 +48,34 @@ type DataGateProps = {
 };
 
 
+/* The retry control every failed panel offers. Hand-rolled at each call site
+   until this existed; it is one component so fifteen screens cannot drift into
+   fifteen slightly different buttons. Styled for `.aspen-scope` (all /app
+   routes) — the dark screens do not pass an errorAction today. */
+export function RetryButton({ onClick, label = "Try again" }: { onClick: () => void; label?: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer"
+    >
+      {label}
+    </button>
+  );
+}
+
+/* A skeleton shaped like the rows it stands in for. A bare spinner on a blank
+   panel tells the user nothing about what is coming; these keep the layout
+   stable so content does not jump when it lands. */
+export function RowsSkeleton({ rows = 3, className = "" }: { rows?: number; className?: string }) {
+  return (
+    <div className={`flex flex-col gap-[10px] ${className}`} aria-hidden>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="h-[52px] rounded-[13px] bg-sand animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
 export function DataGate({
   connected,
   empty,

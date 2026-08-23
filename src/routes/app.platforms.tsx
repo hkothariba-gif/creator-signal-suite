@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useConnectorStatus, WAITING_COPY } from "@/components/app/DataGate";
+import { RetryButton, useConnectorStatus, WAITING_COPY } from "@/components/app/DataGate";
 
 /* PLATFORMS — the `v.isPlatforms` block of src/aspen/AspenApp.tsx, on real
    connector status. Shell, header and title come from the /app layout route.
@@ -128,9 +128,21 @@ function PlatformsPage() {
                 <div className="flex items-center justify-between gap-[12px] mt-[16px]">
                   <span
                     className="text-[12.5px] font-bold"
-                    style={{ color: connected ? "var(--color-success-ink)" : "var(--color-subtle)" }}
+                    style={{
+                      color: status.isError
+                        ? "var(--color-danger-ink)"
+                        : connected
+                          ? "var(--color-success-ink)"
+                          : "var(--color-subtle)",
+                    }}
                   >
-                    {status.isLoading ? "Checking…" : connected ? "Connected" : "Not configured"}
+                    {status.isLoading
+                      ? "Checking…"
+                      : status.isError
+                        ? "Could not check"
+                        : connected
+                          ? "Connected"
+                          : "Not configured"}
                   </span>
                 </div>
               </div>
@@ -151,7 +163,28 @@ function PlatformsPage() {
       </div>
 
       {status.isLoading ? (
-        <div className="text-[13.5px] text-subtle">Loading…</div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[12px]" aria-hidden>
+          {CONNECTOR_ROWS.map((row) => (
+            <div
+              key={row.key}
+              className="bg-surface border-[1.5px] border-border rounded-[16px] p-[16px_18px]"
+            >
+              <div className="h-[18px] w-[60%] rounded-[6px] bg-sand animate-pulse" />
+              <div className="h-[14px] w-[85%] rounded-[6px] bg-sand animate-pulse mt-[8px]" />
+            </div>
+          ))}
+        </div>
+      ) : status.isError ? (
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[24px] text-center">
+          <div className="text-[15px] font-bold">Could not load your integrations</div>
+          <p className="text-[13px] text-muted leading-[1.5] max-w-[420px] mx-[auto] mt-[8px]">
+            We could not reach the service that reports which integrations are configured. Nothing
+            has changed on your account — this is only the status check.
+          </p>
+          <div className="mt-[16px]">
+            <RetryButton onClick={() => status.refetch()} />
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[12px]">
           {CONNECTOR_ROWS.map((row) => {

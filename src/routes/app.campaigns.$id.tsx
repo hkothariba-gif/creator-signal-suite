@@ -2,7 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { DataGate } from "@/components/app/DataGate";
+import { DataGate, RetryButton, RowsSkeleton } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
@@ -89,12 +89,13 @@ function CampaignDetailPage() {
     queryKey: ["campaign", id, user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("campaigns")
         .select("*")
         .eq("user_id", user!.id)
         .eq("id", id)
         .maybeSingle();
+      if (error) throw error;
       return (data ?? null) as Campaign | null;
     },
   });
@@ -103,12 +104,13 @@ function CampaignDetailPage() {
     queryKey: ["campaign-hotlist", id, user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("hotlist")
         .select("*")
         .eq("user_id", user!.id)
         .eq("campaign_id", id)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       return (data ?? []) as HotlistRow[];
     },
   });
@@ -117,12 +119,13 @@ function CampaignDetailPage() {
     queryKey: ["campaign-ads", id, orgId],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("ads")
         .select("id,name,headline,status,target_platform,created_at")
         .eq("organization_id", orgId!)
         .eq("campaign_id", id)
         .order("updated_at", { ascending: false });
+      if (error) throw error;
       return (data ?? []) as AdRow[];
     },
   });
@@ -226,7 +229,30 @@ function CampaignDetailPage() {
     return (
       <div className="aspen-scope flex flex-col gap-[16px] max-w-[1080px]">
         {back}
-        <div className="text-[14px] text-subtle p-[48px_0] text-center">Loading…</div>
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]" aria-hidden>
+          <div className="h-[30px] w-[40%] rounded-[8px] bg-sand animate-pulse" />
+          <div className="h-[16px] w-[65%] rounded-[6px] bg-sand animate-pulse mt-[12px]" />
+        </div>
+        <RowsSkeleton rows={4} />
+      </div>
+    );
+  }
+
+  // A campaign that failed to load is not a campaign that does not exist. The
+  // !c branch below says "nothing here"; this one says what actually happened.
+  if (campaign.isError) {
+    return (
+      <div className="aspen-scope flex flex-col gap-[16px] max-w-[1080px]">
+        {back}
+        <DataGate
+          connected={true}
+          error
+          errorTitle="Could not load this campaign"
+          errorHint="The campaign could not be fetched. Nothing has been changed — retry, or go back to all campaigns."
+          errorAction={<RetryButton onClick={() => campaign.refetch()} />}
+        >
+          <></>
+        </DataGate>
       </div>
     );
   }
@@ -274,6 +300,9 @@ function CampaignDetailPage() {
     from && to ? `${from} – ${to}` : from ? `From ${from}` : to ? `Until ${to}` : "No dates set";
 
   const p = perf.data;
+  // "Not recorded" is a claim about the data; if the fetch failed we cannot
+  // make that claim, so the tiles say so instead.
+  const perfFailed = perf.isError;
   const adRows = ads.data ?? [];
 
   // Legacy free-text budget is display-only, and only when the numeric column
@@ -452,7 +481,15 @@ function CampaignDetailPage() {
             </button>
           </div>
 
-          <DataGate connected={true} loading={hotlist.isLoading} empty={rows.length === 0}>
+          <DataGate
+            connected={true}
+            loading={hotlist.isLoading}
+            empty={rows.length === 0}
+            error={hotlist.isError}
+            errorTitle="Could not load creators"
+            errorHint="The creators saved against this campaign could not be fetched. They are still saved — this is a display problem."
+            errorAction={<RetryButton onClick={() => hotlist.refetch()} />}
+          >
             <div className="flex flex-col gap-[9px]">
               {rows.map((h) => {
                 const mark = platMark(h.platform);
@@ -531,6 +568,10 @@ function CampaignDetailPage() {
             connected={!!orgId}
             loading={ads.isLoading}
             empty={adRows.length === 0}
+            error={ads.isError}
+            errorTitle="Could not load ads"
+            errorHint="The ads built against this campaign could not be fetched. Retry, or open the Ads Center."
+            errorAction={<RetryButton onClick={() => ads.refetch()} />}
             label="Ads are built in the Ads Center against this campaign"
           >
             <div className="flex flex-col gap-[9px]">
@@ -606,7 +647,9 @@ function CampaignDetailPage() {
                   ? "…"
                   : p && p.revenue.currencyCount > 1
                     ? `${p.revenue.currencyCount} currencies`
-                    : "Not recorded"
+                    : perfFailed
+                      ? "Unavailable"
+                      : "Not recorded"
             }
             small={p?.revenue.minor == null}
           />
@@ -619,7 +662,9 @@ function CampaignDetailPage() {
                   ? "…"
                   : p && p.spend.currencyCount > 1
                     ? `${p.spend.currencyCount} currencies`
-                    : "Not recorded"
+                    : perfFailed
+                      ? "Unavailable"
+                      : "Not recorded"
             }
             small={p?.spend.minor == null}
             note={
@@ -630,7 +675,9 @@ function CampaignDetailPage() {
           />
           <ProofStat
             label="Return"
-            value={p?.roas != null ? `${p.roas.toFixed(1)}x` : "Needs spend"}
+            value={
+              p?.roas != null ? `${p.roas.toFixed(1)}x` : perfFailed ? "Unavailable" : "Needs spend"
+            }
             small={p?.roas == null}
             note={
               p?.roas != null && p.revenue.minor != null && p.spend.minor != null
@@ -645,7 +692,9 @@ function CampaignDetailPage() {
                 ? p.conversions.toLocaleString()
                 : perf.isLoading
                   ? "…"
-                  : "Not recorded"
+                  : perfFailed
+                    ? "Unavailable"
+                    : "Not recorded"
             }
             small={p?.conversions == null}
           />
@@ -708,9 +757,22 @@ function CampaignDetailPage() {
             </>
           ) : (
             <div className="text-[13px] text-on-dark leading-[1.55]">
-              {perf.isLoading
-                ? "Loading…"
-                : "Nothing recorded for this campaign yet — attributed revenue needs a tracking link, spend needs ad_daily rows."}
+              {perf.isLoading ? (
+                <span className="block h-[96px] rounded-[10px] bg-dark-raised animate-pulse" aria-hidden />
+              ) : perfFailed ? (
+                <>
+                  Revenue and spend could not be loaded, so this campaign&rsquo;s performance is not
+                  shown. Your figures are unaffected.
+                  <button
+                    onClick={() => perf.refetch()}
+                    className="ml-[8px] border-0 bg-transparent underline text-cream text-[13px] font-bold cursor-pointer p-0"
+                  >
+                    Try again
+                  </button>
+                </>
+              ) : (
+                "Nothing recorded for this campaign yet — attributed revenue needs a tracking link, spend needs ad_daily rows."
+              )}
             </div>
           )}
         </div>

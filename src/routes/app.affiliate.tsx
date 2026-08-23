@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { DataGate } from "@/components/app/DataGate";
+import { DataGate, RetryButton } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import {
   getAccountConnections,
@@ -43,10 +43,15 @@ function AffiliatePage() {
   const [perf, setPerf] = useState<AffiliatePerformance | null>(null);
   const [links, setLinks] = useState<AffiliateLink[]>([]);
   const [loading, setLoading] = useState(true);
+  /* The catch below used to set salesConnected = false, so a failed load told
+     the user their sales provider was disconnected and offered to reconnect it.
+     The failure is now its own state and says nothing about the connection. */
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     if (!orgId) return;
     setLoading(true);
+    setFailed(false);
     try {
       const [conn, performance, linkList] = await Promise.all([
         getAccountConnections({ data: { organizationId: orgId } }),
@@ -58,7 +63,8 @@ function AffiliatePage() {
       setLinks(linkList);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load affiliate data");
-      setSalesConnected(false);
+      setFailed(true);
+      setSalesConnected(undefined);
     } finally {
       setLoading(false);
     }
@@ -146,12 +152,16 @@ function AffiliatePage() {
             SALES CONNECTION
           </div>
           <div className="text-[14.5px] font-semibold mt-[5px]">
-            {salesConnected
-              ? "Connected — conversions post in through the ingest endpoint."
-              : "Not connected. Pick a provider to start attributing revenue."}
+            {failed
+              ? "We could not check your sales connection just now."
+              : salesConnected
+                ? "Connected — conversions post in through the ingest endpoint."
+                : "Not connected. Pick a provider to start attributing revenue."}
           </div>
         </div>
-        {salesConnected ? (
+        {failed ? (
+          <RetryButton onClick={() => void load()} />
+        ) : salesConnected ? (
           <span className="text-[12px] font-bold text-success-ink bg-success-wash p-[7px_13px] rounded-[9px]">
             ✓ Live
           </span>
@@ -247,6 +257,10 @@ function AffiliatePage() {
         connected={true}
         loading={loading}
         empty={links.length === 0}
+        error={failed}
+        errorTitle="Could not load your tracking links"
+        errorHint="Your links and the conversions recorded against them are unchanged — this is only the list."
+        errorAction={<RetryButton onClick={() => void load()} />}
         emptyTitle="No tracking links yet"
         emptyHint="Create a link per creator above. Clicks, conversions and revenue then show here, and payouts follow the same rows."
       >

@@ -281,15 +281,20 @@ function DiscoveryPage() {
         connected={ytReady}
         loading={status.isLoading || loading}
         empty={searched && !searchError && results.length === 0}
-        error={!!searchError}
-        errorTitle="Search failed"
-        errorHint={searchError ?? undefined}
+        error={!!searchError || status.isError}
+        errorTitle={searchError ? "Search failed — YouTube returned an error" : "Could not check your connections"}
+        errorHint={
+          searchError ??
+          (status.isError
+            ? "We could not reach the service that reports which integrations are live, so we cannot tell whether YouTube search is available."
+            : undefined)
+        }
         errorAction={
           <button
-            onClick={handleSearch}
+            onClick={() => (searchError ? void handleSearch() : void status.refetch())}
             className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer"
           >
-            Try that search again
+            {searchError ? "Try that search again" : "Try again"}
           </button>
         }
         label="Creator search runs through the YouTube connection"

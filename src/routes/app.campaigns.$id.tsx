@@ -453,7 +453,7 @@ function CampaignDetailPage() {
       {lastRun ? <DiscoveryRunPanel run={lastRun} onDismiss={() => setLastRun(null)} /> : null}
 
       {/* ── Creators + Ads ── */}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(380px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className={`${CARD} p-[22px]`}>
           <div className="flex items-center justify-between gap-[12px] mb-[6px] flex-wrap">
             <h3 className="font-heading font-bold text-[16.5px] m-0">Creators on this campaign</h3>
@@ -637,7 +637,7 @@ function CampaignDetailPage() {
 
       {/* ── Proof band ── */}
       <div className="bg-dark text-cream rounded-[22px] p-[26px] flex gap-[26px] items-center flex-wrap">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-[20px] flex-1 min-w-[300px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[20px] flex-1 min-w-0">
           <ProofStat
             label="Attributed revenue"
             value={

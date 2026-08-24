@@ -156,7 +156,7 @@ function HomePage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[20px]">
           <div className="text-[12.5px] font-bold tracking-[0.1em] text-subtle">CAMPAIGNS</div>
           <div className="font-heading font-extrabold text-[38px] tracking-[-0.03em] leading-[1.1] mt-[8px]">
@@ -223,7 +223,7 @@ function HomePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <div className="flex items-center justify-between mb-[16px]">
             <h3 className="font-heading font-bold text-[17px] m-0">Recent campaign activity</h3>
@@ -288,7 +288,7 @@ function HomePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className="bg-dark text-cream rounded-[20px] p-[22px]">
           <div className="flex items-baseline justify-between gap-[12px]">
             <h3 className="font-heading font-bold text-[17px] m-0">Attributed revenue</h3>
@@ -317,7 +317,7 @@ function HomePage() {
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_4px]">Quick actions</h3>
           <div className="text-[13px] text-subtle mb-[16px]">Where teams usually pick up.</div>
-          <div className="grid grid-cols-[1fr_1fr] gap-[10px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
             <Link
               to="/app/discovery"
               search={{ campaign: undefined }}

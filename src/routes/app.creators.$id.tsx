@@ -254,7 +254,7 @@ function CreatorProfilePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_10px]">About</h3>
           <p className="text-[14.5px] leading-[1.6] text-muted m-0">

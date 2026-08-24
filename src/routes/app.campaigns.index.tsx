@@ -424,7 +424,7 @@ export function CampaignDrawer({
               className={field}
             />
           </Field>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
             <Field label="TARGET PLATFORM">
               <select
                 value={platform}
@@ -447,7 +447,7 @@ export function CampaignDrawer({
               </select>
             </Field>
           </div>
-          <div className="grid grid-cols-[1fr_120px] gap-[16px]">
+          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-[16px]">
             <Field label="BUDGET">
               <input
                 value={budget}
@@ -471,7 +471,7 @@ export function CampaignDrawer({
               </select>
             </Field>
           </div>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
             <Field label="START DATE">
               <input
                 type="date"

@@ -132,7 +132,7 @@ function WorkspaceCard() {
   return (
     <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[24px]">
       <h3 className="font-heading font-bold text-[17px] m-[0_0_18px]">Workspace</h3>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div>
           <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
             COMPANY NAME

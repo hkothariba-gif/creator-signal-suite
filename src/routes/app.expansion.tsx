@@ -39,7 +39,7 @@ function ExpansionPage() {
         </DataGate>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_3px]">Recommended creators</h3>
           <div className="text-[13px] text-subtle mb-[16px]">

@@ -304,7 +304,7 @@ function DiscoveryPage() {
 
 
         {results.length > 0 ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[16px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
             {results.map((c) => {
               const fit = quickFit(c);
               const hotlistId = saved[c.id];

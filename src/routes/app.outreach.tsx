@@ -348,7 +348,7 @@ function OutreachPage() {
       <div className="text-[12px] font-bold tracking-[0.14em] text-subtle m-[34px_0_14px]">
         SENDING &amp; AUTOMATION
       </div>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <EmailAccountsCard />
         <DeliveryMetricsPanel campaignId={campaignId} />
       </div>

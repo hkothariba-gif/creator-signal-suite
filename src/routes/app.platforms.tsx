@@ -97,7 +97,7 @@ function PlatformsPage() {
 
   return (
     <div className="aspen-scope max-w-[1020px]">
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
         {CARDS.map((p) => {
           const connected = platform?.[p.key] === true;
           return (
@@ -163,7 +163,7 @@ function PlatformsPage() {
       </div>
 
       {status.isLoading ? (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[12px]" aria-hidden>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[12px]" aria-hidden>
           {CONNECTOR_ROWS.map((row) => (
             <div
               key={row.key}
@@ -186,7 +186,7 @@ function PlatformsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[12px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[12px]">
           {CONNECTOR_ROWS.map((row) => {
             const connected = platform?.[row.key] === true;
             return (

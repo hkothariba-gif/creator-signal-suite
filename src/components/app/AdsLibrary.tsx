@@ -99,7 +99,7 @@ export function AdsLibrary({
           </p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {visible.map((ad) => {
             const style = AD_STYLES.find((s) => s.id === ad.provenance?.style);
             const gates = ad.provenance?.gates ?? {};

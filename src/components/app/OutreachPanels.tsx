@@ -156,7 +156,7 @@ export function DeliveryMetricsPanel({ campaignId }: { campaignId?: string }) {
         <p className="text-[12.5px] text-subtle m-0">No data to display</p>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-[9px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[9px]">
             {[
               { label: "Sent", value: metrics.totals.sent, color: "var(--color-dark)" },
               { label: "Replies", value: metrics.totals.replies, color: "var(--color-accent)" },

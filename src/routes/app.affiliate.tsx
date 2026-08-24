@@ -189,7 +189,7 @@ function AffiliatePage() {
         )}
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[16px] mb-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[16px] mb-[16px]">
         <div className="bg-dark text-cream rounded-[20px] p-[22px]">
           <div className="text-[12px] font-bold tracking-[0.1em] text-subtle">
             ATTRIBUTED REVENUE

@@ -178,7 +178,7 @@ export default class AspenHome extends React.Component<any, any> {
       },
       {
         q: "How does Aspen attribute revenue to creators?",
-        a: "Every creator gets tracked links, promo codes, and a signal feed (CTR, comments, engagement velocity). Ads built from those signals inherit the attribution chain, so ROAS traces back to the exact creator and post that inspired it.",
+        a: "We use multi-touch attribution: tracked links, promo codes, and a live signal feed (CTR, comments, engagement velocity) map every view, click, and purchase to the creators and posts that influenced it — so you see the full journey, not just the last click.",
       },
     ];
     const ti = this.state.track;
@@ -912,13 +912,13 @@ export default class AspenHome extends React.Component<any, any> {
             <div className="flex gap-[48px] items-center flex-wrap" data-reveal="">
               <div className="flex-[1_1_320px] min-w-[280px]">
                 <span className="text-[15px] font-semibold text-subtle">(03)</span>
-                <h3 className="font-heading font-extrabold text-[36px] tracking-[-0.02em] m-[8px_0_12px]">
-                  Keep the proof
-                </h3>
-                <p className="text-[16.5px] text-muted leading-[1.6] m-0 max-w-[400px]">
-                  One click publishes across all four channels — and every dollar of revenue traces
-                  back to the exact creator and post that earned it.
-                </p>
+              <h3 className="font-heading font-extrabold text-[36px] tracking-[-0.02em] m-[8px_0_12px]">
+                Attribute every touch
+              </h3>
+              <p className="text-[16.5px] text-muted leading-[1.6] m-0 max-w-[400px]">
+                Multi-touch attribution maps every view, click, and purchase to the creators and posts
+                that drove them — so you know which touch actually turned into a dollar.
+              </p>
               </div>
               <div className="flex-[1.4_1_480px] min-w-0">
                 <video

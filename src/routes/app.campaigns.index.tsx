@@ -175,7 +175,11 @@ function CampaignsPage() {
       >
         <div className="flex flex-col gap-[12px]">
           {visible.map((c) => {
-            const s = STATUS_STYLE[c.status] ?? { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: c.status };
+            const s = STATUS_STYLE[c.status] ?? {
+              bg: "var(--color-sand)",
+              fg: "var(--color-subtle)",
+              label: c.status,
+            };
             return (
               <div
                 key={c.id}
@@ -408,16 +412,18 @@ export function CampaignDrawer({
           </button>
         </div>
         <div className="p-[24px] flex flex-col gap-[16px]">
-          <Field label="CAMPAIGN NAME">
+          <Field label="CAMPAIGN NAME" htmlFor="campaign-name">
             <input
+              id="campaign-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Q3 YouTube push"
               className={field}
             />
           </Field>
-          <Field label="PRODUCT / BRAND BEING PROMOTED">
+          <Field label="PRODUCT / BRAND BEING PROMOTED" htmlFor="campaign-product">
             <input
+              id="campaign-product"
               value={product}
               onChange={(e) => setProduct(e.target.value)}
               placeholder="e.g. Notion Pro"
@@ -425,8 +431,9 @@ export function CampaignDrawer({
             />
           </Field>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
-            <Field label="TARGET PLATFORM">
+            <Field label="TARGET PLATFORM" htmlFor="campaign-platform">
               <select
+                id="campaign-platform"
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value as Platform)}
                 className={field}
@@ -438,8 +445,13 @@ export function CampaignDrawer({
                 <option>All</option>
               </select>
             </Field>
-            <Field label="CAMPAIGN GOAL">
-              <select value={goal} onChange={(e) => setGoal(e.target.value)} className={field}>
+            <Field label="CAMPAIGN GOAL" htmlFor="campaign-goal">
+              <select
+                id="campaign-goal"
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                className={field}
+              >
                 <option>Brand Awareness</option>
                 <option>Affiliate Sales</option>
                 <option>Product Review</option>
@@ -448,17 +460,23 @@ export function CampaignDrawer({
             </Field>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-[16px]">
-            <Field label="BUDGET">
+            <Field label="BUDGET" htmlFor="campaign-budget">
               <input
+                id="campaign-budget"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 inputMode="decimal"
                 placeholder="24000"
+                aria-describedby="campaign-budget-help"
                 className={field}
               />
+              <p id="campaign-budget-help" className="text-[11.5px] text-subtle m-[6px_0_0]">
+                Enter one amount, such as 24000 or $24,000.00. Ranges and text are not supported.
+              </p>
             </Field>
-            <Field label="CURRENCY">
+            <Field label="CURRENCY" htmlFor="campaign-currency">
               <select
+                id="campaign-currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 className={field}
@@ -472,16 +490,18 @@ export function CampaignDrawer({
             </Field>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
-            <Field label="START DATE">
+            <Field label="START DATE" htmlFor="campaign-start-date">
               <input
+                id="campaign-start-date"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className={field}
               />
             </Field>
-            <Field label="END DATE">
+            <Field label="END DATE" htmlFor="campaign-end-date">
               <input
+                id="campaign-end-date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
@@ -489,8 +509,9 @@ export function CampaignDrawer({
               />
             </Field>
           </div>
-          <Field label="CAMPAIGN BRIEF / NOTES">
+          <Field label="CAMPAIGN BRIEF / NOTES" htmlFor="campaign-brief">
             <textarea
+              id="campaign-brief"
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
               rows={4}
@@ -520,10 +541,23 @@ export function CampaignDrawer({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">{label}</div>
+      <label
+        htmlFor={htmlFor}
+        className="block text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]"
+      >
+        {label}
+      </label>
       {children}
     </div>
   );

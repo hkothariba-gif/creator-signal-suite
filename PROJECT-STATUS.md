@@ -6,22 +6,22 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## NOW
 
-- **Wave 0 / B4.3 review:** responsive wide-data treatment and the 375 px all-route sweep
-  are complete; stop here before B5.
-- Affiliate performance and the five-stage hotlist board remain horizontally scrollable
-  inside the page and have visible right-edge fades.
-- Every authenticated `/app` route was browser-measured at 375 px with no document-level
-  horizontal overflow.
+- **Wave 0 / B5 forms review:** labels, form help and client-side validation are complete;
+  stop here before the semantics/roles group.
+- Affiliate destinations reject incomplete/non-HTTPS URLs and team invites reject invalid
+  emails with associated inline guidance.
+- Ads, campaigns, affiliate and settings controls expose browser-verified accessible names;
+  document uploads re-check extension/MIME and fallback invite links can be copied.
 
 ## NEXT
 
-1. After Harish reviews B4.3, complete B5 in its five review/commit groups.
-2. Add the Wave 0 test foundation.
-3. Merge Wave 0 before Stage C/Wave 1 contracts.
+1. After Harish reviews B5 forms, deliver the B5 semantics/roles group.
+2. Complete B5 modal, focus/feedback and DataGate/copy groups separately.
+3. Add the Wave 0 test foundation, then merge Wave 0 before Stage C/Wave 1 contracts.
 
 ## WAITING ON HARISH
 
-- Review the B4.3 wide-data and 375 px route-sweep checkpoint when presented.
+- Review the B5 forms/labels/validation checkpoint when presented.
 - Start and date the access actions in `EXTERNAL-ACCESS-CHECKLIST.md`; never commit secrets.
 - Nominate 5–10 B2B SaaS design partners and agree their data/feedback permissions.
 - Obtain representative cross-channel and creator/payment exports for import design.
@@ -40,6 +40,8 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## RECENTLY COMPLETED
 
+- B5 forms added explicit labels and accessible names, HTTPS and email validation,
+  pre-submit budget guidance, file extension/MIME checks and fallback invite-link copy.
 - B4.3 contained the affiliate performance rows and hotlist board in horizontally
   scrollable regions with visible edge fades; all authenticated app routes passed the
   375 px document-overflow sweep.
@@ -57,9 +59,9 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## HEALTH
 
-- **Git:** `uiux-remediation` was synchronized to origin before B4.3; current bounded diff
-  is B4.3 plus its status/ledger updates. Never rebase or force-push Lovable history.
-- **Typecheck:** passing for B4.3.
-- **Production build:** passing for B4.3; existing deprecation/chunk warnings remain.
+- **Git:** `uiux-remediation` was synchronized to origin before B5; current bounded diff is
+  the B5 forms group plus status/ledger updates. Never rebase or force-push Lovable history.
+- **Typecheck:** passing for B5 forms.
+- **Production build:** passing for B5 forms; existing deprecation/chunk warnings remain.
 - **Tests:** no automated suite yet; `W0-QA-001` is required before Wave 1.
 - **Lint:** historical whole-repository backlog remains; do not treat it as a new B4 failure.

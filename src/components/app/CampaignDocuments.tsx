@@ -17,6 +17,11 @@ import {
    sheet, which is uploaded during onboarding and was equally invisible. */
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const ALLOWED_DOC_TYPES: Record<string, string[]> = {
+  pdf: ["application/pdf"],
+  txt: ["text/plain"],
+  md: ["text/markdown", "text/x-markdown", "text/plain"],
+};
 
 const STATUS: Record<BrandDocRow["status"], { label: string; bg: string; fg: string }> = {
   uploaded: { label: "Queued", bg: "var(--color-sand)", fg: "var(--color-subtle)" },
@@ -65,6 +70,12 @@ export function CampaignDocuments({
 
   const upload = async (file: File) => {
     if (!user) return;
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const allowedMimeTypes = ALLOWED_DOC_TYPES[extension];
+    if (!allowedMimeTypes || (file.type && !allowedMimeTypes.includes(file.type))) {
+      toast.error("Choose a PDF, TXT, or MD file.");
+      return;
+    }
     if (file.size > MAX_UPLOAD_BYTES) {
       toast.error("That file is over 10MB.");
       return;

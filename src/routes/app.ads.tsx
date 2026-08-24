@@ -291,7 +291,11 @@ function AdsCenterPage() {
               {sourceChip("Trends", p?.trends)}
             </div>
             <div className="flex gap-[8px] mt-[14px]">
+              <label htmlFor="ads-signal-topic" className="sr-only">
+                Signal topic
+              </label>
               <input
+                id="ads-signal-topic"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && runCollect()}
@@ -366,10 +370,14 @@ function AdsCenterPage() {
 
         <div className="flex-[1_1_420px] min-w-[320px] flex flex-col gap-[16px]">
           <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
-            <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]">
+            <label
+              htmlFor="ads-brief"
+              className="block text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[12px]"
+            >
               GENERATE COPY
-            </div>
+            </label>
             <textarea
+              id="ads-brief"
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
               placeholder="What are you advertising? Product, offer, and audience."
@@ -377,7 +385,11 @@ function AdsCenterPage() {
               className="w-full box-border p-[14px] rounded-[14px] border-[1.5px] border-border bg-cream text-[14.5px] leading-[1.55] outline-none resize-y"
             />
             <div className="flex gap-[10px] mt-[12px] flex-wrap items-center">
+              <label htmlFor="ads-platform" className="sr-only">
+                Ad platform
+              </label>
               <select
+                id="ads-platform"
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value as (typeof PLATFORMS)[number])}
                 className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
@@ -388,7 +400,11 @@ function AdsCenterPage() {
                   </option>
                 ))}
               </select>
+              <label htmlFor="ads-tone" className="sr-only">
+                Ad tone
+              </label>
               <select
+                id="ads-tone"
                 value={tone}
                 onChange={(e) => setTone(e.target.value as (typeof TONES)[number])}
                 className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
@@ -434,20 +450,28 @@ function AdsCenterPage() {
                 <div className="flex gap-[20px] flex-wrap">
                   <div className="flex-[1_1_260px] min-w-[240px] flex flex-col gap-[12px]">
                     <div>
-                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                      <label
+                        htmlFor="ads-headline"
+                        className="block text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]"
+                      >
                         HEADLINE
-                      </div>
+                      </label>
                       <input
+                        id="ads-headline"
                         value={draft.headline ?? ""}
                         onChange={(e) => setDraft({ ...draft, headline: e.target.value })}
                         className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14.5px] font-semibold outline-none"
                       />
                     </div>
                     <div>
-                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                      <label
+                        htmlFor="ads-body"
+                        className="block text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]"
+                      >
                         BODY
-                      </div>
+                      </label>
                       <textarea
+                        id="ads-body"
                         value={draft.body ?? ""}
                         onChange={(e) => setDraft({ ...draft, body: e.target.value })}
                         rows={4}
@@ -455,10 +479,14 @@ function AdsCenterPage() {
                       />
                     </div>
                     <div>
-                      <div className="text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]">
+                      <label
+                        htmlFor="ads-cta"
+                        className="block text-[10.5px] font-bold tracking-[0.12em] text-sand-ink mb-[6px]"
+                      >
                         CALL TO ACTION
-                      </div>
+                      </label>
                       <input
+                        id="ads-cta"
                         value={draft.cta ?? ""}
                         onChange={(e) => setDraft({ ...draft, cta: e.target.value })}
                         className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none"
@@ -496,7 +524,11 @@ function AdsCenterPage() {
                         No image yet
                       </div>
                     )}
+                    <label htmlFor="ads-image-prompt" className="sr-only">
+                      Image description
+                    </label>
                     <textarea
+                      id="ads-image-prompt"
                       value={imagePrompt}
                       onChange={(e) => setImagePrompt(e.target.value)}
                       rows={2}

@@ -27,6 +27,17 @@ export const Route = createFileRoute("/app/affiliate")({
 
 const PROVIDERS = ["stripe", "shopify", "paddle", "lemonsqueezy", "manual"] as const;
 
+function destinationError(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "https:" ? null : "Use a secure URL beginning with https://.";
+  } catch {
+    return "Enter a complete URL beginning with https://.";
+  }
+}
+
 function money(minor: number, currency: string): string {
   try {
     return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
@@ -95,8 +106,9 @@ function AffiliatePage() {
   const [dest, setDest] = useState("");
   const [label, setLabel] = useState("");
   const [creating, setCreating] = useState(false);
+  const destError = destinationError(dest);
   const create = async () => {
-    if (!orgId || !dest.trim()) return;
+    if (!orgId || !dest.trim() || destinationError(dest)) return;
     setCreating(true);
     try {
       await createAffiliateLink({
@@ -167,7 +179,11 @@ function AffiliatePage() {
           </span>
         ) : (
           <div className="flex gap-[8px] items-center">
+            <label htmlFor="affiliate-sales-provider" className="sr-only">
+              Sales provider
+            </label>
             <select
+              id="affiliate-sales-provider"
               value={provider}
               onChange={(e) => setProvider(e.target.value as (typeof PROVIDERS)[number])}
               className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
@@ -223,21 +239,39 @@ function AffiliatePage() {
 
       <div className="flex gap-[10px] items-end bg-surface border-[1.5px] border-border rounded-[20px] p-[20px_22px] mb-[16px] flex-wrap">
         <div className="flex-[1_1_260px] min-w-[220px]">
-          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+          <label
+            htmlFor="affiliate-destination"
+            className="block text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]"
+          >
             DESTINATION URL
-          </div>
+          </label>
           <input
+            id="affiliate-destination"
+            type="url"
+            inputMode="url"
             value={dest}
             onChange={(e) => setDest(e.target.value)}
             placeholder="https://example.com/pricing"
+            aria-invalid={!!destError}
+            aria-describedby="affiliate-destination-help"
             className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
           />
+          <p
+            id="affiliate-destination-help"
+            className={`text-[11.5px] m-[6px_0_0] ${destError ? "text-danger-ink" : "text-subtle"}`}
+          >
+            {destError ?? "Use the full secure destination URL, beginning with https://."}
+          </p>
         </div>
         <div className="flex-[0_1_180px] min-w-[150px]">
-          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+          <label
+            htmlFor="affiliate-link-label"
+            className="block text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]"
+          >
             LABEL
-          </div>
+          </label>
           <input
+            id="affiliate-link-label"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="Optional"
@@ -246,7 +280,7 @@ function AffiliatePage() {
         </div>
         <button
           onClick={create}
-          disabled={!dest.trim() || creating}
+          disabled={!dest.trim() || !!destError || creating}
           className="border-0 bg-accent text-cream text-[14px] font-bold h-[44px] p-[0_20px] rounded-[11px] cursor-pointer ah42 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {creating ? "Creating…" : "Create link"}

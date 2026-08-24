@@ -21,6 +21,8 @@ export const Route = createFileRoute("/app/settings")({
 
 const ROLE_OPTIONS: OrgRole[] = ["admin", "editor", "reviewer"];
 
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
 type MemberRow = { id: string; user_id: string; role: OrgRole; email: string; created_at: string };
 type InviteRow = {
   id: string;
@@ -107,7 +109,6 @@ function DocumentsCard() {
   );
 }
 
-
 /* ---------- Workspace (stored in Supabase, not localStorage) ---------- */
 
 function WorkspaceCard() {
@@ -134,18 +135,29 @@ function WorkspaceCard() {
       <h3 className="font-heading font-bold text-[17px] m-[0_0_18px]">Workspace</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div>
-          <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
-            COMPANY NAME
-          </div>
           {canEdit ? (
-            <input
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Acme Inc."
-              className={FIELD}
-            />
+            <>
+              <label
+                htmlFor="workspace-company-name"
+                className="block text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]"
+              >
+                COMPANY NAME
+              </label>
+              <input
+                id="workspace-company-name"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Acme Inc."
+                className={FIELD}
+              />
+            </>
           ) : (
-            <div className={READONLY}>{companyName || "—"}</div>
+            <>
+              <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
+                COMPANY NAME
+              </div>
+              <div className={READONLY}>{companyName || "—"}</div>
+            </>
           )}
         </div>
         <div>
@@ -195,6 +207,8 @@ function TeamCard() {
   const [inviteRole, setInviteRole] = useState<OrgRole>("editor");
   const [inviting, setInviting] = useState(false);
   const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
+  const inviteEmailError =
+    inviteEmail.trim() && !isValidEmail(inviteEmail) ? "Enter a complete email address." : null;
 
   const membersQuery = useQuery({
     queryKey: ["org-members", orgId],
@@ -241,7 +255,7 @@ function TeamCard() {
   };
 
   const sendInvite = async () => {
-    if (!orgId || !inviteEmail.trim()) return;
+    if (!orgId || !inviteEmail.trim() || !isValidEmail(inviteEmail)) return;
     setInviting(true);
     const { data, error } = await supabase.functions.invoke("invite-member", {
       body: { organizationId: orgId, email: inviteEmail.trim(), role: inviteRole },
@@ -255,6 +269,16 @@ function TeamCard() {
     setLastInviteLink(data?.emailSent ? null : (data?.inviteUrl ?? null));
     toast.success(data?.emailSent ? "Invitation email sent" : "Invitation created");
     refetchAll();
+  };
+
+  const copyInviteLink = async () => {
+    if (!lastInviteLink) return;
+    try {
+      await navigator.clipboard.writeText(lastInviteLink);
+      toast.success("Invite link copied");
+    } catch {
+      toast.error("Could not copy the invite link");
+    }
   };
 
   const changeRole = async (memberId: string, role: OrgRole) => {
@@ -307,28 +331,49 @@ function TeamCard() {
       <div className="flex items-center justify-between gap-[12px] mb-[16px] flex-wrap">
         <h3 className="font-heading font-bold text-[17px] m-0">Team</h3>
         {isAdmin ? (
-          <div className="flex gap-[9px] flex-wrap">
-            <input
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              type="email"
-              placeholder="teammate@company.com"
-              className="h-[42px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
-            />
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as OrgRole)}
-              className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
-            >
-              {ROLE_OPTIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
+          <div className="flex gap-[9px] flex-wrap items-start">
+            <div>
+              <label htmlFor="team-invite-email" className="sr-only">
+                Teammate email
+              </label>
+              <input
+                id="team-invite-email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                type="email"
+                autoComplete="email"
+                placeholder="teammate@company.com"
+                aria-invalid={!!inviteEmailError}
+                aria-describedby="team-invite-email-error"
+                className="h-[42px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
+              />
+              <p
+                id="team-invite-email-error"
+                className={`text-[11.5px] m-[5px_0_0] ${inviteEmailError ? "text-danger-ink" : "sr-only"}`}
+              >
+                {inviteEmailError ?? "Enter a complete email address."}
+              </p>
+            </div>
+            <div>
+              <label htmlFor="team-invite-role" className="sr-only">
+                Teammate role
+              </label>
+              <select
+                id="team-invite-role"
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as OrgRole)}
+                className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
+              >
+                {ROLE_OPTIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
             <button
               onClick={sendInvite}
-              disabled={inviting || !inviteEmail.trim()}
+              disabled={inviting || !inviteEmail.trim() || !!inviteEmailError}
               className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[0_17px] h-[42px] rounded-[11px] cursor-pointer ah44 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {inviting ? "Inviting…" : "Invite"}
@@ -345,13 +390,22 @@ function TeamCard() {
       ) : null}
 
       {lastInviteLink ? (
-        <div className="bg-tint rounded-[13px] p-[12px_15px] mb-[14px]">
-          <div className="text-[12.5px] font-bold text-accent-ink">
-            Invite email could not be sent — share this link
+        <div className="bg-tint rounded-[13px] p-[12px_15px] mb-[14px] flex items-start gap-[12px] flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="text-[12.5px] font-bold text-accent-ink">
+              Invite email could not be sent — share this link
+            </div>
+            <div className="text-[12.5px] text-accent-ink-soft mt-[4px] break-all">
+              {lastInviteLink}
+            </div>
           </div>
-          <div className="text-[12.5px] text-accent-ink-soft mt-[4px] break-all">
-            {lastInviteLink}
-          </div>
+          <button
+            type="button"
+            onClick={() => void copyInviteLink()}
+            className="shrink-0 border-[1.5px] border-accent bg-surface text-accent-ink text-[12px] font-bold p-[8px_11px] rounded-[9px] cursor-pointer"
+          >
+            Copy link
+          </button>
         </div>
       ) : null}
 

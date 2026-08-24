@@ -391,11 +391,11 @@ export default class AspenHome extends React.Component<any, any> {
         {/* HERO */}
         <header className="max-w-[1240px] mx-auto p-[60px_32px_90px] text-center">
           <h1 className="font-heading font-extrabold text-[clamp(44px,5.6vw,78px)] leading-[1.02] tracking-[-0.035em] mx-auto max-w-[960px] text-balance">
-            Find the creators. Run the ads. <span className="text-accent">Keep the proof.</span>
+            Find the creators. Run the ads. <span className="text-accent">Track every dollar.</span>
           </h1>
-          <p className="text-[19px] leading-[1.5] text-muted max-w-[600px] m-[22px_auto_0] text-pretty">
-            Aspen finds the right creators on YouTube, Reddit, X, and LinkedIn — then manages your
-            affiliates and runs your ads from the same workspace.
+          <p className="text-[19px] leading-[1.5] text-muted max-w-[620px] m-[22px_auto_0] text-pretty">
+            Aspen finds the right creators on YouTube, Reddit, X, and LinkedIn — then shows you exactly
+            where every click turns into revenue, across every touch in the journey.
           </p>
           <div className="flex justify-center gap-[14px] mt-[30px] flex-wrap">
             <a

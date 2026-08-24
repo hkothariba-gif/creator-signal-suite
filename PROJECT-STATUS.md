@@ -1,6 +1,6 @@
 # Aspen — project status
 
-Updated 2026-08-23. This is the operational control panel. Update it after every bounded
+Updated 2026-08-24. This is the operational control panel. Update it after every bounded
 delivery. Product scope lives in `MASTER-BUILD-PLAN.md`; delivery order lives in
 `EXECUTION-PLAN.md`.
 
@@ -8,11 +8,11 @@ delivery. Product scope lives in `MASTER-BUILD-PLAN.md`; delivery order lives in
 
 - **Wave:** Wave 0 — UI/UX remediation
 - **Branch:** `uiux-remediation`
-- **Active objective:** Push the documentation checkpoints, merge `main`, then prepare B4.
-- **Working state:** B3 is pushed. Repository consolidation is committed separately, and the
-  active plan hierarchy is established in its own documentation checkpoint.
+- **Active objective:** Begin B4 responsive behaviour in a fresh task.
+- **Working state:** B3 and both documentation checkpoints are pushed. Latest `main` is
+  merged into `uiux-remediation`; the post-merge typecheck passes.
 - **Last application checkpoint:** B3 error/loading states (`56f60f3`).
-- **Last repository checkpoint:** consolidation (`1e295ab`).
+- **Last repository checkpoint:** merge `origin/main` (`295e293`).
 
 ## Now
 
@@ -20,8 +20,9 @@ delivery. Product scope lives in `MASTER-BUILD-PLAN.md`; delivery order lives in
 - [x] Correct scope, status and Ads Engine contradictions.
 - [x] Commit repository consolidation independently.
 - [x] Commit the active planning documents independently.
-- [ ] Push both documentation commits to `origin/uiux-remediation`.
-- [ ] Merge `main` into `uiux-remediation` without rebasing before B4.
+- [x] Push both documentation commits to `origin/uiux-remediation`.
+- [x] Merge `main` into `uiux-remediation` without rebasing before B4.
+- [ ] Start B4 responsive behaviour in a fresh task.
 
 ## Next
 
@@ -64,11 +65,12 @@ delivery. Product scope lives in `MASTER-BUILD-PLAN.md`; delivery order lives in
 - [x] B3 committed as `56f60f3` without including planning or consolidation changes.
 - [x] Legacy handoffs archived and duplicate pending source trees removed in `1e295ab`.
 - [x] Approved dashboard, budget, import and D4a scope reconciled into the active plans.
+- [x] Latest `main` merged cleanly into `uiux-remediation` as `295e293`.
 
 ## Health
 
-- **Typecheck:** passing at the latest B3 checkpoint.
-- **Production build:** passing at the latest B3 checkpoint.
+- **Typecheck:** passing after the latest `main` merge.
+- **Production build:** passing at the B3 checkpoint; rerun during B4.
 - **Tests:** no automated test suite yet.
 - **Lint:** historical repository-wide backlog remains.
 - **Git safety:** Lovable is connected; never rewrite published history or force-push.

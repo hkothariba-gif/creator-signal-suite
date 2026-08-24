@@ -1,0 +1,181 @@
+# Aspen — product feature ledger
+
+Updated 2026-08-24. This is the durable feature-level control record derived from the
+product scope in `MASTER-BUILD-PLAN.md`. The master plan owns scope, `EXECUTION-PLAN.md`
+owns delivery order, and this ledger owns stable IDs, delivery state and feature evidence.
+
+## How to use this ledger
+
+- Stable IDs are permanent. If scope changes, update the row; do not recycle its ID.
+- Status values are `completed`, `in-review`, `planned`, `external-gated`,
+  `decision-gated`, `parked` and `cut`.
+- A dependency is another ledger ID. `—` means the feature can stand alone.
+- “Harish” says exactly what is needed from Harish; `None` means Codex can proceed from
+  repository evidence.
+- Acceptance criteria describe the product outcome. Verification says how delivery is
+  proved. A passing build alone never verifies data, money, security or consent behavior.
+- Wave 1 must not start until the Stage C contract set is reviewed together.
+
+Source abbreviations: `MBP` = `MASTER-BUILD-PLAN.md`; `EP` = `EXECUTION-PLAN.md`; `UIUX` =
+`aspen-handoff/UIUX-BATCH-PROMPTS.md`; `AUDIT` =
+`aspen-handoff/aspen-uiux-audit-and-remediation-plan.md`; `MONEY` =
+`SPEC-spend-and-attribution.md`; `ADS` = `ADS-ENGINE-SPEC.md`; `EXT` =
+`EXTERNAL-ACCESS-CHECKLIST.md`; `D&B` = `DECISIONS-AND-BLOCKERS.md`.
+
+## Wave 0 — UI/UX baseline
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W0-UI-001 | Tokenised Aspen application surfaces | completed | — | Planned hardcoded theme colours use the approved token ramp; platform chrome literals remain intentional. | Literal sweep, typecheck and build; commits B2-0–B2-5. | UIUX B2; AUDIT C4–C6 | None | None |
+| W0-UI-002 | Honest loading, empty and query-failure states | completed | W0-UI-001 | Every live app query distinguishes loading, empty and failure; failure names the unavailable data and offers a working retry. | Route/query inventory; retry refetch checks; typecheck and build; `56f60f3`. | UIUX B3; AUDIT H5/H11 | None | None |
+| W0-UI-003 | Mobile sidebar drawer | completed | W0-UI-002 | Below `lg`, sidebar is a modal drawer opened from the header, closes on Escape/backdrop/route change, traps focus and restores it; desktop is unchanged. | Keyboard and focus check at 375 px and desktop; typecheck and production build. | UIUX B4.1; AUDIT C7 | None | None; B4.1 approved 2026-08-24. |
+| W0-UI-004 | Mobile-first card-grid ramp | in-review | W0-UI-003 | Fixed/auto-fill app grids render one column by default, two at `sm`, three at `lg` where content supports it. | Route sweep at 375 px plus `sm`/`lg`; typecheck and build. | UIUX B4.2; AUDIT C7 | None | Review B4.2 checkpoint. |
+| W0-UI-005 | Responsive wide-data treatment | planned | W0-UI-004 | Simple tables stack below `sm`; unavoidable wide data and hotlist board scroll with a visible right-edge affordance; no unexplained route overflow remains at 375 px. | All `/app` routes at 375 px; overflow log; typecheck and build. | UIUX B4.3; AUDIT C7 | None | Review B4.3 checkpoint. |
+| W0-A11Y-001 | Accessible forms and validation | planned | W0-UI-005 | Named labels, URL/email validation and associated error/help text work with keyboard and screen reader. | Keyboard/screen-reader spot checks; component tests; typecheck. | UIUX B5 forms; AUDIT §§3–4 | None | None |
+| W0-A11Y-002 | Navigation, tabs and hotlist semantics | planned | W0-UI-005 | Active navigation, tabs, stage controls and draggable cards expose state and keyboard alternatives. | Keyboard route sweep and accessibility inspection. | UIUX B5 semantics; AUDIT H10 | None | None |
+| W0-A11Y-003 | Shared modal and confirmation behavior | planned | W0-UI-003 | App overlays share dialog semantics, focus trap, Escape/backdrop handling and focus restoration; destructive actions name consequences. | Component tests plus keyboard checks for every overlay. | UIUX B5 modals; AUDIT H8 | None | None |
+| W0-A11Y-004 | Visible focus and persistent feedback hooks | planned | W0-A11Y-001,W0-A11Y-002 | Every interactive control has a visible focus ring and toast output is announced politely. | Keyboard-only sweep; automated accessibility check when test base exists. | UIUX B5 focus | None | None |
+| W0-UI-006 | DataGate default inversion and copy cleanup | planned | W0-UI-001 | Aspen treatment is the safe default, dark mode is explicit, and engineering/false-affordance copy is removed. | Inspect every DataGate call site and named copy leak; typecheck/build. | UIUX B5 cleanup; AUDIT §3/§4 | None | None |
+| W0-QA-001 | Minimum automated test foundation | planned | W0-A11Y-003,W0-UI-006 | Repository has a repeatable test command covering DataGate states, shared dialog and one authenticated app-shell route; changed-file lint runs in CI. | Run unit/component/smoke suites and CI lint gate. | EP Stage B | None | None |
+
+## Wave 1 — contracts and data spine
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W1-ACT-001 | Canonical action vocabulary contract | planned | W0-QA-001 | Every Aspen action has typed inputs/results and a `silent`, `confirm` or `never-automatic` policy; money/public actions cannot be silent. | Contract review against all six consumers and policy tests. | MBP D1; EP Stage C.2 | None | None; D1 is approved. |
+| W1-EVT-001 | Event contract and customer-defined conversions | planned | W0-QA-001 | Event definitions include funnel shape; conversions attach to the resolved person/account level; idempotency, retention and deletion are specified. | Contract fixtures for self-serve and sales-led paths; retention/deletion review. | MBP D2/4a; EP C.3 | Legal review before release, not contract work. | None; D2 and seed conversions are approved. |
+| W1-CHN-001 | Normalised cross-channel model | planned | W1-EVT-001 | Paid, retention, affiliate, creator, organic and referral traffic use one channel key without source-specific attribution branches. | Channel-normalisation fixtures and invariant tests. | MBP D3/4b; EP C.4 | None | None; D3 is approved. |
+| W1-ATT-001 | Attribution invariants and model defaults | planned | W1-EVT-001,W1-CHN-001 | Credits sum to 1 per conversion/model; defaults vary by funnel shape; lag maturity and conflicts are specified. | Property tests for credit sums and fixtures for same-session/long-lag funnels. | MBP D2–D3; EP C.4 | None | None. |
+| W1-MON-001 | Minor-unit, daily-grain money contract | planned | W1-CHN-001 | Every monetary fact uses bigint minor units plus currency; actual spend is daily and never inferred from budget. | Schema constraints, mixed-currency and divide-by-zero tests. | MBP D4/4c; MONEY §§1–3 | None | None; D4 is approved. |
+| W1-MON-002 | L1–L4 cost-to-serve fidelity | planned | W1-MON-001,W1-EVT-001 | Known, blended, per-plan, estimated-cohort and metered costs remain distinguishable; every CAC/return reports its lowest fidelity and omissions. | Calculation fixtures per rung and UI contract assertions. | MBP D4a; D&B D4a; EP C.1 | Customer data only; no provider-billing connector. | Supply real cost/usage samples with design partners when available. |
+| W1-SEC-001 | Organisation ownership and RLS matrix | planned | W1-EVT-001,W1-CHN-001,W1-MON-001 | Every new/affected table has owner/member/creator/outsider rules; campaigns/hotlist stop relying on incoherent user scope. | Migration-policy tests for all four roles and cross-org denial. | MBP 4a–4h/Part 7; EP C.5 | None | None. |
+| W1-SCH-001 | Ordered coherent schema migration set | planned | W1-ACT-001,W1-ATT-001,W1-MON-002,W1-SEC-001 | Migrations 4a–4i define keys, indexes, retention, RLS, seed rows and rollback/forward-fix notes without one monolithic SQL file. | Fresh database apply, generated-type diff, schema/RLS verification. | MBP Part 4; EP W1-1 | None | Review Stage C contracts together before migration starts. |
+| W1-ING-001 | Browser and server event ingress | planned | W1-SCH-001 | Pixel/server events validate, deduplicate, respect consent hooks and emit actionable observability. | Valid/invalid/idempotent event tests and consent-path integration tests. | MBP Wave 1; EP W1-2 | Legal review before release. | Provide a design-partner event sample when available. |
+| W1-IDN-001 | Visitor → person → account identity resolution | planned | W1-ING-001,W1-SEC-001 | Identity promotion is safe, historical touchpoints promote without duplication, and unresolved self-serve conversions remain valid. | Resolution/promotion fixtures, deletion test and cross-org isolation. | MBP D2/4a; EP W1-3 | GDPR/DPA review before release. | Arrange qualified privacy/data-processing review. |
+| W1-ATT-002 | Attribution engine, lag maturity and claim conflicts | planned | W1-ATT-001,W1-IDN-001 | Pluggable models apply per conversion type; immature windows are labelled; overlapping platform claims create visible conflict records. | Golden attribution fixtures, credit-sum property tests and conflict cases. | MBP 4b/Wave 1; EP W1-4 | None | None. |
+| W1-MON-003 | Fully loaded CAC and LTV gross-profit calculations | planned | W1-MON-002,W1-ATT-002 | Daily channel facts and all cost items produce honest CAC/return; LTV gross profit appears only at supported fidelity. | Currency/fidelity/zero-input fixtures and seeded end-to-end calculation. | MBP D4a/4c; EP W1-5 | None | Supply representative plan/cost figures for design-partner QA. |
+| W1-ACT-002 | Typed action registry and immutable invocation log | planned | W1-ACT-001,W1-SCH-001 | Every action execution uses the registry and writes actor, policy, inputs, result and timestamp without mutable audit history. | Registry unit tests and append-only database/RLS checks. | MBP D1/4h; EP W1-6 | None | None. |
+| W1-AUT-001 | Shared automation engine foundation | planned | W1-ACT-002 | Trigger → condition → wait → action supports suggest/confirm/auto policies and is reusable by ads, lifecycle and Slack. | Deterministic rule fixtures, confirmation-policy tests and replay test. | MBP D5/4h | None | None; D5 is approved. |
+
+## Wave 2 — Growth Command Center, budgets and universal imports
+
+These three mission-critical pillars are release scope, not optional dashboard polish:
+`W2-CMD-001`, `W2-BUD-001`/`W2-BUD-002`, and `W2-IMP-001`/`W2-IMP-002`.
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W2-SET-001 | Scored tracking/setup health | planned | W1-ING-001,W1-IDN-001 | One in-app health screen scores setup checks and names the single highest-value next fix. | Seed failing/passing checks and verify score/next-fix ordering. | MBP Wave 2 (M2) | None | None. |
+| W2-CMD-001 | Unified Growth Command Center | planned | W1-ATT-002,W1-MON-003 | One operating view reports performance, spend, pacing and core metrics across paid, retention, affiliate and creator marketing; cost fidelity and conflicts are visible. | Cross-channel seeded dataset, reconciliation to source facts, responsive/a11y checks. | MBP Part 2/Wave 2; D&B scope additions | Connector data may be CSV/manual until native access. | Provide representative cross-channel exports/design-partner data. |
+| W2-IMP-001 | Universal CSV/manual campaign import | planned | W1-CHN-001,W1-SCH-001 | Paid, affiliate, creator and retention exports map into the common model with preview, validation, provenance and error report. | Golden CSV fixtures per channel, duplicate/idempotency and partial-failure tests. | MBP 4d.1/Wave 2; EXT | Representative exports. | Obtain anonymised exports, especially 2–3 creator/payment files. |
+| W2-IMP-002 | Imported-campaign ownership and read-only mirror | planned | W2-IMP-001,W1-ACT-001 | Every imported campaign defaults to `read_only`; adoption for management is explicit, auditable and permitted only for a safe provider. | Import-state transition tests and denied-write checks. | MBP Part 2/4d.1; D&B unresolved call 2 | Provider write access for later adoption. | Approve adoption conditions before native writeback ships. |
+| W2-BUD-001 | Daily/monthly budget planning and pacing | planned | W1-MON-001,W2-CMD-001 | Users set daily/monthly budgets by scope/currency; pacing compares plan with actual spend without deriving spend from budget. | Daily/month boundary, timezone, mixed-currency and over/under-pacing fixtures. | MBP 4c/Wave 2; MONEY | None for manual/CSV data. | Supply representative planning rules/constraints if available. |
+| W2-BUD-002 | Evidence-backed Ads Engine budget recommendations | planned | W2-BUD-001,W1-ATT-002,W1-ACT-002 | Recommendation includes proposed amount, evidence, constraints and approval state; Wave 2 is recommend-only and never writes spend. | Recommendation fixtures and explicit no-write assertion. | MBP Part 2/Wave 2; D&B unresolved call 3 | None in recommend-only mode. | None; human confirmation ceiling is approved. |
+| W2-ATT-001 | Cross-channel attribution explorer | planned | W1-ATT-002 | Model switcher, conflict flags and maturity band make credit and uncertainty explainable. | Golden model cases and UI checks for conflict/immature states. | MBP Wave 2 | None | None. |
+| W2-MON-001 | CAC and LTV gross-profit tiles | planned | W1-MON-003 | Tiles show value, fidelity rung and missing inputs; incomplete values are never labelled fully loaded. | L1–L4 UI fixtures and calculation reconciliation. | MBP D4a/Wave 2 | Customer-supplied costs for higher rungs. | Provide cost inputs through design partners. |
+| W2-CRE-001 | Creators ranked by delivered result | planned | W1-ATT-002,W2-IMP-001 | Result ranking sits alongside fit ranking and uses attributed outcomes, not deal terms or invented performance. | Creator/link/conversion fixture and no-link empty state. | MBP Wave 2 (M10); MONEY §3 | Creator/affiliate export samples improve coverage. | Supply samples/design partners. |
+| W2-ELA-001 | Spend-to-revenue elasticity and lag view | planned | W1-MON-001,W1-ATT-002 | Daily spend and revenue plot together; immature recent periods are visibly marked. | Outer-joined time-series and lag-band fixtures. | MBP Wave 2 (M4/M6); MONEY §3 | None | None. |
+| W2-ORG-001 | Organic mix metric | planned | W1-CHN-001,W1-ATT-002 | Organic share uses the common channel model and states denominator/model. | Seeded channel-mix reconciliation. | MBP Wave 2 (M9) | None | None. |
+| W2-DP-001 | Design-partner checkpoint 1 | decision-gated | W2-CMD-001,W2-IMP-001,W2-BUD-002,W2-ATT-001 | 3–5 B2B SaaS teams test real data privately; findings are recorded and closed or consciously deferred. | Signed test record, feedback log and disposition per finding. | MBP Wave 2; D&B design partners | Partner participation/data permission. | Nominate companies/contacts and agree data + feedback cadence. |
+
+## Wave 3 — Ads Engine and paid-platform management
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W3-ADE-001 | Evidence ladder and grounded generation | planned | W1-ACT-001 | T2 plus one of T1/T3/T4 is required; unsupported claims/styles are refused with one concrete unblock ask; provenance is retained. | Pure permission/floor tests and adversarial grounding cases. | ADS PR-A | Google/Meta craft material for those platforms. | Source approved Google and Meta craft guides. |
+| W3-ADE-002 | Platform format and craft model | planned | W3-ADE-001 | Platform formats drive required fields, character limits, media ratios and legal campaign assets; X remains export-only. | Format-limit unit tests and per-platform generation fixtures. | ADS PR-A; MBP Wave 3 | Current format/API rules must be rechecked. | Supply Google/Meta craft guides. |
+| W3-ADE-003 | Saved A/B/C tests, variants and tracking links | planned | W3-ADE-002,W1-MON-001 | Tests save/schedule/run together, variants retain evidence and one reusable redirect link is minted per variant. | State-machine, simultaneous-start and redirect attribution tests. | ADS PR-B | None | None. |
+| W3-ADE-004 | Ad test performance workspace | planned | W3-ADE-003,W1-ATT-002,W1-MON-003 | Saved tests are reachable and report honest performance/empty states without inventing spend, CPA or ROAS. | Seeded draft/running/finished cases and number reconciliation. | ADS PR-B; AUDIT H1 | None | None. |
+| W3-ADE-005 | On-demand competitor research | external-gated | W3-ADE-001 | User-correctable competitors are researched on demand, cached 14 days and stored only as bounded summaries allowed by Tier 4. | Cache/user-override/fallback tests and source-policy review. | ADS PR-C | Platform library/data access feasibility. | Confirm access route when scheduled. |
+| W3-AST-001 | Workspace asset library and safe crops | external-gated | W3-ADE-002,W1-SEC-001 | Private assets record dimensions/duration; format-matching assets rank first; crop is previewed, never silent; rights metadata survives. | Signed-URL/RLS, format-fit and crop-confirmation tests. | ADS PR-D; MBP 4g | Google Drive/Dropbox/Figma access for sync sources. | Choose/authorize sync sources when scheduled. |
+| W3-CON-001 | Shared paid-platform adapter and account linking | external-gated | W1-ACT-002,W2-IMP-002 | One adapter contract supports connect, push and metrics; account/currency/timezone/sync status are visible without UI-specific provider branches. | Contract suite against stub and each real adapter. | ADS PR-D; MBP 4d/Wave 3 | Provider OAuth/API approvals. | Start Tier 1 applications in `EXT`. |
+| W3-CON-002 | Google Ads management | external-gated | W3-CON-001,W3-SAFE-001 | Import/report/create/budget/launch/pause/optimise support Search, PMax, YouTube and Demand Gen; Shopping is absent. | Google test-account contract/E2E suite and campaign-state reconciliation. | MBP Wave 3; ADS PR-D | Developer token, OAuth, basic access. | Create/confirm manager account and request token. |
+| W3-CON-003 | Meta Ads management | external-gated | W3-CON-001,W3-SAFE-001 | Meta campaigns import/report/create/budget/launch/pause/optimise through the common adapter and command center. | Meta test-account contract/E2E suite. | MBP Wave 3; ADS PR-D | Business verification and advanced app access. | Begin verification and create app. |
+| W3-CON-004 | LinkedIn paid messaging/ads adapter | external-gated | W3-CON-001,W3-SAFE-001 | Supported paid routes include LinkedIn Ads and Conversation/Sponsored Messaging; no personal-DM automation exists. | Test-account adapter suite and prohibited-action check. | MBP Part 1/Wave 3; EXT | Marketing Developer Platform approval. | Submit partner/application request. |
+| W3-CON-005 | Reddit ads adapter feasibility | external-gated | W3-CON-001 | Reporting/import/management remains behind a feasibility flag until supported access is proven. | Typed unavailable state or adapter contract suite when access exists. | MBP Wave 3; ADS PR-D; EXT | Reddit Ads API access. | Contact Reddit and confirm route. |
+| W3-CAM-001 | Native campaign mirror and controlled two-way sync | external-gated | W2-IMP-002,W3-CON-001 | Existing paid campaigns import as read-only mirrors; sync logs provenance/errors; adoption and writeback require explicit action. | Provider sandbox round-trip, idempotency and denied-write tests. | MBP Part 2/4d.1/Wave 3 | Provider read/write scopes. | Approve adoption conditions before writeback. |
+| W3-AUD-001 | Audience push and match health | external-gated | W3-CON-001,W1-IDN-001 | Customer/website/lookalike/contact audiences sync only with consent; match rate and enrichment score are first-class health metrics. | Consent, hashing, provider match and deletion tests. | MBP Wave 3 | Provider audience scopes + legal review. | Arrange legal review and provider access. |
+| W3-GATE-001 | 50-conversion readiness gate | planned | W3-CON-001,W1-ATT-002 | Aspen refuses unsafe Google launch below the confirmed readiness threshold and explains the evidence needed. | Boundary fixtures at 49/50 plus unavailable-data case. | MBP Wave 3 (M3) | None beyond metrics access. | None. |
+| W3-FMT-001 | Creator-to-paid format bridge | planned | W3-ADE-002,W3-AST-001 | One creator asset can become a previewed, legal multi-ratio asset group without silent crops. | Required-ratio matrix and provider validation fixtures. | MBP Wave 3 (C6) | Current provider asset requirements. | None. |
+| W3-QTA-001 | Creative-volume quota against budget | planned | W2-BUD-001,W3-ADE-003 | Aspen states/test-enforces the creative volume needed for budget without fabricating platform performance. | Budget-band/quota fixtures and UI explanation. | MBP Wave 3 (C3) | None | None. |
+| W3-SAFE-001 | Controlled budget/campaign writeback | external-gated | W1-ACT-002,W2-BUD-002 | Human acceptance is logged; pushes create paused campaigns with tracking attached; no autonomous budget change or spend occurs. | Stub/provider tests assert paused initial state and confirmation before every write. | MBP Part 2/Wave 3; ADS PR-D; EP principles | Provider write scopes. | None; current ceiling is human confirmation only. |
+
+## Wave 4 — creator operating system
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W4-PRT-001 | Creator role, invites and walled brand access | planned | W1-SEC-001 | Creator authentication exposes only the invited brand context; cross-brand content/history cannot leak. | Owner/member/creator/outsider RLS and invite tests. | MBP 4f/Wave 4 | None | None. |
+| W4-DEL-001 | Deliverable upload and review workflow | planned | W4-PRT-001 | Draft → submitted → review → changes → approved → live transitions are explicit and auditable. | State-machine, storage rollback and permission tests. | MBP 4f/Wave 4 | None | None. |
+| W4-MSG-001 | Brand/creator message threads | planned | W4-PRT-001 | Threads stay walled per brand relationship and deep-link to campaign/deliverable context. | RLS and route-context integration tests. | MBP 4f/Wave 4 | None | None. |
+| W4-DEAL-001 | Deal terms, rights expiry and payouts | planned | W4-PRT-001,W1-MON-001 | Six approved deal types, payouts and rights expiry use minor-unit money and surface licence expiry before reuse. | Deal-type, currency, payout and expired-rights fixtures. | MBP 4f–4g/Wave 4 | Payment/legal terms as applicable. | Supply/approve operational deal templates before release. |
+| W4-LIB-001 | Creator content library and brand rules | planned | W4-DEL-001,W3-AST-001 | Approved deliverables auto-file with performance, brand guidance and do-not-say rules. | Approval-to-library integration and access tests. | MBP Wave 4 | None | Provide sample brand guidelines for QA. |
+| W4-CRT-001 | Creative tagging and diversity audit | planned | W4-LIB-001 | Assets can be tagged by setting/talent/hook/pacing/format and portfolio concentration is visible. | Tagging and diversity-snapshot fixtures. | MBP 4g/Wave 4 (C4) | None | None. |
+| W4-REC-001 | Public affiliate recruitment and application queue | planned | W1-SEC-001 | Public applicants enter a controlled review queue without gaining workspace access. | Anonymous submission, abuse/rate-limit and approval tests. | MBP Wave 4 (A3) | Privacy/terms review. | Approve public application copy/terms. |
+| W4-IMP-001 | Creator-platform migration | external-gated | W2-IMP-001,W4-PRT-001 | Universal CSV lands first; GRIN follows when access exists; CreatorIQ/Aspire remain demand-led feasibility decisions. | Golden exports and adapter contract tests where access exists. | MBP Wave 4; EXT | Export samples and vendor access. | Obtain CSV samples and a GRIN design partner. |
+| W4-DP-001 | Design-partner checkpoint 2 | decision-gated | W4-DEL-001,W4-DEAL-001,W4-LIB-001 | 2–3 brands and 5–10 creators test privacy, invites, uploads, review, rights and payments; findings are dispositioned. | Recorded sessions and closed/deferred finding log. | MBP Wave 4; D&B | Participant availability and permitted content. | Nominate brands/creators and agree feedback cadence. |
+
+## Wave 5 — lifecycle and retention
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W5-JRN-001 | Lifecycle journey builder | planned | W1-AUT-001,W1-EVT-001 | Users compose trigger/condition/wait/action journeys on the shared engine with safe continue/stop behavior. | Deterministic journey and restart/idempotency tests. | MBP D5/4e/Wave 5 | Legal review before sending. | None for design/build. |
+| W5-SND-001 | Email sending and delivery lifecycle | external-gated | W5-JRN-001 | Sends record queued/delivered/bounced/complained states and never bypass suppression or consent. | Provider sandbox, bounce/complaint and suppression E2E tests. | MBP 4e/Wave 5; EXT | Sending provider/domain. | Choose provider/domain and retain DNS access. |
+| W5-DLV-001 | Sending-domain authentication and warmup | external-gated | W5-SND-001 | SPF, DKIM and DMARC state is visible; unsafe/unwarmed domains cannot send production journeys. | DNS/auth checks and blocked-send cases. | MBP 4e/Wave 5; EXT | DNS and warmup calendar. | Configure domain/provider records and plan warmup. |
+| W5-CNS-001 | Consent, unsubscribe and suppression | external-gated | W1-IDN-001,W5-SND-001 | Lawful basis/source/region are recorded; unsubscribe and suppression are enforced across all sends and deletions. | Consent-region, unsubscribe, suppression and deletion tests. | MBP 4e/Wave 5; EP release gate | Qualified GDPR/CAN-SPAM/DPA review. | Arrange qualified review. |
+| W5-ESP-001 | ESP import plus mirror/handoff | external-gated | W2-IMP-001,W5-JRN-001 | HubSpot/Customer.io import first, Klaviyo next, Braze later; existing journeys can mirror or hand off without double sending. | Adapter fixtures and duplicate-send prevention tests. | MBP Wave 5; EXT | Provider test workspaces/scopes. | Create/obtain HubSpot and Customer.io test access. |
+| W5-RET-001 | Retargeting audience sync | external-gated | W3-AUD-001,W5-CNS-001 | Eligible journey audiences sync to Google/Meta with consent and removal propagation. | Provider sandbox consent/add/remove tests. | MBP Wave 5 | Google/Meta audience access. | Complete provider and legal gates. |
+| W5-LIN-001 | LinkedIn paid/assisted send routes | external-gated | W3-CON-004,W5-JRN-001 | Conversation Ads are paid/official and the assisted queue requires a human send; personal DM automation is impossible. | Prohibited-action and human-handoff tests. | MBP Part 1/Wave 5 | LinkedIn approval for paid route. | Obtain access; none for assisted queue. |
+| W5-LPG-001 | Creator-matched landing pages | planned | W4-LIB-001,W5-JRN-001 | Pages inherit creator/content/offer context, track through the identity spine and require approval before public visibility. | Template, attribution and publication-confirmation tests. | MBP 4e/Wave 5 (A6) | Domain/hosting and legal copy review. | Approve representative page copy/brand constraints. |
+| W5-REF-001 | Referral offer at usage wall | planned | W5-JRN-001 | A usage-wall event can trigger a consent-safe referral journey without changing paywall UI scope. | Trigger eligibility and non-eligible suppression fixtures. | MBP Wave 5 (A4) | Customer emits usage-wall event. | Supply event/sample offer with design partner. |
+| W5-CMD-001 | Retention metrics in the Growth Command Center | planned | W2-CMD-001,W5-ESP-001,W5-SND-001 | Retention/journey performance joins the same command center and attribution model rather than a separate dashboard. | Cross-channel reconciliation and double-count conflict fixtures. | MBP Wave 5 | Provider reporting access. | Provide design-partner data. |
+
+## Wave 6 — decisions, chat and automation
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W6-CHT-001 | In-app action chat and confirmation cards | planned | W1-ACT-002 | Chat can propose registered actions; confirmation cards show criteria/evidence and enforce action policy. | Allowed/confirm/never-automatic conversation tests. | MBP Wave 6 | Model/provider choice when implemented. | None unless model/provider approval is needed. |
+| W6-SLK-001 | Slack decision queue and digests | external-gated | W1-AUT-001,W1-ACT-002 | Three configurable digests present decisions; approval buttons execute only registered confirmed actions. | Slack sandbox signature, replay, digest and approval tests. | MBP Wave 6 (G1) | Slack app/workspace authorization. | Authorize a test workspace when scheduled. |
+| W6-APR-001 | Cross-surface approvals | planned | W1-ACT-002,W6-SLK-001 | App/Slack approvals share one record, expire safely and cannot be replayed. | Cross-surface idempotency, expiry and authorization tests. | MBP 4h/Wave 6 | Slack only for Slack surface. | None. |
+| W6-RUL-001 | Threshold continue/stop rules | planned | W1-AUT-001,W1-ATT-002 | Evidence-based rules can suggest/confirm/auto only within policy; money/public actions retain required confirmation. | Threshold-window and policy-boundary fixtures. | MBP Wave 6 (G3) | None | None. |
+| W6-LOG-001 | Human-readable decision log | planned | W1-ACT-002 | Users can see actor, criteria, approval, result and time for every material action. | Immutable-log reconciliation and access tests. | MBP D1/Wave 6 (G4) | None | None. |
+| W6-LRN-001 | Performance-informed next generation | planned | W3-ADE-004,W6-LOG-001 | Version N+1 can use version N outcomes while preserving evidence constraints and provenance. | Winner/loser feedback fixtures and grounding regression tests. | MBP Wave 6 (G2) | None | None. |
+
+## Wave 7 — homepage and launch positioning
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| W7-WEB-001 | Whole-loop homepage positioning | planned | — | Homepage explains source → create → distribute → capture → attribute → nurture → decide, including ads and lifecycle. | Message hierarchy/content review and responsive/a11y check. | MBP Part 2/Wave 7 | None | Approve final positioning copy. |
+| W7-WEB-002 | AI-citation and affiliate proof story | planned | — | Creator content’s AI-answer value and approved affiliate validation are stated with supportable claims. | Claim/source review; no unsupported statistic ships. | MBP Part 2/Wave 7 | Source/usage rights for claims. | Approve sources and final claim wording. |
+| W7-WEB-003 | Locked shared-centre hero visual | planned | — | Hero uses the approved two-overlapping-fields concept with a solid shared centre and works across breakpoints. | Visual review at mobile/desktop and accessibility/performance checks. | MBP Wave 7 | None | Approve final visual execution. |
+| W7-REL-001 | Single release after Wave 7 | decision-gated | W2-DP-001,W4-DP-001,W7-WEB-001,W6-LRN-001 | Release gates for explainable attribution, money fidelity, RLS, consent, human spend control, sending health and automated checks all pass. | Signed release checklist with both checkpoint findings dispositioned. | MBP Part 1; EP release gate | All applicable provider/legal gates. | Approve public launch after evidence is presented. |
+
+## Parked and cut scope
+
+These IDs prevent intentionally excluded work from quietly re-entering a wave.
+
+| ID | Feature | Status | Dependencies | Acceptance criteria | Verification | Source | External gate | Harish |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| PK-001 | Newsletters as a fifth supply type | parked | — | No implementation or schema work until separately promoted into the master plan. | Scope review finds no newsletter-market build. | MBP Part 9 | — | New scope decision required to activate. |
+| PK-002 | Marketing-mix modelling and holdouts | parked | W1-MON-001 | Daily-grain data leaves room for later work; no MMM/holdout claims ship now. | Scope review. | MBP Part 9 | Meaningful spend/data volume. | New scope decision required. |
+| PK-003 | TikTok/Instagram/Meta organic management | parked | — | Organic-management connectors are absent from current waves. | Connector/scope review. | MBP Part 9; EXT TikTok research | Demand and API feasibility. | Validate demand before activation. |
+| PK-004 | Paywall/trial UI redesign | parked | — | Cost economics may ship; paywall visual/product redesign does not. | UI/scope review. | MBP Part 9 | — | New scope decision required. |
+| PK-005 | Growth-school product | parked | — | No curriculum/community product work enters current waves. | Scope review. | MBP Part 9 | — | New scope decision required. |
+| PK-006 | Full AI video origination | parked | W3-ADE-002 | AI may create bounded variations; it does not originate full creator-style video. | Generation capability review. | MBP Part 9 | — | New scope decision required. |
+| CUT-001 | Google Shopping management | cut | — | No Shopping surface, feed or table is built. | Schema/adapter review. | MBP Parts 1/4d/9 | — | None. |
+| CUT-002 | Push notifications | cut | — | No customer-product push SDK or journey action is built. | Action/SDK review. | MBP Parts 1/9 | — | None. |
+| CUT-003 | X ads management | cut | — | X remains discovery and creative export only; no management adapter exists. | Adapter/action review. | MBP Parts 1/9; ADS PR-A/PR-D | — | None. |
+| CUT-004 | LinkedIn personal-DM automation | cut | — | Only paid Conversation Ads and a human-assisted queue exist. | Prohibited-action test. | MBP Parts 1/9 | — | None. |
+| CUT-005 | Provider billing-API connectors | cut | — | Aspen accepts customer-entered/exported/event cost data and never reads provider billing organisations. | Connector inventory and data-lineage review. | MBP D4a/Part 9; D&B D4a | — | None. |
+
+## Reconciliation notes
+
+1. `MONEY` remains authoritative for minor units, daily spend and honest null/zero handling.
+   Its old “no ad platform connector” exclusion is superseded by MBP Waves 2–3.
+2. `ADS` remains authoritative for the evidence ladder, format model, ad-test behavior and
+   shared adapter interface. Its historical PR labels do not override the Wave sequence.
+3. Existing-campaign import is deliberately cross-channel. Universal CSV/manual mapping
+   ships before native paid, affiliate, creator or retention adapters.
+4. Imported campaigns are read-only by default. Budget recommendations are recommend-only
+   in Wave 2, and native writeback in Wave 3 requires a human-confirmed action. Autonomous
+   budget adjustment has no approved ceiling and is not release scope.
+5. Connector ordering after the provisional Tier 1 set remains evidence-led by design
+   partners and access feasibility; that does not block Wave 0 or the Stage C contract work.

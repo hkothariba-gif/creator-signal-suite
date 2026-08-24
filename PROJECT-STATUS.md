@@ -1,76 +1,62 @@
 # Aspen — project status
 
-Updated 2026-08-24. This is the operational control panel. Update it after every bounded
-delivery. Product scope lives in `MASTER-BUILD-PLAN.md`; delivery order lives in
-`EXECUTION-PLAN.md`.
+Updated 2026-08-24. Operational control panel only. Scope lives in
+`MASTER-BUILD-PLAN.md`, order in `EXECUTION-PLAN.md`, and feature evidence in
+`PRODUCT-FEATURE-LEDGER.md`.
 
-## Current
+## NOW
 
-- **Wave:** Wave 0 — UI/UX remediation
-- **Branch:** `uiux-remediation`
-- **Active objective:** Begin B4 responsive behaviour in a fresh task.
-- **Working state:** B3 and both documentation checkpoints are pushed. Latest `main` is
-  merged into `uiux-remediation`; the post-merge typecheck passes.
-- **Last application checkpoint:** B3 error/loading states (`56f60f3`).
-- **Last repository checkpoint:** merge `origin/main` (`295e293`).
+- **Wave 0 / B4.2 review:** mobile-first card grids are implemented; stop here before B4.3
+  wide-data treatment and the all-route overflow sweep.
+- Browser-measured Home/Platforms grids: one column at 375 px, two at 700 px and three at
+  1100 px where specified, with no document-level horizontal overflow in those samples.
+- All authenticated app auto-fit/auto-fill grids are removed. Typecheck and build pass.
 
-## Now
+## NEXT
 
-- [x] Review the 40 documentation/consolidation changes.
-- [x] Correct scope, status and Ads Engine contradictions.
-- [x] Commit repository consolidation independently.
-- [x] Commit the active planning documents independently.
-- [x] Push both documentation commits to `origin/uiux-remediation`.
-- [x] Merge `main` into `uiux-remediation` without rebasing before B4.
-- [ ] Start B4 responsive behaviour in a fresh task.
+1. After Harish reviews B4.2, deliver B4.3 wide-data treatment and the 375 px all-route
+   overflow sweep.
+2. Complete B5 in its five review/commit groups.
+3. Add the Wave 0 test foundation; then merge Wave 0 before Stage C/Wave 1 contracts.
 
-## Next
+## WAITING ON HARISH
 
-- [ ] Build the complete `PRODUCT-FEATURE-LEDGER.md` from the master plan and supporting
-      specifications, including the Growth Command Center, budget planning/recommendations,
-      and existing-campaign imports.
-- [ ] Complete B4 responsive behaviour.
-- [ ] Complete B5 accessibility and shared UI cleanup.
-- [ ] Add the minimum automated test foundation before Wave 1.
+- Review the B4.2 card-grid checkpoint when presented.
+- Start and date the access actions in `EXTERNAL-ACCESS-CHECKLIST.md`; never commit secrets.
+- Nominate 5–10 B2B SaaS design partners and agree their data/feedback permissions.
+- Obtain representative cross-channel and creator/payment exports for import design.
+- Source Google and Meta ad-craft guides before Wave 3 generation work.
+- Choose a lifecycle sending domain/provider and arrange qualified privacy/email review
+  before Wave 5 release work.
 
-## Waiting on Harish
+## BLOCKED
 
-- [ ] Work through `EXTERNAL-ACCESS-CHECKLIST.md`, adding status and dates as access is
-      requested or granted. Never place API keys or secrets in repository files.
-- [ ] Nominate 5–10 B2B SaaS design partners, ideally including users of the provisional
-      Tier 1 connector set.
-- [ ] Source Google and Meta ad-craft guides before Wave 3 generation work.
-- [ ] Choose a dedicated lifecycle sending domain before Wave 5.
-- [ ] Arrange qualified GDPR/CAN-SPAM/data-processing review before lifecycle ships.
+- No current Wave 0 engineering blocker.
+- Native paid import/reporting/writeback is externally gated by Google, Meta, LinkedIn and
+  Reddit access; universal CSV/manual import is not.
+- Imported-campaign adoption rules must be approved before native writeback, not before
+  read-only import.
+- Wave 1 implementation must wait for the Stage C contract-set review and Wave 0 exit gate.
 
-## Blocked
+## RECENTLY COMPLETED
 
-- Wave 1 contract freeze is unblocked: D1–D5, including D4a, are confirmed.
-- Paid platform implementation is approval-gated; access work can proceed in parallel.
-- Connector priority is provisionally approved, but implementation order should be checked
-  against design-partner usage before contracts are frozen.
+- B4.2 mobile-first grid ramp implemented across 20 app grid declarations and verified at
+  mobile, tablet and desktop widths; B4.3 has not started.
+- B4.1 mobile sidebar drawer approved after keyboard, focus and desktop-parity verification.
+- Created `PRODUCT-FEATURE-LEDGER.md` with stable IDs, dependencies, acceptance,
+  verification, source, external gate and Harish input for every scoped feature.
+- Reconciled the Growth Command Center (`W2-CMD-001`), budget planning/recommendations
+  (`W2-BUD-001`/`002`) and cross-channel imports (`W2-IMP-001`/`002`) as mission-critical.
+- B3 error/loading states shipped as `56f60f3`.
+- Repository/plan consolidation shipped in `1e295ab` and `c124ad8`.
+- Latest `main` was merged without rebasing in `295e293`; documentation checkpoint
+  `160bde6` is pushed to `origin/uiux-remediation`.
 
-## Recently completed
+## HEALTH
 
-- [x] B2-0 removed dead presentation components and extracted `Card`.
-- [x] B2-1 through B2-5 migrated the planned hardcoded colour literals to tokens.
-- [x] Dark-ramp, warning and danger tokens added and verified.
-- [x] Unified dashboard, budget planning/recommendations and campaign import accepted as
-      mission-critical product pillars.
-- [x] Provisional connector priority approved.
-- [x] Repository-backed project management and this control panel approved.
-- [x] D4a approved with customer-supplied usage cohorts for estimated token/service cost.
-- [x] Initial design partners receive free private access.
-- [x] B3 error/loading-state implementation reviewed and verified across fourteen live files.
-- [x] B3 committed as `56f60f3` without including planning or consolidation changes.
-- [x] Legacy handoffs archived and duplicate pending source trees removed in `1e295ab`.
-- [x] Approved dashboard, budget, import and D4a scope reconciled into the active plans.
-- [x] Latest `main` merged cleanly into `uiux-remediation` as `295e293`.
-
-## Health
-
-- **Typecheck:** passing after the latest `main` merge.
-- **Production build:** passing at the B3 checkpoint; rerun during B4.
-- **Tests:** no automated test suite yet.
-- **Lint:** historical repository-wide backlog remains.
-- **Git safety:** Lovable is connected; never rewrite published history or force-push.
+- **Git:** clean at task start; current bounded diff is the three control documents plus
+  B4.1 app-shell work. Lovable history safety remains mandatory—no rebase/force-push.
+- **Typecheck:** passing for B4.2.
+- **Production build:** passing for B4.2; existing deprecation/chunk warnings remain.
+- **Tests:** no automated suite yet; `W0-QA-001` is required before Wave 1.
+- **Lint:** historical whole-repository backlog remains; do not treat it as a new B4 failure.

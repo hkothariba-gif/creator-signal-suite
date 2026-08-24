@@ -1,119 +1,104 @@
 # Aspen — decisions and blockers
 
-Updated 2026-08-23. Record only decisions that materially affect scope, architecture,
-sequencing, safety or external dependencies.
+Updated 2026-08-24. Record only decisions that materially affect scope, architecture,
+sequencing, safety or external authority. Feature delivery state belongs in
+`PRODUCT-FEATURE-LEDGER.md`.
 
-## Approved operating decisions
+## Approved control system
 
-- **Repository-backed project management:** approved. Repository documents, not task memory,
-  are authoritative.
-- **Running control panel:** approved. `PROJECT-STATUS.md` is updated after every bounded
-  delivery.
-- **Autonomous execution:** Codex resolves routine implementation, testing and troubleshooting
-  independently. User updates stay concise; Harish is asked only for mission-critical scope,
-  external authority or genuinely blocking decisions.
-- **Connector priority:** provisional Tier 1 approved:
-  - Paid: Google Ads, Meta Ads, LinkedIn Ads; Reddit feasibility next.
-  - Affiliate: PartnerStack, Rewardful; impact.com feasibility next.
-  - Creator: universal CSV first, then GRIN; CreatorIQ/Aspire feasibility next.
-  - Retention: HubSpot and Customer.io first, Klaviyo next, Braze later.
-- **Scope additions:** approved — Growth Command Center, daily/monthly budget planning with
-  Ads Engine recommendations, and existing-campaign import.
-- **Previously rejected alternatives and parked/cut scope:** approved as documented in
-  `MASTER-BUILD-PLAN.md` Part 9.
+- Repository documents, not task memory, are authoritative.
+- Hierarchy is fixed: `MASTER-BUILD-PLAN.md` owns scope; `EXECUTION-PLAN.md` owns order and
+  gates; `PRODUCT-FEATURE-LEDGER.md` owns stable feature IDs/evidence;
+  `PROJECT-STATUS.md` owns current operations; this file owns material decisions/blockers;
+  `EXTERNAL-ACCESS-CHECKLIST.md` owns access work.
+- Update project status after every bounded delivery and update ledger rows without changing
+  or recycling stable IDs.
+- Codex handles routine implementation and verification autonomously. Harish is asked only
+  for material scope, external authority, review gates or genuinely blocking inputs.
+- Published Lovable-connected history is never rebased, amended or force-pushed.
 
-## D4a — cost-to-serve ladder (approved 2026-08-23)
+## Approved mission-critical product pillars
 
-### What it means
+1. **Unified Growth Command Center (`W2-CMD-001`).** One operating view covers paid,
+   retention, affiliate and creator performance, spend, pacing and core metrics. Attribution
+   conflicts and cost-fidelity omissions remain visible.
+2. **Budget planning and controlled recommendations (`W2-BUD-001`, `W2-BUD-002`,
+   `W3-SAFE-001`).** Users plan daily/monthly budgets. Aspen recommends with evidence and
+   constraints. Wave 2 is recommend-only; later provider writeback requires an explicit
+   human-confirmed action, creates campaigns paused and never spends automatically.
+3. **Existing-campaign import (`W2-IMP-001`, `W2-IMP-002`, `W3-CAM-001`, `W4-IMP-001`,
+   `W5-ESP-001`).** Universal CSV/manual mapping ships first across paid, affiliate, creator
+   and retention. Native imports follow access. All imports default to read-only mirrors.
 
-Aspen's fully loaded CAC should include not only ad spend and affiliate/creator payouts, but
-also the cost of serving the customers each channel acquires. For an AI/SaaS product that can
-include model tokens, infrastructure and account-level service costs.
+These are release scope, not optional extensions. They do not change the wave hierarchy:
+the common channel, identity, attribution, money and action contracts still land first.
 
-Aspen will **not** access a customer's backend or build provider-billing integrations.
-Instead it will report the best cost fidelity the customer can support:
+## Approved architecture and safety decisions
 
-1. **L1 — known costs only:** ad spend, creator payouts, affiliate commissions, and entered
-   tooling/agency fees.
-2. **L2 — blended cost:** customer enters last month's total AI/infrastructure bill; Aspen
-   allocates it across active accounts.
-3. **L3 — per-plan cost:** customer enters an estimated service cost for each plan tier;
-   Aspen weights cost by the plan mix each channel acquired.
-4. **L4 — metered events:** customer posts `cost_minor` or token usage through Aspen's normal
-   event-ingest pipe, allowing account-level cost calculation.
+- **D1 action vocabulary:** one typed action set serves app, chat, Slack, portal,
+  automation and the decision log. Money/public actions require confirmation.
+- **D2 event/identity spine:** visitor → person → account, with conversions attaching at
+  the level actually resolved and model defaults selected per funnel shape.
+- **D3 channel model:** every source uses one channel model; attribution credit sums to one
+  and overlapping platform claims create visible conflicts.
+- **D4 money spine:** bigint minor units plus currency, actual spend at daily grain, no
+  invented currency conversion, and honest null/zero handling.
+- **D4a cost fidelity:** L1 known, L2 blended, L3 per-plan/cohort-estimated, L4 metered from
+  customer-posted events. Aspen never accesses customer backends or provider billing APIs;
+  every CAC/return shows fidelity and missing inputs.
+- **D5 automation engine:** ads rules, lifecycle journeys and decision queues share
+  trigger → condition → wait → action.
+- Organisation scoping/RLS is part of the Wave 1 contract and migration, not deferred
+  cleanup. Creator-visible data must be walled by brand relationship.
+- Native campaign adoption/writeback is an explicit audited state change. Current approved
+  ceiling is recommendation plus human confirmation; no autonomous budget limit is approved.
 
-Where a customer already has a token-usage or cost-metering system, they can share an export,
-summary or supported feed from that system. Aspen uses existing-client cohorts — account
-size, plan, usage profile and observed token cost — to estimate the monthly cost of serving a
-new customer with similar characteristics. This is customer-supplied data, not Aspen access
-to the customer's backend.
+## Approved connector priority
 
-Estimated token cost is included in the recalculated CAC when the data is available. The UI
-must distinguish **estimated**, **blended**, **per-plan** and **measured** cost; it must not
-present a cohort estimate as metered fact.
+- **Paid:** Google Ads, Meta Ads and LinkedIn Ads; Reddit feasibility next. YouTube uses
+  Google Ads. X remains discovery/export-only.
+- **Affiliate:** PartnerStack and Rewardful; impact.com feasibility next.
+- **Creator:** universal CSV first, then GRIN; CreatorIQ/Aspire are demand-led feasibility.
+- **Retention:** HubSpot and Customer.io first, Klaviyo next, Braze later.
 
-Every CAC/return figure displays its fidelity rung and states what is missing. Aspen never
-silently presents an incomplete cost as fully loaded.
+Implementation order within these tiers follows usable access and design-partner evidence.
+Requirements must be rechecked in official provider portals when applications begin.
 
-### Decision
+## Approved scope boundaries
 
-- [x] Build L1–L4 without accessing customer backends.
-- [x] Do not build OpenAI, AWS or other provider-billing connectors.
-- [x] Let customers use the highest level they can support.
-- [x] Display the cost-fidelity level and what is missing on every CAC/return figure.
-- [x] When customer-supplied usage data exists, estimate new-customer token/service cost by
-      comparable account size, plan and usage, and include that estimate in recalculated CAC.
-- [x] Keep estimates visibly distinct from measured cost events.
+- **Cut:** Google Shopping, push notifications, X ads management, LinkedIn personal-DM
+  automation and provider billing-API connectors.
+- **Parked:** newsletters as a supply type, MMM/holdouts, TikTok/Instagram/Meta organic,
+  paywall/trial UI, growth school and full AI-video origination.
+- **LinkedIn route:** official paid Conversation/Sponsored Messaging plus a human-assisted
+  queue only.
+- **Release:** one public launch after Wave 7, with private design-partner checkpoints after
+  Waves 2 and 4. Initial design partners receive free private access.
 
-## Design-partner choices
+## Open decisions — timed, not current blockers
 
-This does not mean choosing between different product designs today. It means selecting the
-companies and users who will privately test Aspen before the single public launch.
+| Decision | Default until decided | Needed by | Harish required |
+| --- | --- | --- | --- |
+| Imported campaign adoption conditions | Stay `read_only`; no provider writeback | Before `W3-CAM-001` writeback | Approve provider eligibility, ownership proof and rollback rules. |
+| Autonomous budget ceiling | No autonomous adjustment | Any proposal beyond `W3-SAFE-001` | New explicit scope/safety approval. |
+| Connector order after Tier 1 | Follow design-partner demand and usable access | Before later-adapter contracts | Nominate partners and validate platform usage. |
+| Public launch authorization | One launch after Wave 7 gates | `W7-REL-001` | Approve after release evidence is presented. |
+| Podcast second pass | Existing extraction/master scope stands | Optional | Re-upload transcript if wanted. |
 
-### Checkpoint 1 — end of Wave 2
+## External blockers and owners
 
-Test the attribution, Growth Command Center, campaign imports, budget pacing, fully loaded
-CAC and creator/affiliate performance with real B2B SaaS data.
+| Gate | Blocks | Current state | Harish action |
+| --- | --- | --- | --- |
+| Google Ads developer token/OAuth/basic access | Native Google import, reporting and writeback | not-started | Confirm manager account and request token. |
+| Meta verification/app advanced access | Native Meta import, reporting and writeback | not-started | Begin business verification and create app. |
+| LinkedIn Marketing approval | Native LinkedIn paid import/messaging | not-started | Submit application. |
+| Reddit Ads API route | Reddit native adapter | not-started | Confirm access/partner route. |
+| Representative CSV exports | Universal import mapping quality | not-started | Obtain paid/affiliate/creator/retention samples. |
+| Google/Meta craft guides | Grounded generation for those platforms | not-started | Supply approved materials. |
+| Sending domain/provider and DNS | Production lifecycle delivery | not-started | Choose provider/domain and retain DNS access. |
+| Qualified GDPR/CAN-SPAM/DPA review | Identity/lifecycle release gates | not-started | Engage qualified reviewer. |
+| Design partners/data permission | Wave 2 and Wave 4 checkpoints | not-started | Nominate companies/creators and agree cadence/permissions. |
 
-Preferred partners:
-
-- 3–5 B2B SaaS growth teams;
-- a mix of self-serve and sales-led funnels;
-- at least one PartnerStack or Rewardful user;
-- at least one Google + Meta + LinkedIn advertiser;
-- at least one HubSpot or Customer.io lifecycle user;
-- willing to connect read-only data and review attribution conflicts.
-
-### Checkpoint 2 — end of Wave 4
-
-Test the creator operating system and portal with both sides of the workflow.
-
-Preferred participants:
-
-- 2–3 brands already running creator campaigns;
-- 5–10 creators who can test invitations, briefs, uploads, review, rights and payments;
-- ideally one brand migrating from GRIN or a structured spreadsheet workflow.
-
-### Choices required from Harish
-
-- [ ] Nominate candidate companies and contacts.
-- [x] Initial design partners receive free private access.
-- [ ] Decide what data they may connect and what feedback cadence they commit to.
-
-## Unresolved product calls
-
-The previous audit's product-call list is no longer generally unresolved. The master plan
-Part 7 settled the major items: `AdsLibrary`, `AuthenticAdStudio`, campaign offer/status,
-affiliate-link ownership, spend, org scoping, `/health`, and dark internal screens.
-
-Current unresolved calls are:
-
-1. **Connector order after Tier 1** — driven by design-partner usage and API feasibility.
-2. **Import ownership modes:** default is read-only mirror; exact conditions for adopting an
-   imported campaign for Aspen management must be specified before writeback ships.
-3. **Budget automation ceiling:** current plan is recommendation + human confirmation; any
-   future autonomous adjustment limits remain deliberately undecided.
-4. **Public release timing:** master plan says one launch after Wave 7; controlled private
-   design-partner checkpoints are approved, but a broader beta has not been approved.
-
-None of these blocks current Wave 0 work or the Wave 1 contract freeze.
+None of these external items blocks B4/B5. Universal CSV/manual import can be built without
+native provider approvals. Stage C contract writing can proceed after Wave 0, but Wave 1
+implementation begins only after the contract set is reviewed together.

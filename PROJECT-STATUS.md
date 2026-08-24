@@ -6,22 +6,22 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## NOW
 
-- **Wave 0 / B4.2 review:** mobile-first card grids are implemented; stop here before B4.3
-  wide-data treatment and the all-route overflow sweep.
-- Browser-measured Home/Platforms grids: one column at 375 px, two at 700 px and three at
-  1100 px where specified, with no document-level horizontal overflow in those samples.
-- All authenticated app auto-fit/auto-fill grids are removed. Typecheck and build pass.
+- **Wave 0 / B4.3 review:** responsive wide-data treatment and the 375 px all-route sweep
+  are complete; stop here before B5.
+- Affiliate performance and the five-stage hotlist board remain horizontally scrollable
+  inside the page and have visible right-edge fades.
+- Every authenticated `/app` route was browser-measured at 375 px with no document-level
+  horizontal overflow.
 
 ## NEXT
 
-1. After Harish reviews B4.2, deliver B4.3 wide-data treatment and the 375 px all-route
-   overflow sweep.
-2. Complete B5 in its five review/commit groups.
-3. Add the Wave 0 test foundation; then merge Wave 0 before Stage C/Wave 1 contracts.
+1. After Harish reviews B4.3, complete B5 in its five review/commit groups.
+2. Add the Wave 0 test foundation.
+3. Merge Wave 0 before Stage C/Wave 1 contracts.
 
 ## WAITING ON HARISH
 
-- Review the B4.2 card-grid checkpoint when presented.
+- Review the B4.3 wide-data and 375 px route-sweep checkpoint when presented.
 - Start and date the access actions in `EXTERNAL-ACCESS-CHECKLIST.md`; never commit secrets.
 - Nominate 5–10 B2B SaaS design partners and agree their data/feedback permissions.
 - Obtain representative cross-channel and creator/payment exports for import design.
@@ -40,8 +40,11 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## RECENTLY COMPLETED
 
-- B4.2 mobile-first grid ramp implemented across 20 app grid declarations and verified at
-  mobile, tablet and desktop widths; B4.3 has not started.
+- B4.3 contained the affiliate performance rows and hotlist board in horizontally
+  scrollable regions with visible edge fades; all authenticated app routes passed the
+  375 px document-overflow sweep.
+- B4.2 mobile-first grid ramp implemented across 20 app grid declarations and approved by
+  continuation to B4.3.
 - B4.1 mobile sidebar drawer approved after keyboard, focus and desktop-parity verification.
 - Created `PRODUCT-FEATURE-LEDGER.md` with stable IDs, dependencies, acceptance,
   verification, source, external gate and Harish input for every scoped feature.
@@ -54,9 +57,9 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## HEALTH
 
-- **Git:** clean at task start; current bounded diff is the three control documents plus
-  B4.1 app-shell work. Lovable history safety remains mandatory—no rebase/force-push.
-- **Typecheck:** passing for B4.2.
-- **Production build:** passing for B4.2; existing deprecation/chunk warnings remain.
+- **Git:** `uiux-remediation` was synchronized to origin before B4.3; current bounded diff
+  is B4.3 plus its status/ledger updates. Never rebase or force-push Lovable history.
+- **Typecheck:** passing for B4.3.
+- **Production build:** passing for B4.3; existing deprecation/chunk warnings remain.
 - **Tests:** no automated suite yet; `W0-QA-001` is required before Wave 1.
 - **Lint:** historical whole-repository backlog remains; do not treat it as a new B4 failure.

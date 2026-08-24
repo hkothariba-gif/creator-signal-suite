@@ -264,40 +264,46 @@ function AffiliatePage() {
         emptyTitle="No tracking links yet"
         emptyHint="Create a link per creator above. Clicks, conversions and revenue then show here, and payouts follow the same rows."
       >
-        <div className="bg-surface border-[1.5px] border-border rounded-[20px] overflow-hidden">
-          <div className="flex gap-[12px] p-[14px_22px] border-b-[1.5px] border-border-soft text-[10.5px] font-bold tracking-[0.12em] text-subtle">
-            <span className="flex-[2]">CREATOR / LINK</span>
-            <span className="flex-1 text-right">CLICKS</span>
-            <span className="flex-1 text-right">CONV.</span>
-            <span className="flex-1 text-right">REVENUE</span>
-            <span className="flex-1 text-right">RATE</span>
-          </div>
-          {links.map((l) => {
-            const stat = perfByLink.get(l.id);
-            return (
-              <div
-                key={l.id}
-                className="flex gap-[12px] items-center p-[15px_22px] border-b-[1px] border-sand"
-              >
-                <div className="flex-[2] min-w-0">
-                  <div className="text-[14.5px] font-bold">{l.label || "Untitled link"}</div>
-                  <div className="text-[12.5px] text-subtle mt-[2px] truncate">{l.trackingUrl}</div>
-                </div>
-                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
-                  {stat ? stat.clicks.toLocaleString() : dash}
-                </span>
-                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
-                  {stat ? stat.conversions.toLocaleString() : dash}
-                </span>
-                <span className="flex-1 text-right text-[14px] font-bold">
-                  {stat ? money(stat.revenueMinor, currency) : dash}
-                </span>
-                <span className="flex-1 text-right text-[14px] font-bold text-accent">
-                  {stat ? `${(stat.conversionRate * 100).toFixed(1)}%` : dash}
-                </span>
+        <div className="relative rounded-[20px] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-[44px] after:rounded-r-[20px] after:bg-gradient-to-l after:from-surface after:to-transparent after:content-['']">
+          <div className="overflow-x-auto rounded-[20px] border-[1.5px] border-border bg-surface">
+            <div className="min-w-[680px]">
+              <div className="flex gap-[12px] p-[14px_22px] border-b-[1.5px] border-border-soft text-[10.5px] font-bold tracking-[0.12em] text-subtle">
+                <span className="flex-[2]">CREATOR / LINK</span>
+                <span className="flex-1 text-right">CLICKS</span>
+                <span className="flex-1 text-right">CONV.</span>
+                <span className="flex-1 text-right">REVENUE</span>
+                <span className="flex-1 text-right">RATE</span>
               </div>
-            );
-          })}
+              {links.map((l) => {
+                const stat = perfByLink.get(l.id);
+                return (
+                  <div
+                    key={l.id}
+                    className="flex gap-[12px] items-center p-[15px_22px] border-b-[1px] border-sand"
+                  >
+                    <div className="flex-[2] min-w-0">
+                      <div className="text-[14.5px] font-bold">{l.label || "Untitled link"}</div>
+                      <div className="text-[12.5px] text-subtle mt-[2px] truncate">
+                        {l.trackingUrl}
+                      </div>
+                    </div>
+                    <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                      {stat ? stat.clicks.toLocaleString() : dash}
+                    </span>
+                    <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                      {stat ? stat.conversions.toLocaleString() : dash}
+                    </span>
+                    <span className="flex-1 text-right text-[14px] font-bold">
+                      {stat ? money(stat.revenueMinor, currency) : dash}
+                    </span>
+                    <span className="flex-1 text-right text-[14px] font-bold text-accent">
+                      {stat ? `${(stat.conversionRate * 100).toFixed(1)}%` : dash}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </DataGate>
     </div>

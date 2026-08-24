@@ -263,90 +263,91 @@ function HotlistPage() {
           </Link>
         }
       >
-
-        <div className="flex gap-[14px] overflow-x-auto pb-[12px]">
-          {STAGES.map((col) => (
-            <div
-              key={col.key}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (dragging) moveTo(dragging, col.key);
-                setDragging(null);
-              }}
-              className="min-w-[262px] w-[262px] shrink-0 bg-sand-deep rounded-[18px] p-[14px]"
-            >
-              <div className="flex items-center gap-[8px] mb-[12px]">
-                <span className="font-bold text-[14px]">{col.label}</span>
-                <span className="text-[11px] font-bold text-subtle bg-surface p-[2px_8px] rounded-[7px]">
-                  {byStage[col.key].length}
-                </span>
-              </div>
-              <div className="flex flex-col gap-[9px]">
-                {byStage[col.key].map((c) => {
-                  const mark = platMark(c.platform);
-                  return (
-                    <div
-                      key={c.id}
-                      draggable
-                      onDragStart={() => setDragging(c.id)}
-                      onDragEnd={() => setDragging(null)}
-                      className="bg-surface border-[1.5px] border-border rounded-[14px] p-[13px] cursor-grab active:cursor-grabbing"
-                    >
-                      <div className="flex gap-[10px] items-center">
-                        {c.avatar_url ? (
-                          <img
-                            src={c.avatar_url}
-                            alt=""
-                            className="w-[30px] h-[30px] rounded-[9px] shrink-0 object-cover"
-                          />
-                        ) : (
-                          <div
-                            className="w-[30px] h-[30px] rounded-[9px] text-surface grid place-items-center font-extrabold text-[11px] shrink-0"
-                            style={{ background: mark.color }}
-                          >
-                            {mark.glyph}
+        <div className="relative after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-[48px] after:bg-gradient-to-l after:from-cream after:to-transparent after:content-['']">
+          <div className="flex gap-[14px] overflow-x-auto pb-[12px] pr-[34px]">
+            {STAGES.map((col) => (
+              <div
+                key={col.key}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => {
+                  if (dragging) moveTo(dragging, col.key);
+                  setDragging(null);
+                }}
+                className="min-w-[262px] w-[262px] shrink-0 bg-sand-deep rounded-[18px] p-[14px]"
+              >
+                <div className="flex items-center gap-[8px] mb-[12px]">
+                  <span className="font-bold text-[14px]">{col.label}</span>
+                  <span className="text-[11px] font-bold text-subtle bg-surface p-[2px_8px] rounded-[7px]">
+                    {byStage[col.key].length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-[9px]">
+                  {byStage[col.key].map((c) => {
+                    const mark = platMark(c.platform);
+                    return (
+                      <div
+                        key={c.id}
+                        draggable
+                        onDragStart={() => setDragging(c.id)}
+                        onDragEnd={() => setDragging(null)}
+                        className="bg-surface border-[1.5px] border-border rounded-[14px] p-[13px] cursor-grab active:cursor-grabbing"
+                      >
+                        <div className="flex gap-[10px] items-center">
+                          {c.avatar_url ? (
+                            <img
+                              src={c.avatar_url}
+                              alt=""
+                              className="w-[30px] h-[30px] rounded-[9px] shrink-0 object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="w-[30px] h-[30px] rounded-[9px] text-surface grid place-items-center font-extrabold text-[11px] shrink-0"
+                              style={{ background: mark.color }}
+                            >
+                              {mark.glyph}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              to="/app/creators/$id"
+                              params={{ id: c.id }}
+                              className="text-[13.5px] font-bold leading-[1.3] block truncate"
+                            >
+                              {c.creator_name}
+                            </Link>
                           </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            to="/app/creators/$id"
-                            params={{ id: c.id }}
-                            className="text-[13.5px] font-bold leading-[1.3] block truncate"
-                          >
-                            {c.creator_name}
-                          </Link>
+                        </div>
+                        <div className="flex gap-[6px] mt-[10px] flex-wrap">
+                          {typeof c.score === "number" ? (
+                            <span className="text-[10.5px] font-bold bg-tint text-accent-ink p-[3px_7px] rounded-[6px]">
+                              {c.score}% fit
+                            </span>
+                          ) : null}
+                          {c.cpm ? (
+                            <span className="text-[10.5px] font-bold bg-sand text-muted p-[3px_7px] rounded-[6px]">
+                              {c.cpm}
+                            </span>
+                          ) : null}
+                        </div>
+                        {/* Keyboard/no-drag fallback, as the dark version had. */}
+                        <div className="flex gap-[8px] mt-[9px] flex-wrap">
+                          {STAGES.filter((s) => s.key !== (c.stage ?? "saved")).map((s) => (
+                            <button
+                              key={s.key}
+                              onClick={() => moveTo(c.id, s.key)}
+                              className="border-0 bg-transparent p-0 text-[10.5px] font-semibold text-subtle cursor-pointer ah20"
+                            >
+                              → {s.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
-                      <div className="flex gap-[6px] mt-[10px] flex-wrap">
-                        {typeof c.score === "number" ? (
-                          <span className="text-[10.5px] font-bold bg-tint text-accent-ink p-[3px_7px] rounded-[6px]">
-                            {c.score}% fit
-                          </span>
-                        ) : null}
-                        {c.cpm ? (
-                          <span className="text-[10.5px] font-bold bg-sand text-muted p-[3px_7px] rounded-[6px]">
-                            {c.cpm}
-                          </span>
-                        ) : null}
-                      </div>
-                      {/* Keyboard/no-drag fallback, as the dark version had. */}
-                      <div className="flex gap-[8px] mt-[9px] flex-wrap">
-                        {STAGES.filter((s) => s.key !== (c.stage ?? "saved")).map((s) => (
-                          <button
-                            key={s.key}
-                            onClick={() => moveTo(c.id, s.key)}
-                            className="border-0 bg-transparent p-0 text-[10.5px] font-semibold text-subtle cursor-pointer ah20"
-                          >
-                            → {s.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </DataGate>
     </div>

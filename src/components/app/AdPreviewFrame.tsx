@@ -1,4 +1,12 @@
-import { ThumbsUp, MessageSquare, Repeat2, Heart, ArrowBigUp, ArrowBigDown, Play } from "lucide-react";
+import {
+  ThumbsUp,
+  MessageSquare,
+  Repeat2,
+  Heart,
+  ArrowBigUp,
+  ArrowBigDown,
+  Play,
+} from "lucide-react";
 
 // Ads Engine v2: platform-true preview frames. Renders generated copy (and an
 // optional image) inside a realistic LinkedIn / X / Reddit / YouTube ad shell
@@ -69,9 +77,15 @@ export function AdPreviewFrame({
           )}
         </div>
         <div className="mt-2 flex gap-4 text-gray-500 text-[11px]">
-          <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> Like</span>
-          <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Comment</span>
-          <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> Repost</span>
+          <span className="flex items-center gap-1">
+            <ThumbsUp className="w-3 h-3" /> Like
+          </span>
+          <span className="flex items-center gap-1">
+            <MessageSquare className="w-3 h-3" /> Comment
+          </span>
+          <span className="flex items-center gap-1">
+            <Repeat2 className="w-3 h-3" /> Repost
+          </span>
         </div>
       </div>
     );
@@ -129,9 +143,7 @@ export function AdPreviewFrame({
           {avatar}
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-white leading-snug">{headline}</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {brand} · Sponsored
-            </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">{brand} · Sponsored</p>
             <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{body}</p>
           </div>
           {cta && (
@@ -156,7 +168,8 @@ export function AdPreviewFrame({
       <div className="flex items-center gap-2">
         {avatar}
         <p className="text-[12px] text-gray-300 font-semibold">
-          u/{brand.replace(/\s+/g, "")} <span className="text-gray-500 font-normal">· Promoted</span>
+          u/{brand.replace(/\s+/g, "")}{" "}
+          <span className="text-gray-500 font-normal">· Promoted</span>
         </p>
       </div>
       <p className="mt-2 text-[14px] font-semibold text-white leading-snug">{headline}</p>
@@ -174,7 +187,9 @@ export function AdPreviewFrame({
         <span className="flex items-center gap-1">
           <ArrowBigUp className="w-3.5 h-3.5" /> Vote <ArrowBigDown className="w-3.5 h-3.5" />
         </span>
-        <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Comments</span>
+        <span className="flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Comments
+        </span>
       </div>
     </div>
   );

@@ -205,7 +205,10 @@ function PlatformsPage() {
                     className="text-[11px] font-bold p-[4px_9px] rounded-[7px] shrink-0"
                     style={
                       connected
-                        ? { background: "var(--color-success-wash)", color: "var(--color-success-ink)" }
+                        ? {
+                            background: "var(--color-success-wash)",
+                            color: "var(--color-success-ink)",
+                          }
                         : { background: "var(--color-sand)", color: "var(--color-subtle)" }
                     }
                   >

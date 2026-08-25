@@ -14,7 +14,6 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -81,15 +80,41 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Aspen | Creator discovery, affiliates and ads in one workspace" },
-      { name: "description", content: "Aspen finds the creators your buyers already trust on YouTube, Reddit, X and LinkedIn, then runs your affiliates and ads from the same workspace." },
-      { property: "og:title", content: "Aspen | Creator discovery, affiliates and ads in one workspace" },
-      { property: "og:description", content: "Aspen finds the creators your buyers already trust on YouTube, Reddit, X and LinkedIn, then runs your affiliates and ads from the same workspace." },
+      {
+        name: "description",
+        content:
+          "Aspen finds the creators your buyers already trust on YouTube, Reddit, X and LinkedIn, then runs your affiliates and ads from the same workspace.",
+      },
+      {
+        property: "og:title",
+        content: "Aspen | Creator discovery, affiliates and ads in one workspace",
+      },
+      {
+        property: "og:description",
+        content:
+          "Aspen finds the creators your buyers already trust on YouTube, Reddit, X and LinkedIn, then runs your affiliates and ads from the same workspace.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Aspen | Creator discovery, affiliates and ads in one workspace" },
-      { name: "twitter:description", content: "Aspen finds the creators your buyers already trust on YouTube, Reddit, X and LinkedIn, then runs your affiliates and ads from the same workspace." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9ad80492-2ac1-45f9-9b50-9209d443816d/id-preview-2f9387b1--d5eba58f-da17-436e-84f4-c10784ee755d.lovable.app-1782659423124.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9ad80492-2ac1-45f9-9b50-9209d443816d/id-preview-2f9387b1--d5eba58f-da17-436e-84f4-c10784ee755d.lovable.app-1782659423124.png" },
+      {
+        name: "twitter:title",
+        content: "Aspen | Creator discovery, affiliates and ads in one workspace",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Aspen finds the creators your buyers already trust on YouTube, Reddit, X and LinkedIn, then runs your affiliates and ads from the same workspace.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9ad80492-2ac1-45f9-9b50-9209d443816d/id-preview-2f9387b1--d5eba58f-da17-436e-84f4-c10784ee755d.lovable.app-1782659423124.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9ad80492-2ac1-45f9-9b50-9209d443816d/id-preview-2f9387b1--d5eba58f-da17-436e-84f4-c10784ee755d.lovable.app-1782659423124.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

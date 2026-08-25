@@ -49,12 +49,17 @@ type DataGateProps = {
   children: ReactNode;
 };
 
-
 /* The retry control every failed panel offers. Hand-rolled at each call site
    until this existed; it is one component so fifteen screens cannot drift into
    fifteen slightly different buttons. Styled for `.aspen-scope` (all /app
    routes) — the dark screens do not pass an errorAction today. */
-export function RetryButton({ onClick, label = "Try again" }: { onClick: () => void; label?: string }) {
+export function RetryButton({
+  onClick,
+  label = "Try again",
+}: {
+  onClick: () => void;
+  label?: string;
+}) {
   return (
     <button
       onClick={onClick}
@@ -137,9 +142,7 @@ export function DataGate({
     // panels where there is nothing useful to offer.
     return (
       <div className={panelClass(variant, className)}>
-        <span className={`text-[15px] font-bold ${titleText}`}>
-          {emptyTitle ?? EMPTY_COPY}
-        </span>
+        <span className={`text-[15px] font-bold ${titleText}`}>{emptyTitle ?? EMPTY_COPY}</span>
         {emptyHint ? (
           <span className={`mt-2 max-w-[380px] text-[13px] leading-[1.5] ${hintText}`}>
             {emptyHint}

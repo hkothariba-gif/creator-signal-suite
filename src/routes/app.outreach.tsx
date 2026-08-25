@@ -211,7 +211,9 @@ function OutreachPage() {
                   key={t.id}
                   onClick={() => openThread(t)}
                   className="text-left cursor-pointer bg-surface rounded-[15px] p-[14px_15px]"
-                  style={{ border: `1.5px solid ${on ? "var(--color-accent)" : "var(--color-border)"}` }}
+                  style={{
+                    border: `1.5px solid ${on ? "var(--color-accent)" : "var(--color-border)"}`,
+                  }}
                 >
                   <div className="flex items-center justify-between gap-[10px]">
                     <span className="text-[14.5px] font-bold truncate">
@@ -320,7 +322,12 @@ function OutreachPage() {
                           </span>
                           <span
                             className="text-[11px] font-semibold"
-                            style={{ color: m.status === "failed" ? "var(--color-accent-deep)" : "var(--color-subtle)" }}
+                            style={{
+                              color:
+                                m.status === "failed"
+                                  ? "var(--color-accent-deep)"
+                                  : "var(--color-subtle)",
+                            }}
                           >
                             {m.status}
                           </span>

@@ -15,28 +15,15 @@ export const Route = createFileRoute("/health")({
 });
 
 function HealthPage() {
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    refetch,
-    dataUpdatedAt,
-  } = useQuery({
+  const { data, isLoading, isError, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: ["supabase-health"],
     queryFn: checkSupabaseHealth,
     refetchInterval: 30000,
   });
 
-  const status = isLoading
-    ? "checking"
-    : isError || !data?.ok
-      ? "error"
-      : "ok";
+  const status = isLoading ? "checking" : isError || !data?.ok ? "error" : "ok";
 
-  const checkedAt = dataUpdatedAt
-    ? new Date(dataUpdatedAt).toLocaleString()
-    : "N/A";
+  const checkedAt = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleString() : "N/A";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-bg-base">
@@ -53,7 +40,10 @@ function HealthPage() {
 
         <div
           className="rounded-2xl p-8"
-          style={{ background: "var(--color-bg-surface)", border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{
+            background: "var(--color-bg-surface)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-lg bg-white/5">

@@ -44,6 +44,7 @@ const platMark = (p: string | null | undefined) => {
 function CreatorProfilePage() {
   const { id } = useParams({ from: "/app/creators/$id" });
   const { user } = useAuth();
+  const userId = user?.id;
   const status = useConnectorStatus();
   const [row, setRow] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,14 +62,14 @@ function CreatorProfilePage() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("hotlist")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("id", id)
         .maybeSingle();
       if (!cancelled) {
@@ -80,7 +81,7 @@ function CreatorProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, id, reloadKey]);
+  }, [userId, id, reloadKey]);
 
   const moveTo = async (stage: string) => {
     if (!row) return;

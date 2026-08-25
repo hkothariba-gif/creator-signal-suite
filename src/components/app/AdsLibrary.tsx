@@ -25,7 +25,11 @@ type AdRow = {
   } | null;
 };
 
-const STATUS_FLOW: Record<string, string> = { draft: "approved", saved: "approved", approved: "archived" };
+const STATUS_FLOW: Record<string, string> = {
+  draft: "approved",
+  saved: "approved",
+  approved: "archived",
+};
 
 export function AdsLibrary({
   organizationId,
@@ -82,7 +86,9 @@ export function AdsLibrary({
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize ${
-              filter === f ? "bg-brand-green text-bg-base" : "bg-white/[0.05] text-brand-muted hover:text-white"
+              filter === f
+                ? "bg-brand-green text-bg-base"
+                : "bg-white/[0.05] text-brand-muted hover:text-white"
             }`}
           >
             {f}
@@ -103,7 +109,8 @@ export function AdsLibrary({
           {visible.map((ad) => {
             const style = AD_STYLES.find((s) => s.id === ad.provenance?.style);
             const gates = ad.provenance?.gates ?? {};
-            const passed = Object.values(gates).length > 0 && Object.values(gates).every((g) => g.pass);
+            const passed =
+              Object.values(gates).length > 0 && Object.values(gates).every((g) => g.pass);
             return (
               <Card key={ad.id} className="p-3 space-y-2">
                 <AdPreviewFrame
@@ -125,7 +132,9 @@ export function AdsLibrary({
                   {Object.keys(gates).length > 0 && (
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        passed ? "bg-brand-green/15 text-brand-green" : "bg-brand-amber/15 text-brand-amber"
+                        passed
+                          ? "bg-brand-green/15 text-brand-green"
+                          : "bg-brand-amber/15 text-brand-amber"
                       }`}
                     >
                       {passed ? "Gates ✓" : "Flagged"}

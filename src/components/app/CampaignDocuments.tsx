@@ -82,7 +82,7 @@ export function CampaignDocuments({
       return;
     }
     setUploading(true);
-    const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+    const safeName = file.name.replace(/[^\w.-]+/g, "_");
     const path = `${user.id}/${campaignId}/${Date.now()}-${safeName}`;
     const up = await supabase.storage
       .from("brand-docs")

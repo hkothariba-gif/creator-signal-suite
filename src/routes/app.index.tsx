@@ -34,7 +34,6 @@ function formatMoney(v?: { minor: number; currency: string }) {
   }
 }
 
-
 function HomePage() {
   const { user } = useAuth();
   const status = useConnectorStatus();
@@ -109,7 +108,6 @@ function HomePage() {
       };
     },
   });
-
 
   const rows = hotlist.data ?? [];
   const topCreators = rows.filter((r) => r.score != null).slice(0, 4);
@@ -262,7 +260,6 @@ function HomePage() {
             errorHint="The request to your hotlist failed. Reload the page to try again."
             label="Scores load from the creator performance connection"
           >
-
             <div className="flex flex-col gap-[16px]">
               {topCreators.map((c) => (
                 <div key={c.id}>
@@ -312,7 +309,6 @@ function HomePage() {
               Waiting for API connection — revenue loads from your sales connection.
             </div>
           )}
-
         </div>
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_4px]">Quick actions</h3>

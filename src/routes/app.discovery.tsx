@@ -76,6 +76,7 @@ const searchYouTubeChannels = createServerFn({ method: "GET" })
 
 function DiscoveryPage() {
   const { user } = useAuth();
+  const userId = user?.id;
   const { campaign: campaignParam } = Route.useSearch();
   const { selected } = useAspenCampaign();
   const status = useConnectorStatus();
@@ -96,13 +97,13 @@ function DiscoveryPage() {
   // Load the selected campaign (or most recent) to prefill the query and to
   // score fit against. Runs when the chosen campaign changes.
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let cancelled = false;
     (async () => {
       let q = supabase
         .from("campaigns")
         .select("id,name,product_description,target_audience,search_criteria")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1);
       if (campaignId) q = q.eq("id", campaignId);
@@ -121,17 +122,17 @@ function DiscoveryPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, campaignId]);
+  }, [userId, campaignId]);
 
   // Which of these creators are already saved, and under what row id.
   useEffect(() => {
-    if (!user || results.length === 0) return;
+    if (!userId || results.length === 0) return;
     let cancelled = false;
     (async () => {
       const { data } = await supabase
         .from("hotlist")
         .select("id,external_id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .in(
           "external_id",
           results.map((r) => r.id),
@@ -144,7 +145,7 @@ function DiscoveryPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, results]);
+  }, [userId, results]);
 
   const handleSearch = async () => {
     if (!ytReady || !query.trim()) return;
@@ -167,7 +168,6 @@ function DiscoveryPage() {
       setLoading(false);
     }
   };
-
 
   // Quick keyword fit shown right in Discovery. This is the fast client side
   // estimate; the full LLM and channel weighted score is computed on the
@@ -276,13 +276,16 @@ function DiscoveryPage() {
         )}
       </div>
 
-
       <DataGate
         connected={ytReady}
         loading={status.isLoading || loading}
         empty={searched && !searchError && results.length === 0}
         error={!!searchError || status.isError}
-        errorTitle={searchError ? "Search failed — YouTube returned an error" : "Could not check your connections"}
+        errorTitle={
+          searchError
+            ? "Search failed — YouTube returned an error"
+            : "Could not check your connections"
+        }
         errorHint={
           searchError ??
           (status.isError
@@ -301,8 +304,6 @@ function DiscoveryPage() {
         emptyTitle="Nothing matched that search"
         emptyHint="Try a broader phrase, or the words your buyers would use for the problem rather than your product name."
       >
-
-
         {results.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
             {results.map((c) => {
@@ -387,7 +388,6 @@ function DiscoveryPage() {
               Describe who you want to reach and Aspen searches YouTube for matching channels.
               Reddit, X and LinkedIn join as they connect.
             </p>
-
           </div>
         )}
       </DataGate>

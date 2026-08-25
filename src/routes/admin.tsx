@@ -64,7 +64,9 @@ function AdminPage() {
           <span className="text-lg font-extrabold tracking-tight">
             Aspen<span className="text-brand-green">Reach</span>
           </span>
-          <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-brand-violet text-white">Admin</span>
+          <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-brand-violet text-white">
+            Admin
+          </span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-brand-muted">{user.email}</span>
@@ -85,9 +87,21 @@ function AdminPage() {
         <p className="text-brand-muted mb-6">Workspace overview</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <StatCard label="Team members" value={stats.data ? String(stats.data.members) : "…"} trend="" />
-          <StatCard label="Pending invitations" value={stats.data ? String(stats.data.pendingInvites) : "…"} trend="" />
-          <StatCard label="Projects" value={stats.data ? String(stats.data.projects) : "…"} trend="" />
+          <StatCard
+            label="Team members"
+            value={stats.data ? String(stats.data.members) : "…"}
+            trend=""
+          />
+          <StatCard
+            label="Pending invitations"
+            value={stats.data ? String(stats.data.pendingInvites) : "…"}
+            trend=""
+          />
+          <StatCard
+            label="Projects"
+            value={stats.data ? String(stats.data.projects) : "…"}
+            trend=""
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

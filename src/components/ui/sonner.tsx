@@ -6,6 +6,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
+      // Sonner renders this container as an aria-live="polite" region. Keep
+      // the label explicit so feedback has a stable accessible name.
+      containerAriaLabel="Notifications"
       toastOptions={{
         classNames: {
           toast:

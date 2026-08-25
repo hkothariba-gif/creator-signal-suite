@@ -2646,6 +2646,50 @@ body:not(:has(.aspen-scope)) {
   min-height: 0;
 }
 
+/* One keyboard-only focus treatment for every native or ARIA control. This is
+   deliberately unlayered so it restores a visible ring even where a legacy
+   `outline-none` utility is still present. Mouse clicks keep their normal
+   appearance through `:focus-visible`. */
+:where(
+  a[href],
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [contenteditable="true"],
+  [role="button"],
+  [role="link"],
+  [role="tab"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"],
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
+  outline: 3px solid var(--color-brand-green);
+  outline-offset: 3px;
+}
+
+.aspen-scope
+  :where(
+    a[href],
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [contenteditable="true"],
+    [role="button"],
+    [role="link"],
+    [role="tab"],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+  outline-color: var(--color-accent);
+}
+
 /* DataGate's "Waiting for API connection" / "No data to display" placeholder
    ships dark (#0C1222 on white-alpha borders) for /admin and the screens still
    on the old palette. Inside an Aspen page it has to read as a cream card, so

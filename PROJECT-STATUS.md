@@ -6,22 +6,20 @@ Updated 2026-08-25. Operational control panel only. Scope lives in
 
 ## NOW
 
-- **Wave 0 / B5 modal review:** every live app overlay now uses one shared dialog primitive;
-  stop here before the focus/feedback group.
-- Campaign creation, campaign intelligence, creator outreach and mobile navigation share
-  dialog semantics, focus trapping, Escape/backdrop closing and opener-focus restoration.
-- Destructive team, document, campaign, inbox and sequence actions name the object and
-  consequence in a shared confirmation dialog before execution.
+- **Wave 0 / B5 focus/feedback review:** every native and ARIA control now has a
+  keyboard-only visible focus ring using Aspen coral or the dark-theme green token.
+- Toast output uses the shared notification region and announces additions politely.
+- Stop here before the B5 DataGate/copy group.
 
 ## NEXT
 
-1. After Harish reviews B5 modals, deliver the B5 focus/feedback group.
-2. Complete the B5 DataGate/copy group separately.
-3. Add the Wave 0 test foundation, then merge Wave 0 before Stage C/Wave 1 contracts.
+1. After Harish reviews B5 focus/feedback, deliver the B5 DataGate/copy group.
+2. Add the Wave 0 test foundation.
+3. Merge Wave 0 before Stage C/Wave 1 contracts.
 
 ## WAITING ON HARISH
 
-- Review the B5 modal/confirmation checkpoint when presented.
+- Review the B5 focus/feedback checkpoint when presented.
 - Start and date the access actions in `EXTERNAL-ACCESS-CHECKLIST.md`; never commit secrets.
 - Nominate 5–10 B2B SaaS design partners and agree their data/feedback permissions.
 - Obtain representative cross-channel and creator/payment exports for import design.
@@ -40,8 +38,10 @@ Updated 2026-08-25. Operational control panel only. Scope lives in
 
 ## RECENTLY COMPLETED
 
+- B5 focus/feedback added one keyboard-only focus treatment for native and ARIA controls
+  and verified the toast region announces additions politely.
 - B5 modals consolidated all app overlays onto one accessible primitive and added named,
-  consequence-aware confirmations for destructive actions.
+  consequence-aware confirmations for destructive actions; approved by continuation.
 - B5 semantics added current-page navigation, tab/tab-panel relationships, pressed stage
   states and keyboard hotlist movement with focus restoration; approved by continuation.
 - B5 forms added explicit labels and accessible names, HTTPS and email validation,
@@ -64,9 +64,9 @@ Updated 2026-08-25. Operational control panel only. Scope lives in
 
 ## HEALTH
 
-- **Git:** `uiux-remediation` is synchronized to origin through B5 semantics; current bounded
-  diff is B5 modals plus status/ledger updates. Never rebase or force-push Lovable history.
-- **Typecheck:** passing for B5 modals.
-- **Production build:** passing for B5 modals; existing deprecation/chunk warnings remain.
+- **Git:** `uiux-remediation` is synchronized to origin through B5 modals; current bounded
+  diff is B5 focus/feedback plus status/ledger updates. Never rebase or force-push Lovable history.
+- **Typecheck:** passing for B5 focus/feedback.
+- **Production build:** passing for B5 focus/feedback; existing deprecation/chunk warnings remain.
 - **Tests:** no automated suite yet; `W0-QA-001` is required before Wave 1.
 - **Lint:** historical whole-repository backlog remains; do not treat it as a new B4 failure.

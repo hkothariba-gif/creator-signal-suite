@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useConnectorStatus, WAITING_COPY } from "@/components/app/DataGate";
+import { RetryButton, useConnectorStatus, WAITING_COPY } from "@/components/app/DataGate";
+import { CONNECTOR_LABELS } from "@/lib/connectors.functions";
 
 /* PLATFORMS — the `v.isPlatforms` block of src/aspen/AspenApp.tsx, on real
    connector status. Shell, header and title come from the /app layout route.
@@ -27,8 +28,8 @@ const CARDS: {
   {
     key: "youtube",
     glyph: "▶",
-    color: "#F03",
-    bandBg: "#FFF0EF",
+    color: "var(--color-youtube)",
+    bandBg: "var(--color-tint-youtube)",
     title: "Creator partnerships",
     subtitle: "Video sponsorships and integrations",
     tag: "Video",
@@ -37,8 +38,8 @@ const CARDS: {
   {
     key: "reddit",
     glyph: "r/",
-    color: "#FF4500",
-    bandBg: "#FFF2EC",
+    color: "var(--color-reddit)",
+    bandBg: "var(--color-tint-reddit)",
     title: "Audience intelligence",
     subtitle: "Ad targeting from community signals",
     tag: "Ads",
@@ -47,8 +48,8 @@ const CARDS: {
   {
     key: "x",
     glyph: "X",
-    color: "#17141E",
-    bandBg: "#F5F1E9",
+    color: "var(--color-dark)",
+    bandBg: "var(--color-sand)",
     title: "Creator amplification",
     subtitle: "DM outreach, whitelisting and paid reach",
     tag: "Social",
@@ -57,8 +58,8 @@ const CARDS: {
   {
     key: "linkedin",
     glyph: "in",
-    color: "#0A66C2",
-    bandBg: "#EFF5FD",
+    color: "var(--color-linkedin)",
+    bandBg: "var(--color-tint-linkedin)",
     title: "Professional reviews",
     subtitle: "B2B thought leadership and advocacy",
     tag: "B2B",
@@ -68,27 +69,31 @@ const CARDS: {
 
 // Moved here from the Settings > Connectors tab.
 const CONNECTOR_ROWS: { key: string; label: string; desc: string }[] = [
-  { key: "listening", label: "Social listening", desc: "Chatter and sentiment across the web" },
+  {
+    key: "listening",
+    label: CONNECTOR_LABELS.listening,
+    desc: "Chatter and sentiment across the web",
+  },
   {
     key: "creatorPerformance",
-    label: "Creator performance",
+    label: CONNECTOR_LABELS.creatorPerformance,
     desc: "How content performs for creators in your space",
   },
-  { key: "youtube", label: "YouTube Data API", desc: "Video stats and comments" },
-  { key: "x", label: "X API", desc: "Posts and search" },
-  { key: "reddit", label: "Reddit Data API", desc: "Posts and comments" },
-  { key: "trends", label: "Trends", desc: "Search interest over time" },
-  { key: "llm", label: "Ad copy model", desc: "Generates ad copy from ranked hooks" },
-  { key: "image", label: "Ad imagery", desc: "Generates ad images" },
-  { key: "email", label: "Team invite email", desc: "Delivers invitation emails" },
+  { key: "youtube", label: CONNECTOR_LABELS.youtube, desc: "Video stats and comments" },
+  { key: "x", label: CONNECTOR_LABELS.x, desc: "Posts and search" },
+  { key: "reddit", label: CONNECTOR_LABELS.reddit, desc: "Posts and comments" },
+  { key: "trends", label: CONNECTOR_LABELS.trends, desc: "Search interest over time" },
+  { key: "llm", label: CONNECTOR_LABELS.llm, desc: "Generates ad copy from ranked hooks" },
+  { key: "image", label: CONNECTOR_LABELS.image, desc: "Generates ad images" },
+  { key: "email", label: CONNECTOR_LABELS.email, desc: "Delivers invitation emails" },
   {
     key: "adsMiddleware",
-    label: "Ads middleware",
+    label: CONNECTOR_LABELS.adsMiddleware,
     desc: "Publishes paid campaigns to Reddit, X, and YouTube",
   },
-  { key: "stripe", label: "Stripe", desc: "Brand billing" },
-  { key: "paypal", label: "PayPal Payouts", desc: "Affiliate cash out" },
-  { key: "identity", label: "Identity and tax", desc: "Verification before payout" },
+  { key: "stripe", label: CONNECTOR_LABELS.stripe, desc: "Brand billing" },
+  { key: "paypal", label: CONNECTOR_LABELS.paypal, desc: "Affiliate cash out" },
+  { key: "identity", label: CONNECTOR_LABELS.identity, desc: "Verification before payout" },
 ];
 
 function PlatformsPage() {
@@ -97,7 +102,7 @@ function PlatformsPage() {
 
   return (
     <div className="aspen-scope max-w-[1020px]">
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
         {CARDS.map((p) => {
           const connected = platform?.[p.key] === true;
           return (
@@ -128,9 +133,21 @@ function PlatformsPage() {
                 <div className="flex items-center justify-between gap-[12px] mt-[16px]">
                   <span
                     className="text-[12.5px] font-bold"
-                    style={{ color: connected ? "#0E7A3D" : "#8A8494" }}
+                    style={{
+                      color: status.isError
+                        ? "var(--color-danger-ink)"
+                        : connected
+                          ? "var(--color-success-ink)"
+                          : "var(--color-subtle)",
+                    }}
                   >
-                    {status.isLoading ? "Checking…" : connected ? "Connected" : "Not configured"}
+                    {status.isLoading
+                      ? "Checking…"
+                      : status.isError
+                        ? "Could not check"
+                        : connected
+                          ? "Connected"
+                          : "Not configured"}
                   </span>
                 </div>
               </div>
@@ -151,9 +168,30 @@ function PlatformsPage() {
       </div>
 
       {status.isLoading ? (
-        <div className="text-[13.5px] text-subtle">Loading…</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[12px]" aria-hidden>
+          {CONNECTOR_ROWS.map((row) => (
+            <div
+              key={row.key}
+              className="bg-surface border-[1.5px] border-border rounded-[16px] p-[16px_18px]"
+            >
+              <div className="h-[18px] w-[60%] rounded-[6px] bg-sand animate-pulse" />
+              <div className="h-[14px] w-[85%] rounded-[6px] bg-sand animate-pulse mt-[8px]" />
+            </div>
+          ))}
+        </div>
+      ) : status.isError ? (
+        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[24px] text-center">
+          <div className="text-[15px] font-bold">Could not load your integrations</div>
+          <p className="text-[13px] text-muted leading-[1.5] max-w-[420px] mx-[auto] mt-[8px]">
+            We could not reach the service that reports which integrations are configured. Nothing
+            has changed on your account — this is only the status check.
+          </p>
+          <div className="mt-[16px]">
+            <RetryButton onClick={() => status.refetch()} />
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[12px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[12px]">
           {CONNECTOR_ROWS.map((row) => {
             const connected = platform?.[row.key] === true;
             return (
@@ -167,8 +205,11 @@ function PlatformsPage() {
                     className="text-[11px] font-bold p-[4px_9px] rounded-[7px] shrink-0"
                     style={
                       connected
-                        ? { background: "#DDF3E6", color: "#0E7A3D" }
-                        : { background: "#F5F1E9", color: "#8A8494" }
+                        ? {
+                            background: "var(--color-success-wash)",
+                            color: "var(--color-success-ink)",
+                          }
+                        : { background: "var(--color-sand)", color: "var(--color-subtle)" }
                     }
                   >
                     {connected ? "✓ Configured" : "Not configured"}

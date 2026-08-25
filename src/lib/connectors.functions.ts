@@ -24,6 +24,26 @@ export type PlatformConnectors = {
   enrichment: boolean;
 };
 
+// One user-facing name per connector. Admin and Platforms both read this map
+// so internal camelCase keys never leak into the interface or drift apart.
+export const CONNECTOR_LABELS: Record<keyof PlatformConnectors, string> = {
+  supabase: "Aspen data service",
+  email: "Team invite email",
+  listening: "Social listening",
+  creatorPerformance: "Creator performance",
+  youtube: "YouTube Data API",
+  x: "X API",
+  reddit: "Reddit Data API",
+  trends: "Trends",
+  llm: "Ad copy model",
+  image: "Ad imagery",
+  adsMiddleware: "Ads middleware",
+  stripe: "Stripe",
+  paypal: "PayPal Payouts",
+  identity: "Identity and tax",
+  enrichment: "Contact enrichment",
+};
+
 export type ConnectorStatus = {
   platform: PlatformConnectors;
   account: {

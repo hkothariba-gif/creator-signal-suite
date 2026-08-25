@@ -43,18 +43,18 @@ export const Route = createFileRoute("/app/outreach")({
 
 // The design's channel chips, in its brand colours.
 const CHANNEL: Record<string, { color: string; label: string }> = {
-  email: { color: "#F03", label: "Email" },
-  x: { color: "#17141E", label: "X" },
-  reddit: { color: "#FF4500", label: "Reddit" },
-  linkedin: { color: "#0A66C2", label: "LinkedIn" },
+  email: { color: "var(--color-youtube)", label: "Email" },
+  x: { color: "var(--color-dark)", label: "X" },
+  reddit: { color: "var(--color-reddit)", label: "Reddit" },
+  linkedin: { color: "var(--color-linkedin)", label: "LinkedIn" },
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  active: "#1FA463",
-  replied: "#F2542D",
-  bounced: "#C0341A",
-  closed: "#8A8494",
-  draft: "#8A8494",
+  active: "var(--color-success)",
+  replied: "var(--color-accent)",
+  bounced: "var(--color-accent-deep)",
+  closed: "var(--color-subtle)",
+  draft: "var(--color-subtle)",
 };
 
 function OutreachPage() {
@@ -68,6 +68,11 @@ function OutreachPage() {
   const [selected, setSelected] = useState<OutreachThread | null>(null);
   const [messages, setMessages] = useState<OutreachMessage[]>([]);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
+  /* try/finally with no catch let a failed load fall through as an unhandled
+     rejection, leaving `threads` empty — so a broken inbox drew the "No
+     conversations yet" illustration. Both loads now record the failure. */
+  const [threadsFailed, setThreadsFailed] = useState(false);
+  const [messagesFailed, setMessagesFailed] = useState(false);
   const [replying, setReplying] = useState(false);
   const [inbox, setInbox] = useState<"open" | "archived">("open");
 
@@ -90,10 +95,13 @@ function OutreachPage() {
 
   const loadThreads = async () => {
     setLoading(true);
+    setThreadsFailed(false);
     try {
       const rows = await listThreads({ data: { campaignId } });
       setThreads(rows);
       if (selected && !rows.find((r) => r.id === selected.id)) setSelected(null);
+    } catch {
+      setThreadsFailed(true);
     } finally {
       setLoading(false);
     }
@@ -108,8 +116,12 @@ function OutreachPage() {
     setSelected(t);
     setReplying(false);
     setLoadingMsgs(true);
+    setMessagesFailed(false);
     try {
       setMessages(await getThreadMessages({ data: { threadId: t.id } }));
+    } catch {
+      setMessages([]);
+      setMessagesFailed(true);
     } finally {
       setLoadingMsgs(false);
     }
@@ -141,9 +153,9 @@ function OutreachPage() {
                   onClick={() => setInbox(t.key)}
                   className="text-[12.5px] font-bold p-[8px_13px] rounded-[10px] cursor-pointer"
                   style={{
-                    border: `1.5px solid ${on ? "#17141E" : "#E8E2D6"}`,
-                    background: on ? "#17141E" : "#fff",
-                    color: on ? "#FAF7F1" : "#4A4553",
+                    border: `1.5px solid ${on ? "var(--color-dark)" : "var(--color-border)"}`,
+                    background: on ? "var(--color-dark)" : "var(--color-surface)",
+                    color: on ? "var(--color-cream)" : "var(--color-muted)",
                   }}
                 >
                   {t.label}
@@ -153,8 +165,25 @@ function OutreachPage() {
           </div>
 
           {loading ? (
-            <div className="text-[13.5px] text-subtle p-[24px_0] text-center">
-              Loading conversations…
+            <div className="flex flex-col gap-[10px] p-[8px_0]" aria-hidden>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-[74px] rounded-[15px] bg-sand animate-pulse" />
+              ))}
+            </div>
+          ) : threadsFailed ? (
+            <div className="bg-surface border-[1.5px] border-border rounded-[18px] p-[32px_22px] text-center">
+              <div className="font-heading font-extrabold text-[18px] tracking-[-0.02em]">
+                Could not load your conversations
+              </div>
+              <p className="text-[13.5px] text-muted leading-[1.55] m-[8px_auto_16px] max-w-[260px]">
+                Nothing has been sent or lost — we could not fetch your inbox just now.
+              </p>
+              <button
+                onClick={() => void loadThreads()}
+                className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[11px] cursor-pointer"
+              >
+                Try again
+              </button>
             </div>
           ) : visible.length === 0 ? (
             <div className="bg-surface border-[1.5px] border-border rounded-[18px] p-[32px_22px] text-center">
@@ -182,7 +211,9 @@ function OutreachPage() {
                   key={t.id}
                   onClick={() => openThread(t)}
                   className="text-left cursor-pointer bg-surface rounded-[15px] p-[14px_15px]"
-                  style={{ border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}` }}
+                  style={{
+                    border: `1.5px solid ${on ? "var(--color-accent)" : "var(--color-border)"}`,
+                  }}
                 >
                   <div className="flex items-center justify-between gap-[10px]">
                     <span className="text-[14.5px] font-bold truncate">
@@ -198,7 +229,7 @@ function OutreachPage() {
                   <div className="flex items-center gap-[9px] mt-[7px]">
                     <span
                       className="text-[11.5px] font-bold"
-                      style={{ color: STATUS_COLOR[t.status] ?? "#8A8494" }}
+                      style={{ color: STATUS_COLOR[t.status] ?? "var(--color-subtle)" }}
                     >
                       ● {t.status}
                     </span>
@@ -254,7 +285,21 @@ function OutreachPage() {
               </div>
               <div className="flex flex-col gap-[12px] mt-[18px]">
                 {loadingMsgs ? (
-                  <div className="text-[13px] text-subtle">Loading messages…</div>
+                  <div className="flex flex-col gap-[12px]" aria-hidden>
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="h-[64px] rounded-[15px] bg-sand animate-pulse" />
+                    ))}
+                  </div>
+                ) : messagesFailed ? (
+                  <div className="text-[13px] text-muted">
+                    Could not load this conversation.
+                    <button
+                      onClick={() => void openThread(selected)}
+                      className="ml-[8px] border-0 bg-transparent underline text-[13px] font-bold text-accent cursor-pointer p-0"
+                    >
+                      Try again
+                    </button>
+                  </div>
                 ) : messages.length === 0 ? (
                   <div className="text-[13px] text-subtle">No messages in this thread yet.</div>
                 ) : (
@@ -265,8 +310,8 @@ function OutreachPage() {
                         key={m.id}
                         className="rounded-[15px] p-[15px]"
                         style={{
-                          background: out ? "#FFF6F2" : "#FAF7F1",
-                          border: `1.5px solid ${out ? "#FFD9CC" : "#E8E2D6"}`,
+                          background: out ? "var(--color-accent-wash)" : "var(--color-cream)",
+                          border: `1.5px solid ${out ? "var(--color-accent-pale)" : "var(--color-border)"}`,
                           marginLeft: out ? "32px" : "0px",
                           marginRight: out ? "0px" : "32px",
                         }}
@@ -277,7 +322,12 @@ function OutreachPage() {
                           </span>
                           <span
                             className="text-[11px] font-semibold"
-                            style={{ color: m.status === "failed" ? "#C0341A" : "#8A8494" }}
+                            style={{
+                              color:
+                                m.status === "failed"
+                                  ? "var(--color-accent-deep)"
+                                  : "var(--color-subtle)",
+                            }}
                           >
                             {m.status}
                           </span>
@@ -289,7 +339,7 @@ function OutreachPage() {
                           {m.body}
                         </div>
                         {m.error ? (
-                          <div className="text-[11.5px] text-[#C0341A] mt-[6px]">{m.error}</div>
+                          <div className="text-[11.5px] text-accent-deep mt-[6px]">{m.error}</div>
                         ) : null}
                       </div>
                     );
@@ -305,7 +355,7 @@ function OutreachPage() {
       <div className="text-[12px] font-bold tracking-[0.14em] text-subtle m-[34px_0_14px]">
         SENDING &amp; AUTOMATION
       </div>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <EmailAccountsCard />
         <DeliveryMetricsPanel campaignId={campaignId} />
       </div>

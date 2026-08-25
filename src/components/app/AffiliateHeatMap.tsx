@@ -28,7 +28,12 @@ export type HeatCreator = {
 };
 
 // Score bands, per the spec: strong / middling / weak.
-const colorFor = (score: number) => (score >= 70 ? "#F2542D" : score >= 40 ? "#C98A2E" : "#8A8494");
+const colorFor = (score: number) =>
+  score >= 70
+    ? "var(--color-accent)"
+    : score >= 40
+      ? "var(--color-warn-ink)"
+      : "var(--color-subtle)";
 
 function fmtReach(n: number | null): string {
   if (n == null) return "";
@@ -74,18 +79,45 @@ export function AffiliateHeatMap({ creators }: { creators: HeatCreator[] }) {
           width={W - pad - x(50)}
           height={y(50) - pad}
           rx="12"
-          fill="#FFECD9"
+          className="fill-tint"
         />
-        <text x={x(50) + 12} y={pad + 20} fontSize="11" fontWeight="700" fill="#B33A12">
+        <text
+          x={x(50) + 12}
+          y={pad + 20}
+          fontSize="11"
+          fontWeight="700"
+          className="fill-accent-ink"
+        >
           BEST MATCH
         </text>
 
         {/* axes */}
-        <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="#E8E2D6" strokeWidth="1.5" />
-        <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="#E8E2D6" strokeWidth="1.5" />
+        <line
+          x1={pad}
+          y1={H - pad}
+          x2={W - pad}
+          y2={H - pad}
+          className="stroke-border"
+          strokeWidth="1.5"
+        />
+        <line x1={pad} y1={pad} x2={pad} y2={H - pad} className="stroke-border" strokeWidth="1.5" />
         {/* mid guides */}
-        <line x1={x(50)} y1={pad} x2={x(50)} y2={H - pad} stroke="#F0EAE0" strokeDasharray="4 4" />
-        <line x1={pad} y1={y(50)} x2={W - pad} y2={y(50)} stroke="#F0EAE0" strokeDasharray="4 4" />
+        <line
+          x1={x(50)}
+          y1={pad}
+          x2={x(50)}
+          y2={H - pad}
+          className="stroke-border-soft"
+          strokeDasharray="4 4"
+        />
+        <line
+          x1={pad}
+          y1={y(50)}
+          x2={W - pad}
+          y2={y(50)}
+          className="stroke-border-soft"
+          strokeDasharray="4 4"
+        />
 
         {/* axis labels */}
         <text
@@ -94,7 +126,7 @@ export function AffiliateHeatMap({ creators }: { creators: HeatCreator[] }) {
           textAnchor="middle"
           fontSize="10.5"
           fontWeight="700"
-          fill="#8A8494"
+          className="fill-subtle"
         >
           BRAND FIT →
         </text>
@@ -104,7 +136,7 @@ export function AffiliateHeatMap({ creators }: { creators: HeatCreator[] }) {
           textAnchor="middle"
           fontSize="10.5"
           fontWeight="700"
-          fill="#8A8494"
+          className="fill-subtle"
           transform={`rotate(-90 16 ${H / 2})`}
         >
           REACH →
@@ -126,7 +158,7 @@ export function AffiliateHeatMap({ creators }: { creators: HeatCreator[] }) {
                 cx={cx}
                 cy={cy}
                 r={r}
-                fill={inRange(c) ? "#F2542D" : "#C9C1B4"}
+                className={inRange(c) ? "fill-accent" : "fill-sand-dark"}
                 opacity={hover && hover !== c.id ? 0.45 : 1}
               />
               <title>
@@ -141,7 +173,7 @@ export function AffiliateHeatMap({ creators }: { creators: HeatCreator[] }) {
                   textAnchor="middle"
                   fontSize="11"
                   fontWeight="700"
-                  fill="#17141E"
+                  className="fill-dark"
                 >
                   {c.name}
                 </text>

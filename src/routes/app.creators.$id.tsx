@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
+import { AppDialog, AppDialogClose, AppDialogContent } from "@/components/app/AppDialog";
 import { OutreachComposer } from "@/components/app/OutreachComposer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,33 +34,46 @@ const STAGES: { key: string; label: string }[] = [
 
 const platMark = (p: string | null | undefined) => {
   const v = (p ?? "").toLowerCase();
-  if (v === "youtube") return { glyph: "▶", color: "#F03" };
-  if (v === "reddit") return { glyph: "r/", color: "#FF4500" };
-  if (v === "linkedin") return { glyph: "in", color: "#0A66C2" };
-  if (v === "x") return { glyph: "X", color: "#17141E" };
-  return { glyph: "·", color: "#8A8494" };
+  if (v === "youtube") return { glyph: "▶", color: "var(--color-youtube)" };
+  if (v === "reddit") return { glyph: "r/", color: "var(--color-reddit)" };
+  if (v === "linkedin") return { glyph: "in", color: "var(--color-linkedin)" };
+  if (v === "x") return { glyph: "X", color: "var(--color-dark)" };
+  return { glyph: "·", color: "var(--color-subtle)" };
 };
 
 function CreatorProfilePage() {
   const { id } = useParams({ from: "/app/creators/$id" });
   const { user } = useAuth();
+  const userId = user?.id;
   const status = useConnectorStatus();
   const [row, setRow] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
+  // The fetch discarded its error, so an unreachable database and a deleted
+  // creator both landed on the same "nothing here" panel.
+  const [failed, setFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [composing, setComposing] = useState(false);
+  const composeTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const closeComposer = () => {
+    const trigger = composeTriggerRef.current;
+    setComposing(false);
+    window.requestAnimationFrame(() => trigger?.focus());
+  };
 
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("hotlist")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("id", id)
         .maybeSingle();
       if (!cancelled) {
+        setFailed(!!error);
         setRow(data ?? null);
         setLoading(false);
       }
@@ -67,7 +81,7 @@ function CreatorProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, id]);
+  }, [userId, id, reloadKey]);
 
   const moveTo = async (stage: string) => {
     if (!row) return;
@@ -96,7 +110,36 @@ function CreatorProfilePage() {
     return (
       <div className="aspen-scope flex flex-col gap-[16px] max-w-[920px]">
         {back}
-        <div className="text-[14px] text-subtle p-[48px_0] text-center">Loading…</div>
+        <div
+          className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
+          aria-hidden
+        >
+          <div className="flex items-center gap-[14px]">
+            <div className="w-[64px] h-[64px] rounded-full bg-sand animate-pulse shrink-0" />
+            <div className="flex-1">
+              <div className="h-[22px] w-[45%] rounded-[7px] bg-sand animate-pulse" />
+              <div className="h-[14px] w-[30%] rounded-[6px] bg-sand animate-pulse mt-[9px]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // A failed read is not a missing creator.
+  if (failed) {
+    return (
+      <div className="aspen-scope flex flex-col gap-[16px] max-w-[920px]">
+        {back}
+        <DataGate
+          connected={true}
+          error
+          errorTitle="Could not load this creator"
+          errorHint="They are still on your hotlist — we could not fetch their profile just now."
+          errorAction={<RetryButton onClick={() => setReloadKey((k) => k + 1)} />}
+        >
+          <></>
+        </DataGate>
       </div>
     );
   }
@@ -186,7 +229,10 @@ function CreatorProfilePage() {
         </div>
         <div className="flex gap-[10px]">
           <button
-            onClick={() => setComposing(true)}
+            onClick={(event) => {
+              composeTriggerRef.current = event.currentTarget;
+              setComposing(true);
+            }}
             className="border-0 bg-accent text-cream text-[14px] font-bold p-[12px_18px] rounded-[12px] cursor-pointer ah33"
           >
             Contact creator
@@ -205,12 +251,14 @@ function CreatorProfilePage() {
             return (
               <button
                 key={s.key}
+                type="button"
+                aria-pressed={on}
                 onClick={() => !on && moveTo(s.key)}
                 className="text-[13px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer"
                 style={{
-                  border: `1.5px solid ${on ? "#F2542D" : "#E8E2D6"}`,
-                  background: on ? "#F2542D" : "transparent",
-                  color: on ? "#FAF7F1" : "#4A4553",
+                  border: `1.5px solid ${on ? "var(--color-accent)" : "var(--color-border)"}`,
+                  background: on ? "var(--color-accent)" : "transparent",
+                  color: on ? "var(--color-cream)" : "var(--color-muted)",
                 }}
               >
                 {s.label}
@@ -220,7 +268,7 @@ function CreatorProfilePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_10px]">About</h3>
           <p className="text-[14.5px] leading-[1.6] text-muted m-0">
@@ -233,6 +281,10 @@ function CreatorProfilePage() {
             connected={platformConnected}
             empty
             loading={status.isLoading}
+            error={status.isError}
+            errorTitle="Could not check this platform"
+            errorHint="We could not reach the service that reports which integrations are live."
+            errorAction={<RetryButton onClick={() => status.refetch()} />}
             label={
               platform
                 ? `Metrics load from the ${platform} connection`
@@ -244,35 +296,35 @@ function CreatorProfilePage() {
         </div>
       </div>
 
-      {composing ? (
-        <div
-          className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]"
-          onClick={() => setComposing(false)}
+      <AppDialog
+        open={composing}
+        onOpenChange={(open) => (open ? setComposing(true) : closeComposer())}
+      >
+        <AppDialogContent
+          title={`Reach out to ${row.creator_name}`}
+          description="Choose a channel, confirm the recipient and draft a message."
+          contentClassName="w-[calc(100%-32px)] max-w-[560px] overflow-y-auto bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
         >
-          <div className="absolute inset-0 bg-[rgba(23,20,30,0.55)]" />
-          <div
-            className="relative w-full max-w-[560px] max-h-[90vh] overflow-y-auto bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-end">
+          <div className="flex justify-end">
+            <AppDialogClose asChild>
               <button
-                onClick={() => setComposing(false)}
+                type="button"
                 className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
-                aria-label="Close"
+                aria-label="Close outreach composer"
               >
                 ✕
               </button>
-            </div>
-            <OutreachComposer
-              hotlistId={row.id}
-              campaignId={row.campaign_id}
-              creatorName={row.creator_name}
-              onSent={() => setComposing(false)}
-              onClose={() => setComposing(false)}
-            />
+            </AppDialogClose>
           </div>
-        </div>
-      ) : null}
+          <OutreachComposer
+            hotlistId={row.id}
+            campaignId={row.campaign_id}
+            creatorName={row.creator_name}
+            onSent={closeComposer}
+            onClose={closeComposer}
+          />
+        </AppDialogContent>
+      </AppDialog>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ConfirmDialog } from "@/components/app/AppDialog";
 import {
   listBrandDocs,
   processBrandDoc,
@@ -17,11 +18,16 @@ import {
    sheet, which is uploaded during onboarding and was equally invisible. */
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const ALLOWED_DOC_TYPES: Record<string, string[]> = {
+  pdf: ["application/pdf"],
+  txt: ["text/plain"],
+  md: ["text/markdown", "text/x-markdown", "text/plain"],
+};
 
 const STATUS: Record<BrandDocRow["status"], { label: string; bg: string; fg: string }> = {
-  uploaded: { label: "Queued", bg: "#F5F1E9", fg: "#8A8494" },
-  processed: { label: "Mined", bg: "#DDF3E6", fg: "#0E7A3D" },
-  failed: { label: "Failed", bg: "#FFE3DB", fg: "#B03418" },
+  uploaded: { label: "Queued", bg: "var(--color-sand)", fg: "var(--color-subtle)" },
+  processed: { label: "Mined", bg: "var(--color-success-wash)", fg: "var(--color-success-ink)" },
+  failed: { label: "Failed", bg: "var(--color-danger-wash)", fg: "var(--color-danger-ink)" },
 };
 
 function when(iso: string) {
@@ -65,12 +71,18 @@ export function CampaignDocuments({
 
   const upload = async (file: File) => {
     if (!user) return;
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const allowedMimeTypes = ALLOWED_DOC_TYPES[extension];
+    if (!allowedMimeTypes || (file.type && !allowedMimeTypes.includes(file.type))) {
+      toast.error("Choose a PDF, TXT, or MD file.");
+      return;
+    }
     if (file.size > MAX_UPLOAD_BYTES) {
       toast.error("That file is over 10MB.");
       return;
     }
     setUploading(true);
-    const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+    const safeName = file.name.replace(/[^\w.-]+/g, "_");
     const path = `${user.id}/${campaignId}/${Date.now()}-${safeName}`;
     const up = await supabase.storage
       .from("brand-docs")
@@ -208,13 +220,21 @@ export function CampaignDocuments({
                 >
                   {d.status === "processed" ? "Re-extract" : "Retry"}
                 </button>
-                <button
-                  onClick={() => remove(d.id, d.file_name)}
-                  disabled={working}
-                  className="border-[1.5px] border-border bg-transparent text-[12.5px] font-bold p-[7px_12px] rounded-[10px] cursor-pointer disabled:opacity-50"
-                >
-                  Delete
-                </button>
+                <ConfirmDialog
+                  trigger={
+                    <button
+                      type="button"
+                      disabled={working}
+                      className="border-[1.5px] border-border bg-transparent text-[12.5px] font-bold p-[7px_12px] rounded-[10px] cursor-pointer disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  }
+                  title={`Delete “${d.file_name}”?`}
+                  description="This permanently removes the document and its mined excerpts from this campaign. This cannot be undone."
+                  confirmLabel="Delete document"
+                  onConfirm={() => remove(d.id, d.file_name)}
+                />
               </div>
             );
           })

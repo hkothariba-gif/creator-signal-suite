@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
-import { DataGate } from "@/components/app/DataGate";
+import { AppDialog, AppDialogClose, AppDialogContent } from "@/components/app/AppDialog";
+import { DataGate, RetryButton } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatMoney } from "@/hooks/useCampaignPerformance";
@@ -37,21 +38,21 @@ const TABS: { key: "all" | "active" | "draft" | "completed"; label: string }[] =
 // The design's platform chips, keyed to the same brand colours it used.
 const platColor = (p: string) =>
   p === "YouTube"
-    ? "#F03"
+    ? "var(--color-youtube)"
     : p === "Reddit"
-      ? "#FF4500"
+      ? "var(--color-reddit)"
       : p === "X"
-        ? "#17141E"
+        ? "var(--color-dark)"
         : p === "LinkedIn"
-          ? "#0A66C2"
-          : "#8A8494";
+          ? "var(--color-linkedin)"
+          : "var(--color-subtle)";
 
 const CURRENCIES = ["USD", "GBP", "EUR", "CAD", "AUD"];
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
-  active: { bg: "#DDF3E6", fg: "#0E7A3D", label: "Active" },
-  draft: { bg: "#F5F1E9", fg: "#8A8494", label: "Draft" },
-  completed: { bg: "#E7EDFB", fg: "#3159A8", label: "Completed" },
+  active: { bg: "var(--color-success-wash)", fg: "var(--color-success-ink)", label: "Active" },
+  draft: { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: "Draft" },
+  completed: { bg: "var(--color-info-wash)", fg: "var(--color-info-ink)", label: "Completed" },
 };
 
 function CampaignsPage() {
@@ -62,9 +63,15 @@ function CampaignsPage() {
   // Active tab made people think creation had failed.
   const [tab, setTab] = useState<"all" | "active" | "draft" | "completed">("all");
   const [drawer, setDrawer] = useState(false);
+  const drawerTriggerRef = useRef<HTMLElement | null>(null);
   const [intel, setIntel] = useState<{ id: string; name: string } | null>(null);
+  const intelTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [rows, setRows] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  /* A toast is transient; once it fades an empty `rows` reads as "no campaigns
+     yet", which is a different and much worse claim than "we could not load
+     them". The failure is held in state so the panel can say which it is. */
+  const [failed, setFailed] = useState(false);
 
   const refresh = async () => {
     if (!user) return;
@@ -75,6 +82,7 @@ function CampaignsPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
+    setFailed(!!error);
     setRows(data ?? []);
     setLoading(false);
   };
@@ -86,7 +94,11 @@ function CampaignsPage() {
 
   // The shell's "+ New campaign" button links here with ?new=1.
   useEffect(() => {
-    if (openNew) setDrawer(true);
+    if (openNew) {
+      drawerTriggerRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setDrawer(true);
+    }
   }, [openNew]);
 
   // The param is cleared when the drawer closes, not when it opens. Clearing it
@@ -94,8 +106,16 @@ function CampaignsPage() {
   // remounts the route and throws away the `drawer` state we just set — so
   // arriving on /app/campaigns?new=1 by URL flashed nothing at all.
   const closeDrawer = () => {
+    const trigger = drawerTriggerRef.current;
     setDrawer(false);
     if (openNew) navigate({ to: "/app/campaigns", search: { new: undefined }, replace: true });
+    window.requestAnimationFrame(() => trigger?.focus());
+  };
+
+  const closeIntelligence = () => {
+    const trigger = intelTriggerRef.current;
+    setIntel(null);
+    window.requestAnimationFrame(() => trigger?.focus());
   };
 
   const setStatus = async (c: Campaign, status: "active" | "draft" | "completed") => {
@@ -125,8 +145,8 @@ function CampaignsPage() {
             onClick={() => setTab(t.key)}
             className="border-0 bg-transparent cursor-pointer p-[0_0_13px] text-[14.5px] font-bold mb-[-1.5px]"
             style={{
-              color: tab === t.key ? "#17141E" : "#8A8494",
-              borderBottom: `2.5px solid ${tab === t.key ? "#F2542D" : "transparent"}`,
+              color: tab === t.key ? "var(--color-dark)" : "var(--color-subtle)",
+              borderBottom: `2.5px solid ${tab === t.key ? "var(--color-accent)" : "transparent"}`,
             }}
           >
             {t.label} ({counts[t.key]})
@@ -138,6 +158,10 @@ function CampaignsPage() {
         connected={true}
         loading={loading}
         empty={visible.length === 0}
+        error={failed}
+        errorTitle="Could not load your campaigns"
+        errorHint="Your campaigns are safe — we could not fetch the list just now."
+        errorAction={<RetryButton onClick={() => void refresh()} />}
         emptyTitle={
           tab === "all" ? "No campaigns yet" : `Nothing in ${tab === "draft" ? "draft" : tab}`
         }
@@ -149,7 +173,10 @@ function CampaignsPage() {
         emptyAction={
           tab === "all" ? (
             <button
-              onClick={() => setDrawer(true)}
+              onClick={(event) => {
+                drawerTriggerRef.current = event.currentTarget;
+                setDrawer(true);
+              }}
               className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[12px] cursor-pointer"
             >
               Create your first campaign
@@ -166,7 +193,11 @@ function CampaignsPage() {
       >
         <div className="flex flex-col gap-[12px]">
           {visible.map((c) => {
-            const s = STATUS_STYLE[c.status] ?? { bg: "#F5F1E9", fg: "#8A8494", label: c.status };
+            const s = STATUS_STYLE[c.status] ?? {
+              bg: "var(--color-sand)",
+              fg: "var(--color-subtle)",
+              label: c.status,
+            };
             return (
               <div
                 key={c.id}
@@ -225,7 +256,10 @@ function CampaignsPage() {
                     </button>
                   ) : null}
                   <button
-                    onClick={() => setIntel({ id: c.id, name: c.name })}
+                    onClick={(event) => {
+                      intelTriggerRef.current = event.currentTarget;
+                      setIntel({ id: c.id, name: c.name });
+                    }}
                     className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26"
                   >
                     Intel
@@ -252,12 +286,12 @@ function CampaignsPage() {
         </div>
       </DataGate>
 
-      {drawer && <CampaignDrawer onClose={closeDrawer} onCreated={refresh} />}
+      <CampaignDrawer open={drawer} onClose={closeDrawer} onCreated={refresh} />
       {intel && (
         <CampaignIntelligence
           campaignId={intel.id}
           campaignName={intel.name}
-          onClose={() => setIntel(null)}
+          onClose={closeIntelligence}
         />
       )}
     </div>
@@ -269,9 +303,11 @@ function CampaignsPage() {
    the dark form repainted in the Aspen palette so it does not flash a navy
    modal over a cream page. app.ads imports this. */
 export function CampaignDrawer({
+  open,
   onClose,
   onCreated,
 }: {
+  open: boolean;
   onClose: () => void;
   onCreated: (createdId?: string) => void;
 }) {
@@ -290,6 +326,19 @@ export function CampaignDrawer({
   const [endDate, setEndDate] = useState("");
   const [brief, setBrief] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) return;
+    setName("");
+    setProduct("");
+    setPlatform("All");
+    setGoal("Brand Awareness");
+    setBudget("");
+    setCurrency("USD");
+    setStartDate("");
+    setEndDate("");
+    setBrief("");
+  }, [open]);
 
   // Accepts "24000", "24,000", "$24,000.50". Anything else is rejected rather
   // than silently stored as a wrong number — the same trap the SQL backfill fell
@@ -385,39 +434,47 @@ export function CampaignDrawer({
     "w-full box-border h-[46px] p-[0_14px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none";
 
   return (
-    <div className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]">
-      <div className="absolute inset-0 bg-[rgba(23,20,30,0.55)]" onClick={onClose} />
-      <div className="relative w-full max-w-[520px] max-h-[90vh] bg-surface border-[1.5px] border-border rounded-[22px] overflow-y-auto">
+    <AppDialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <AppDialogContent
+        title="New campaign"
+        description="Create a campaign with its platform, goal, budget, dates and brief."
+        contentClassName="w-[calc(100%-32px)] max-w-[520px] bg-surface border-[1.5px] border-border rounded-[22px] overflow-y-auto"
+      >
         <div className="flex items-center justify-between p-[22px_24px] border-b-[1.5px] border-border-soft">
           <h3 className="font-heading font-bold text-[19px] m-0">New campaign</h3>
-          <button
-            onClick={onClose}
-            className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <AppDialogClose asChild>
+            <button
+              type="button"
+              className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
+              aria-label="Close new campaign"
+            >
+              ✕
+            </button>
+          </AppDialogClose>
         </div>
         <div className="p-[24px] flex flex-col gap-[16px]">
-          <Field label="CAMPAIGN NAME">
+          <Field label="CAMPAIGN NAME" htmlFor="campaign-name">
             <input
+              id="campaign-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Q3 YouTube push"
               className={field}
             />
           </Field>
-          <Field label="PRODUCT / BRAND BEING PROMOTED">
+          <Field label="PRODUCT / BRAND BEING PROMOTED" htmlFor="campaign-product">
             <input
+              id="campaign-product"
               value={product}
               onChange={(e) => setProduct(e.target.value)}
               placeholder="e.g. Notion Pro"
               className={field}
             />
           </Field>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
-            <Field label="TARGET PLATFORM">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+            <Field label="TARGET PLATFORM" htmlFor="campaign-platform">
               <select
+                id="campaign-platform"
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value as Platform)}
                 className={field}
@@ -429,8 +486,13 @@ export function CampaignDrawer({
                 <option>All</option>
               </select>
             </Field>
-            <Field label="CAMPAIGN GOAL">
-              <select value={goal} onChange={(e) => setGoal(e.target.value)} className={field}>
+            <Field label="CAMPAIGN GOAL" htmlFor="campaign-goal">
+              <select
+                id="campaign-goal"
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                className={field}
+              >
                 <option>Brand Awareness</option>
                 <option>Affiliate Sales</option>
                 <option>Product Review</option>
@@ -438,18 +500,24 @@ export function CampaignDrawer({
               </select>
             </Field>
           </div>
-          <div className="grid grid-cols-[1fr_120px] gap-[16px]">
-            <Field label="BUDGET">
+          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-[16px]">
+            <Field label="BUDGET" htmlFor="campaign-budget">
               <input
+                id="campaign-budget"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 inputMode="decimal"
                 placeholder="24000"
+                aria-describedby="campaign-budget-help"
                 className={field}
               />
+              <p id="campaign-budget-help" className="text-[11.5px] text-subtle m-[6px_0_0]">
+                Enter one amount, such as 24000 or $24,000.00. Ranges and text are not supported.
+              </p>
             </Field>
-            <Field label="CURRENCY">
+            <Field label="CURRENCY" htmlFor="campaign-currency">
               <select
+                id="campaign-currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 className={field}
@@ -462,17 +530,19 @@ export function CampaignDrawer({
               </select>
             </Field>
           </div>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
-            <Field label="START DATE">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+            <Field label="START DATE" htmlFor="campaign-start-date">
               <input
+                id="campaign-start-date"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className={field}
               />
             </Field>
-            <Field label="END DATE">
+            <Field label="END DATE" htmlFor="campaign-end-date">
               <input
+                id="campaign-end-date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
@@ -480,8 +550,9 @@ export function CampaignDrawer({
               />
             </Field>
           </div>
-          <Field label="CAMPAIGN BRIEF / NOTES">
+          <Field label="CAMPAIGN BRIEF / NOTES" htmlFor="campaign-brief">
             <textarea
+              id="campaign-brief"
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
               rows={4}
@@ -506,15 +577,28 @@ export function CampaignDrawer({
             {saving ? "Creating…" : "Create campaign →"}
           </button>
         </div>
-      </div>
-    </div>
+      </AppDialogContent>
+    </AppDialog>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">{label}</div>
+      <label
+        htmlFor={htmlFor}
+        className="block text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]"
+      >
+        {label}
+      </label>
       {children}
     </div>
   );

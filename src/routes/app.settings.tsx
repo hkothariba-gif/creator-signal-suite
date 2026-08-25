@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth, type OrgRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, RowsSkeleton, useConnectorStatus } from "@/components/app/DataGate";
+import { ConfirmDialog } from "@/components/app/AppDialog";
 import { listAllBrandDocs } from "@/lib/brand-docs.functions";
 
 /* SETTINGS — the `v.isSettings` block of src/aspen/AspenApp.tsx, on the live
@@ -20,6 +21,8 @@ export const Route = createFileRoute("/app/settings")({
 });
 
 const ROLE_OPTIONS: OrgRole[] = ["admin", "editor", "reviewer"];
+
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
 type MemberRow = { id: string; user_id: string; role: OrgRole; email: string; created_at: string };
 type InviteRow = {
@@ -69,6 +72,10 @@ function DocumentsCard() {
         connected={true}
         loading={docs.isLoading}
         empty={rows.length === 0}
+        error={docs.isError}
+        errorTitle="Could not load your documents"
+        errorHint="Your files are safe — we just could not fetch the list. Retry, or open a campaign to see the documents attached to it."
+        errorAction={<RetryButton onClick={() => docs.refetch()} />}
         emptyTitle="No documents uploaded yet"
         emptyHint="Open a campaign and add a product page or sales deck. We pull real excerpts from it for your ad drafts."
         className="mt-[16px]"
@@ -103,7 +110,6 @@ function DocumentsCard() {
   );
 }
 
-
 /* ---------- Workspace (stored in Supabase, not localStorage) ---------- */
 
 function WorkspaceCard() {
@@ -128,20 +134,31 @@ function WorkspaceCard() {
   return (
     <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[24px]">
       <h3 className="font-heading font-bold text-[17px] m-[0_0_18px]">Workspace</h3>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div>
-          <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
-            COMPANY NAME
-          </div>
           {canEdit ? (
-            <input
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Acme Inc."
-              className={FIELD}
-            />
+            <>
+              <label
+                htmlFor="workspace-company-name"
+                className="block text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]"
+              >
+                COMPANY NAME
+              </label>
+              <input
+                id="workspace-company-name"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Acme Inc."
+                className={FIELD}
+              />
+            </>
           ) : (
-            <div className={READONLY}>{companyName || "—"}</div>
+            <>
+              <div className="text-[11.5px] font-bold tracking-[0.1em] text-subtle mb-[7px]">
+                COMPANY NAME
+              </div>
+              <div className={READONLY}>{companyName || "—"}</div>
+            </>
           )}
         </div>
         <div>
@@ -191,6 +208,21 @@ function TeamCard() {
   const [inviteRole, setInviteRole] = useState<OrgRole>("editor");
   const [inviting, setInviting] = useState(false);
   const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
+  const roleTriggerRef = useRef<HTMLSelectElement | null>(null);
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    memberId: string;
+    email: string;
+    from: OrgRole;
+    to: OrgRole;
+  } | null>(null);
+  const inviteEmailError =
+    inviteEmail.trim() && !isValidEmail(inviteEmail) ? "Enter a complete email address." : null;
+
+  const closeRoleConfirmation = () => {
+    const trigger = roleTriggerRef.current;
+    setPendingRoleChange(null);
+    window.requestAnimationFrame(() => trigger?.focus());
+  };
 
   const membersQuery = useQuery({
     queryKey: ["org-members", orgId],
@@ -203,9 +235,10 @@ function TeamCard() {
         .order("created_at", { ascending: true });
       if (error) throw new Error(error.message);
       const ids = (members ?? []).map((m) => m.user_id);
-      const { data: profiles } = ids.length
+      const { data: profiles, error: profilesError } = ids.length
         ? await supabase.from("profiles").select("id, email").in("id", ids)
-        : { data: [] as { id: string; email: string | null }[] };
+        : { data: [] as { id: string; email: string | null }[], error: null };
+      if (profilesError) throw new Error(profilesError.message);
       const emailById = new Map((profiles ?? []).map((p) => [p.id, p.email ?? ""]));
       return (members ?? []).map((m) => ({
         ...m,
@@ -236,7 +269,7 @@ function TeamCard() {
   };
 
   const sendInvite = async () => {
-    if (!orgId || !inviteEmail.trim()) return;
+    if (!orgId || !inviteEmail.trim() || !isValidEmail(inviteEmail)) return;
     setInviting(true);
     const { data, error } = await supabase.functions.invoke("invite-member", {
       body: { organizationId: orgId, email: inviteEmail.trim(), role: inviteRole },
@@ -250,6 +283,16 @@ function TeamCard() {
     setLastInviteLink(data?.emailSent ? null : (data?.inviteUrl ?? null));
     toast.success(data?.emailSent ? "Invitation email sent" : "Invitation created");
     refetchAll();
+  };
+
+  const copyInviteLink = async () => {
+    if (!lastInviteLink) return;
+    try {
+      await navigator.clipboard.writeText(lastInviteLink);
+      toast.success("Invite link copied");
+    } catch {
+      toast.error("Could not copy the invite link");
+    }
   };
 
   const changeRole = async (memberId: string, role: OrgRole) => {
@@ -302,28 +345,49 @@ function TeamCard() {
       <div className="flex items-center justify-between gap-[12px] mb-[16px] flex-wrap">
         <h3 className="font-heading font-bold text-[17px] m-0">Team</h3>
         {isAdmin ? (
-          <div className="flex gap-[9px] flex-wrap">
-            <input
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              type="email"
-              placeholder="teammate@company.com"
-              className="h-[42px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
-            />
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as OrgRole)}
-              className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
-            >
-              {ROLE_OPTIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
+          <div className="flex gap-[9px] flex-wrap items-start">
+            <div>
+              <label htmlFor="team-invite-email" className="sr-only">
+                Teammate email
+              </label>
+              <input
+                id="team-invite-email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                type="email"
+                autoComplete="email"
+                placeholder="teammate@company.com"
+                aria-invalid={!!inviteEmailError}
+                aria-describedby="team-invite-email-error"
+                className="h-[42px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
+              />
+              <p
+                id="team-invite-email-error"
+                className={`text-[11.5px] m-[5px_0_0] ${inviteEmailError ? "text-danger-ink" : "sr-only"}`}
+              >
+                {inviteEmailError ?? "Enter a complete email address."}
+              </p>
+            </div>
+            <div>
+              <label htmlFor="team-invite-role" className="sr-only">
+                Teammate role
+              </label>
+              <select
+                id="team-invite-role"
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as OrgRole)}
+                className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
+              >
+                {ROLE_OPTIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
             <button
               onClick={sendInvite}
-              disabled={inviting || !inviteEmail.trim()}
+              disabled={inviting || !inviteEmail.trim() || !!inviteEmailError}
               className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[0_17px] h-[42px] rounded-[11px] cursor-pointer ah44 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {inviting ? "Inviting…" : "Invite"}
@@ -340,19 +404,38 @@ function TeamCard() {
       ) : null}
 
       {lastInviteLink ? (
-        <div className="bg-tint rounded-[13px] p-[12px_15px] mb-[14px]">
-          <div className="text-[12.5px] font-bold text-accent-ink">
-            Invite email could not be sent — share this link
+        <div className="bg-tint rounded-[13px] p-[12px_15px] mb-[14px] flex items-start gap-[12px] flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="text-[12.5px] font-bold text-accent-ink">
+              Invite email could not be sent — share this link
+            </div>
+            <div className="text-[12.5px] text-accent-ink-soft mt-[4px] break-all">
+              {lastInviteLink}
+            </div>
           </div>
-          <div className="text-[12.5px] text-accent-ink-soft mt-[4px] break-all">
-            {lastInviteLink}
-          </div>
+          <button
+            type="button"
+            onClick={() => void copyInviteLink()}
+            className="shrink-0 border-[1.5px] border-accent bg-surface text-accent-ink text-[12px] font-bold p-[8px_11px] rounded-[9px] cursor-pointer"
+          >
+            Copy link
+          </button>
         </div>
       ) : null}
 
       <div className="flex flex-col">
         {membersQuery.isLoading ? (
-          <div className="text-[13.5px] text-subtle p-[13px_0]">Loading…</div>
+          <RowsSkeleton rows={3} className="p-[13px_0]" />
+        ) : membersQuery.isError ? (
+          <div className="p-[16px_0] text-center">
+            <div className="text-[14.5px] font-bold">Could not load your team</div>
+            <p className="text-[13px] text-muted leading-[1.5] max-w-[380px] mx-[auto] mt-[6px]">
+              Nobody has been removed — we could not fetch the member list.
+            </p>
+            <div className="mt-[14px]">
+              <RetryButton onClick={() => membersQuery.refetch()} />
+            </div>
+          </div>
         ) : (
           members.map((m) => (
             <div
@@ -372,7 +455,15 @@ function TeamCard() {
                 <>
                   <select
                     value={m.role}
-                    onChange={(e) => changeRole(m.id, e.target.value as OrgRole)}
+                    onChange={(e) => {
+                      roleTriggerRef.current = e.currentTarget;
+                      setPendingRoleChange({
+                        memberId: m.id,
+                        email: m.email,
+                        from: m.role,
+                        to: e.target.value as OrgRole,
+                      });
+                    }}
                     className="h-[34px] p-[0_10px] rounded-[9px] border-[1.5px] border-border bg-cream text-[12.5px] capitalize"
                   >
                     {ROLE_OPTIONS.map((r) => (
@@ -381,12 +472,20 @@ function TeamCard() {
                       </option>
                     ))}
                   </select>
-                  <button
-                    onClick={() => removeMember(m.id)}
-                    className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
-                  >
-                    Remove
-                  </button>
+                  <ConfirmDialog
+                    trigger={
+                      <button
+                        type="button"
+                        className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
+                      >
+                        Remove
+                      </button>
+                    }
+                    title={`Remove ${m.email}?`}
+                    description="This immediately removes the member’s access to this Aspen workspace. Their historical activity remains recorded."
+                    confirmLabel="Remove member"
+                    onConfirm={() => removeMember(m.id)}
+                  />
                 </>
               ) : (
                 <span className="text-[12px] font-bold text-muted capitalize">{m.role}</span>
@@ -394,6 +493,18 @@ function TeamCard() {
             </div>
           ))
         )}
+
+        {invitesQuery.isError ? (
+          <div className="flex items-center gap-[10px] p-[13px_0] border-t-[1px] border-border-soft">
+            <span className="text-[13px] text-muted">Pending invitations could not be loaded.</span>
+            <button
+              onClick={() => invitesQuery.refetch()}
+              className="border-0 bg-transparent underline text-[13px] font-bold text-accent cursor-pointer p-0"
+            >
+              Try again
+            </button>
+          </div>
+        ) : null}
 
         {invites.map((i) => (
           <div
@@ -411,16 +522,34 @@ function TeamCard() {
             </div>
             <span className="text-[12px] font-bold text-subtle capitalize">{i.role} · pending</span>
             {isAdmin ? (
-              <button
-                onClick={() => revokeInvite(i.id)}
-                className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
-              >
-                Revoke
-              </button>
+              <ConfirmDialog
+                trigger={
+                  <button
+                    type="button"
+                    className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
+                  >
+                    Revoke
+                  </button>
+                }
+                title={`Revoke ${i.email}’s invitation?`}
+                description="The current invitation link will stop working immediately. You can send a new invitation later."
+                confirmLabel="Revoke invitation"
+                onConfirm={() => revokeInvite(i.id)}
+              />
             ) : null}
           </div>
         ))}
       </div>
+      {pendingRoleChange ? (
+        <ConfirmDialog
+          open
+          onOpenChange={(open) => !open && closeRoleConfirmation()}
+          title={`Change ${pendingRoleChange.email} to ${pendingRoleChange.to}?`}
+          description={`This changes their workspace permissions from ${pendingRoleChange.from} to ${pendingRoleChange.to} immediately.`}
+          confirmLabel="Change role"
+          onConfirm={() => changeRole(pendingRoleChange.memberId, pendingRoleChange.to)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -438,7 +567,15 @@ function BillingCard() {
   return (
     <div className="bg-tint rounded-[20px] p-[24px]">
       <h3 className="font-heading font-bold text-[17px] m-0 text-accent-ink">Billing</h3>
-      <DataGate connected={connected} loading={status.isLoading} label="Stripe billing">
+      <DataGate
+        connected={connected}
+        loading={status.isLoading}
+        error={status.isError}
+        errorTitle="Could not load billing status"
+        errorHint="We could not check your billing connection. Your plan and any pricing you have been quoted are unchanged."
+        errorAction={<RetryButton onClick={() => status.refetch()} />}
+        label="Stripe billing"
+      >
         <p className="text-[14.5px] leading-[1.6] text-accent-ink-soft m-[10px_0_0]">
           You're on early-access pricing — locked for 12 months after launch. Nothing is charged
           until your cohort opens.

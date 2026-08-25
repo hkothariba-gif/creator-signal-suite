@@ -2,13 +2,14 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { DataGate } from "@/components/app/DataGate";
+import { DataGate, RetryButton, RowsSkeleton } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tables } from "@/integrations/supabase/types";
 import { findCreatorsForCampaign, type SourceStatus } from "@/lib/discover-creators.functions";
 import { useCampaignPerformance, formatMoney } from "@/hooks/useCampaignPerformance";
 import { CampaignDocuments } from "@/components/app/CampaignDocuments";
+import { ConfirmDialog } from "@/components/app/AppDialog";
 
 /* CAMPAIGN DETAIL — new Aspen screen, per SCREENS-TO-PORT.md §5.
 
@@ -50,23 +51,23 @@ type DiscoveryRun = {
 };
 
 const PLATFORMS: Record<string, { glyph: string; color: string }> = {
-  youtube: { glyph: "▶", color: "#F03" },
-  reddit: { glyph: "r/", color: "#FF4500" },
-  x: { glyph: "X", color: "#17141E" },
-  linkedin: { glyph: "in", color: "#0A66C2" },
+  youtube: { glyph: "▶", color: "var(--color-youtube)" },
+  reddit: { glyph: "r/", color: "var(--color-reddit)" },
+  x: { glyph: "X", color: "var(--color-dark)" },
+  linkedin: { glyph: "in", color: "var(--color-linkedin)" },
 };
 const platMark = (p: string | null | undefined) =>
-  PLATFORMS[(p ?? "").toLowerCase()] ?? { glyph: "·", color: "#8A8494" };
+  PLATFORMS[(p ?? "").toLowerCase()] ?? { glyph: "·", color: "var(--color-subtle)" };
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
-  active: { bg: "#DDF3E6", fg: "#0E7A3D", label: "Active" },
-  draft: { bg: "#F5F1E9", fg: "#8A8494", label: "Draft" },
-  completed: { bg: "#E7EDFB", fg: "#3159A8", label: "Completed" },
+  active: { bg: "var(--color-success-wash)", fg: "var(--color-success-ink)", label: "Active" },
+  draft: { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: "Draft" },
+  completed: { bg: "var(--color-info-wash)", fg: "var(--color-info-ink)", label: "Completed" },
 };
 
 const STAGE_PILL: Record<string, { bg: string; fg: string }> = {
-  live: { bg: "#DDF3E6", fg: "#0E7A3D" },
-  contracted: { bg: "#FFECD9", fg: "#B33A12" },
+  live: { bg: "var(--color-success-wash)", fg: "var(--color-success-ink)" },
+  contracted: { bg: "var(--color-tint)", fg: "var(--color-accent-ink)" },
 };
 
 const fmtDate = (d: string | null) =>
@@ -89,12 +90,13 @@ function CampaignDetailPage() {
     queryKey: ["campaign", id, user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("campaigns")
         .select("*")
         .eq("user_id", user!.id)
         .eq("id", id)
         .maybeSingle();
+      if (error) throw error;
       return (data ?? null) as Campaign | null;
     },
   });
@@ -103,12 +105,13 @@ function CampaignDetailPage() {
     queryKey: ["campaign-hotlist", id, user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("hotlist")
         .select("*")
         .eq("user_id", user!.id)
         .eq("campaign_id", id)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       return (data ?? []) as HotlistRow[];
     },
   });
@@ -117,12 +120,13 @@ function CampaignDetailPage() {
     queryKey: ["campaign-ads", id, orgId],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("ads")
         .select("id,name,headline,status,target_platform,created_at")
         .eq("organization_id", orgId!)
         .eq("campaign_id", id)
         .order("updated_at", { ascending: false });
+      if (error) throw error;
       return (data ?? []) as AdRow[];
     },
   });
@@ -226,7 +230,33 @@ function CampaignDetailPage() {
     return (
       <div className="aspen-scope flex flex-col gap-[16px] max-w-[1080px]">
         {back}
-        <div className="text-[14px] text-subtle p-[48px_0] text-center">Loading…</div>
+        <div
+          className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]"
+          aria-hidden
+        >
+          <div className="h-[30px] w-[40%] rounded-[8px] bg-sand animate-pulse" />
+          <div className="h-[16px] w-[65%] rounded-[6px] bg-sand animate-pulse mt-[12px]" />
+        </div>
+        <RowsSkeleton rows={4} />
+      </div>
+    );
+  }
+
+  // A campaign that failed to load is not a campaign that does not exist. The
+  // !c branch below says "nothing here"; this one says what actually happened.
+  if (campaign.isError) {
+    return (
+      <div className="aspen-scope flex flex-col gap-[16px] max-w-[1080px]">
+        {back}
+        <DataGate
+          connected={true}
+          error
+          errorTitle="Could not load this campaign"
+          errorHint="The campaign could not be fetched. Nothing has been changed — retry, or go back to all campaigns."
+          errorAction={<RetryButton onClick={() => campaign.refetch()} />}
+        >
+          <></>
+        </DataGate>
       </div>
     );
   }
@@ -243,7 +273,11 @@ function CampaignDetailPage() {
     );
   }
 
-  const ss = STATUS_STYLE[c.status] ?? { bg: "#F5F1E9", fg: "#8A8494", label: c.status };
+  const ss = STATUS_STYLE[c.status] ?? {
+    bg: "var(--color-sand)",
+    fg: "var(--color-subtle)",
+    label: c.status,
+  };
   const rows = hotlist.data ?? [];
   const stageOf = (r: HotlistRow) => (r.stage ?? "saved").toLowerCase();
   // The board has a "negotiating" stage the funnel does not; those creators
@@ -274,6 +308,9 @@ function CampaignDetailPage() {
     from && to ? `${from} – ${to}` : from ? `From ${from}` : to ? `Until ${to}` : "No dates set";
 
   const p = perf.data;
+  // "Not recorded" is a claim about the data; if the fetch failed we cannot
+  // make that claim, so the tiles say so instead.
+  const perfFailed = perf.isError;
   const adRows = ads.data ?? [];
 
   // Legacy free-text budget is display-only, and only when the numeric column
@@ -375,7 +412,10 @@ function CampaignDetailPage() {
           <div className="flex-1 min-w-[240px]">
             {spendText && budgetText ? (
               <>
-                <div className="text-[13px]" style={{ color: over ? "#F2542D" : "#4A4553" }}>
+                <div
+                  className="text-[13px]"
+                  style={{ color: over ? "var(--color-accent)" : "var(--color-muted)" }}
+                >
                   <strong className={over ? "" : "text-dark"}>{spendText}</strong> of{" "}
                   <strong className={over ? "" : "text-dark"}>{budgetText}</strong> spent
                 </div>
@@ -411,7 +451,7 @@ function CampaignDetailPage() {
           <div key={s.label} className="flex-1 min-w-[140px]">
             <div
               className="font-heading font-extrabold text-[30px] tracking-[-0.03em] leading-[1.1]"
-              style={{ color: i >= 3 ? "#F2542D" : "#17141E" }}
+              style={{ color: i >= 3 ? "var(--color-accent)" : "var(--color-dark)" }}
             >
               {hotlist.isLoading ? "—" : s.n}
             </div>
@@ -424,7 +464,7 @@ function CampaignDetailPage() {
       {lastRun ? <DiscoveryRunPanel run={lastRun} onDismiss={() => setLastRun(null)} /> : null}
 
       {/* ── Creators + Ads ── */}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(380px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className={`${CARD} p-[22px]`}>
           <div className="flex items-center justify-between gap-[12px] mb-[6px] flex-wrap">
             <h3 className="font-heading font-bold text-[16.5px] m-0">Creators on this campaign</h3>
@@ -436,27 +476,41 @@ function CampaignDetailPage() {
               Open hotlist →
             </Link>
           </div>
-          {/* Kept from the dark version: the other two sources are not built yet. */}
+          {/* The other two sources are not built yet, so they read as labelled
+              placeholders rather than working discovery controls. */}
           <div className="flex gap-[7px] mb-[14px]">
             <button
-              onClick={() => toast.info("X (Twitter) discovery is coming soon")}
-              className="border-[1.5px] border-border bg-transparent text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-pointer transition-colors hover:border-dark hover:text-dark"
+              type="button"
+              disabled
+              className="border-[1.5px] border-dashed border-sand-line bg-sand text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-not-allowed disabled:opacity-100"
             >
-              X
+              X · coming soon
             </button>
             <button
-              onClick={() => toast.info("LinkedIn discovery is coming soon")}
-              className="border-[1.5px] border-border bg-transparent text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-pointer transition-colors hover:border-dark hover:text-dark"
+              type="button"
+              disabled
+              className="border-[1.5px] border-dashed border-sand-line bg-sand text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-not-allowed disabled:opacity-100"
             >
-              LinkedIn
+              LinkedIn · coming soon
             </button>
           </div>
 
-          <DataGate connected={true} loading={hotlist.isLoading} empty={rows.length === 0}>
+          <DataGate
+            connected={true}
+            loading={hotlist.isLoading}
+            empty={rows.length === 0}
+            error={hotlist.isError}
+            errorTitle="Could not load creators"
+            errorHint="The creators saved against this campaign could not be fetched. They are still saved — this is a display problem."
+            errorAction={<RetryButton onClick={() => hotlist.refetch()} />}
+          >
             <div className="flex flex-col gap-[9px]">
               {rows.map((h) => {
                 const mark = platMark(h.platform);
-                const pill = STAGE_PILL[stageOf(h)] ?? { bg: "#F5F1E9", fg: "#8A8494" };
+                const pill = STAGE_PILL[stageOf(h)] ?? {
+                  bg: "var(--color-sand)",
+                  fg: "var(--color-subtle)",
+                };
                 const creatorStat = p?.perCreator[h.id];
                 return (
                   <Link
@@ -531,6 +585,10 @@ function CampaignDetailPage() {
             connected={!!orgId}
             loading={ads.isLoading}
             empty={adRows.length === 0}
+            error={ads.isError}
+            errorTitle="Could not load ads"
+            errorHint="The ads built against this campaign could not be fetched. Retry, or open the Ads Center."
+            errorAction={<RetryButton onClick={() => ads.refetch()} />}
             label="Ads are built in the Ads Center against this campaign"
           >
             <div className="flex flex-col gap-[9px]">
@@ -550,7 +608,7 @@ function CampaignDetailPage() {
                       </span>
                       <span
                         className="ml-[auto] text-[12px] font-bold capitalize"
-                        style={{ color: live ? "#0E7A3D" : "#8A8494" }}
+                        style={{ color: live ? "var(--color-success-ink)" : "var(--color-subtle)" }}
                       >
                         {a.status}
                       </span>
@@ -592,11 +650,9 @@ function CampaignDetailPage() {
         }
       />
 
-
-
       {/* ── Proof band ── */}
       <div className="bg-dark text-cream rounded-[22px] p-[26px] flex gap-[26px] items-center flex-wrap">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-[20px] flex-1 min-w-[300px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[20px] flex-1 min-w-0">
           <ProofStat
             label="Attributed revenue"
             value={
@@ -606,7 +662,9 @@ function CampaignDetailPage() {
                   ? "…"
                   : p && p.revenue.currencyCount > 1
                     ? `${p.revenue.currencyCount} currencies`
-                    : "Not recorded"
+                    : perfFailed
+                      ? "Unavailable"
+                      : "Not recorded"
             }
             small={p?.revenue.minor == null}
           />
@@ -619,7 +677,9 @@ function CampaignDetailPage() {
                   ? "…"
                   : p && p.spend.currencyCount > 1
                     ? `${p.spend.currencyCount} currencies`
-                    : "Not recorded"
+                    : perfFailed
+                      ? "Unavailable"
+                      : "Not recorded"
             }
             small={p?.spend.minor == null}
             note={
@@ -630,7 +690,9 @@ function CampaignDetailPage() {
           />
           <ProofStat
             label="Return"
-            value={p?.roas != null ? `${p.roas.toFixed(1)}x` : "Needs spend"}
+            value={
+              p?.roas != null ? `${p.roas.toFixed(1)}x` : perfFailed ? "Unavailable" : "Needs spend"
+            }
             small={p?.roas == null}
             note={
               p?.roas != null && p.revenue.minor != null && p.spend.minor != null
@@ -645,7 +707,9 @@ function CampaignDetailPage() {
                 ? p.conversions.toLocaleString()
                 : perf.isLoading
                   ? "…"
-                  : "Not recorded"
+                  : perfFailed
+                    ? "Unavailable"
+                    : "Not recorded"
             }
             small={p?.conversions == null}
           />
@@ -664,7 +728,12 @@ function CampaignDetailPage() {
                       className="flex-1 rounded-[5px_5px_0_0]"
                       style={{
                         height: `${h}%`,
-                        background: i >= 9 ? "#F2542D" : i >= 5 ? "#FFD84D" : "#3A3546",
+                        background:
+                          i >= 9
+                            ? "var(--color-accent)"
+                            : i >= 5
+                              ? "var(--color-highlight)"
+                              : "var(--color-dark-line)",
                       }}
                     />
                   );
@@ -684,7 +753,7 @@ function CampaignDetailPage() {
                         })
                         .join(" ")}
                       fill="none"
-                      stroke="#8A8494"
+                      className="stroke-subtle"
                       strokeWidth="2"
                       vectorEffect="non-scaling-stroke"
                     />
@@ -708,9 +777,25 @@ function CampaignDetailPage() {
             </>
           ) : (
             <div className="text-[13px] text-on-dark leading-[1.55]">
-              {perf.isLoading
-                ? "Loading…"
-                : "Nothing recorded for this campaign yet — attributed revenue needs a tracking link, spend needs ad_daily rows."}
+              {perf.isLoading ? (
+                <span
+                  className="block h-[96px] rounded-[10px] bg-dark-raised animate-pulse"
+                  aria-hidden
+                />
+              ) : perfFailed ? (
+                <>
+                  Revenue and spend could not be loaded, so this campaign&rsquo;s performance is not
+                  shown. Your figures are unaffected.
+                  <button
+                    onClick={() => perf.refetch()}
+                    className="ml-[8px] border-0 bg-transparent underline text-cream text-[13px] font-bold cursor-pointer p-0"
+                  >
+                    Try again
+                  </button>
+                </>
+              ) : (
+                "Nothing recorded for this campaign yet — attributed revenue needs a tracking link, spend needs ad_daily rows."
+              )}
             </div>
           )}
         </div>
@@ -731,9 +816,7 @@ function CampaignDetailPage() {
         <div className="flex flex-col">
           <BriefRow label="Product" value={c.product_description} />
           <BriefRow label="Audience" value={audienceText(c.target_audience)} />
-          {/* No offer column on campaigns — the brief has product, audience,
-              never_say and free text, but nothing that means "the offer". */}
-          <BriefRow label="Offer" value={null} missing="No offer field on campaigns yet" />
+          <BriefRow label="Offer" value={null} missing="No offer added to this campaign brief" />
           <BriefRow label="Avoid" value={c.never_say} />
         </div>
         {c.brief ? (
@@ -743,13 +826,21 @@ function CampaignDetailPage() {
         ) : null}
       </div>
 
-      <button
-        onClick={() => setStatus("completed", "Campaign archived")}
-        disabled={busy !== null || c.status === "completed"}
-        className="self-start border-0 bg-transparent text-[13px] font-bold text-subtle cursor-pointer p-0 transition-colors hover:text-accent disabled:opacity-40"
-      >
-        Archive this campaign
-      </button>
+      <ConfirmDialog
+        trigger={
+          <button
+            type="button"
+            disabled={busy !== null || c.status === "completed"}
+            className="self-start border-0 bg-transparent text-[13px] font-bold text-subtle cursor-pointer p-0 transition-colors hover:text-accent disabled:opacity-40"
+          >
+            Archive this campaign
+          </button>
+        }
+        title={`Archive “${c.name}”?`}
+        description="This marks the campaign completed and removes it from active work. Its creators, documents and performance history remain available."
+        confirmLabel="Archive campaign"
+        onConfirm={() => setStatus("completed", "Campaign archived")}
+      />
     </div>
   );
 }
@@ -775,7 +866,7 @@ function ProofStat({
         {value}
       </div>
       <div className="text-[12.5px] text-subtle mt-[4px]">{label}</div>
-      {note ? <div className="text-[11.5px] text-[#6E687A] mt-[2px]">{note}</div> : null}
+      {note ? <div className="text-[11.5px] text-dark-muted mt-[2px]">{note}</div> : null}
     </div>
   );
 }
@@ -790,7 +881,7 @@ function BriefRow({
   missing?: string;
 }) {
   return (
-    <div className="flex gap-[14px] items-baseline p-[12px_0] border-t-[1px] border-[#F0EBE1]">
+    <div className="flex gap-[14px] items-baseline p-[12px_0] border-t-[1px] border-border-soft">
       <div className="w-[92px] shrink-0 text-[12.5px] font-bold uppercase tracking-[0.06em] text-subtle">
         {label}
       </div>
@@ -856,8 +947,11 @@ function DiscoveryRunPanel({ run, onDismiss }: { run: DiscoveryRun; onDismiss: (
                     className="text-[11px] font-bold p-[3px_8px] rounded-[6px]"
                     style={
                       s.ok
-                        ? { background: "#DDF3E6", color: "#0E7A3D" }
-                        : { background: "#FFECD9", color: "#B33A12" }
+                        ? {
+                            background: "var(--color-success-wash)",
+                            color: "var(--color-success-ink)",
+                          }
+                        : { background: "var(--color-tint)", color: "var(--color-accent-ink)" }
                     }
                   >
                     {s.ok ? "OK" : "FAIL"}

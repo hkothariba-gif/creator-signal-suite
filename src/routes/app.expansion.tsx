@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
 
 /* EXPANSION & UPSELL — the `v.isExpansion` block of src/aspen/AspenApp.tsx, on
    the live connector gates the dark version used. Shell, header and title come
@@ -29,13 +29,17 @@ function ExpansionPage() {
           connected={perfReady}
           empty
           loading={status.isLoading}
+          error={status.isError}
+          errorTitle="Could not check your connections"
+          errorHint="We could not reach the service that reports which integrations are live. Retry, or come back in a moment."
+          errorAction={<RetryButton onClick={() => status.refetch()} />}
           label="Scores load from the creator performance connection"
         >
           <></>
         </DataGate>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
         <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]">
           <h3 className="font-heading font-bold text-[17px] m-[0_0_3px]">Recommended creators</h3>
           <div className="text-[13px] text-subtle mb-[16px]">
@@ -45,6 +49,10 @@ function ExpansionPage() {
             connected={trendsReady}
             empty
             loading={status.isLoading}
+            error={status.isError}
+            errorTitle="Could not check your connections"
+            errorHint="We could not reach the service that reports which integrations are live. Retry, or come back in a moment."
+            errorAction={<RetryButton onClick={() => status.refetch()} />}
             label="Recommendations load from the trends connection"
           >
             <></>
@@ -55,7 +63,17 @@ function ExpansionPage() {
           <div className="text-[13px] text-on-dark mb-[16px]">
             Based on the last 30 days of attribution.
           </div>
-          {insightReady ? null : (
+          {status.isError ? (
+            <div className="text-[13.5px] text-on-dark leading-[1.55]">
+              We could not check your connections, so there are no suggestions to show yet.
+              <button
+                onClick={() => status.refetch()}
+                className="ml-[8px] border-0 bg-transparent underline text-cream text-[13.5px] font-bold cursor-pointer p-0"
+              >
+                Try again
+              </button>
+            </div>
+          ) : insightReady ? null : (
             <div className="text-[13.5px] text-on-dark leading-[1.55]">
               Waiting for API connection — suggestions need the model and creator performance
               connections.

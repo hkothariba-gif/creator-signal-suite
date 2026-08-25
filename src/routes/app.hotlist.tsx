@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { SearchSchemaInput } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
 import { AffiliateHeatMap, type HeatCreator } from "@/components/app/AffiliateHeatMap";
 import { scoreCampaignCreators } from "@/lib/creators.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,11 +59,11 @@ type ProfileData = {
 // The design's platform glyph + brand colour, keyed off the stored platform.
 const platMark = (p: string | null) => {
   const v = (p ?? "").toLowerCase();
-  if (v === "youtube") return { glyph: "▶", color: "#F03" };
-  if (v === "reddit") return { glyph: "r/", color: "#FF4500" };
-  if (v === "linkedin") return { glyph: "in", color: "#0A66C2" };
-  if (v === "x") return { glyph: "X", color: "#17141E" };
-  return { glyph: "·", color: "#8A8494" };
+  if (v === "youtube") return { glyph: "▶", color: "var(--color-youtube)" };
+  if (v === "reddit") return { glyph: "r/", color: "var(--color-reddit)" };
+  if (v === "linkedin") return { glyph: "in", color: "var(--color-linkedin)" };
+  if (v === "x") return { glyph: "X", color: "var(--color-dark)" };
+  return { glyph: "·", color: "var(--color-subtle)" };
 };
 
 function HotlistPage() {
@@ -73,6 +73,9 @@ function HotlistPage() {
   const status = useConnectorStatus();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  // See app.campaigns.index.tsx: an empty list after a failed fetch reads as
+  // "you have no creators", which is not what happened.
+  const [failed, setFailed] = useState(false);
   const [filter, setFilter] = useState("All");
   const [dragging, setDragging] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
@@ -88,6 +91,7 @@ function HotlistPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
+    setFailed(!!error);
     setRows(data ?? []);
     setLoading(false);
   };
@@ -226,9 +230,9 @@ function HotlistPage() {
                   onClick={() => setFilter(label)}
                   className="text-[12.5px] font-bold p-[8px_13px] rounded-[10px] cursor-pointer"
                   style={{
-                    border: `1.5px solid ${on ? "#FAF7F1" : "#3A3546"}`,
-                    background: on ? "#FAF7F1" : "transparent",
-                    color: on ? "#17141E" : "#B8B2C2",
+                    border: `1.5px solid ${on ? "var(--color-cream)" : "var(--color-dark-line)"}`,
+                    background: on ? "var(--color-cream)" : "transparent",
+                    color: on ? "var(--color-dark)" : "var(--color-on-dark)",
                   }}
                 >
                   {label}
@@ -243,6 +247,10 @@ function HotlistPage() {
         connected={connected}
         loading={loading || status.isLoading}
         empty={filtered.length === 0}
+        error={failed || status.isError}
+        errorTitle="Could not load your hotlist"
+        errorHint="Your saved creators and their stages are unchanged — we could not fetch them just now."
+        errorAction={<RetryButton onClick={() => void refresh()} />}
         label="Creators load once this platform is connected"
         emptyTitle="No creators on this hotlist yet"
         emptyHint="Run a discovery search and add the creators you like. They land here staged, scored and ready for outreach."
@@ -255,90 +263,115 @@ function HotlistPage() {
           </Link>
         }
       >
-
-        <div className="flex gap-[14px] overflow-x-auto pb-[12px]">
-          {STAGES.map((col) => (
-            <div
-              key={col.key}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (dragging) moveTo(dragging, col.key);
-                setDragging(null);
-              }}
-              className="min-w-[262px] w-[262px] shrink-0 bg-sand-deep rounded-[18px] p-[14px]"
-            >
-              <div className="flex items-center gap-[8px] mb-[12px]">
-                <span className="font-bold text-[14px]">{col.label}</span>
-                <span className="text-[11px] font-bold text-subtle bg-surface p-[2px_8px] rounded-[7px]">
-                  {byStage[col.key].length}
-                </span>
-              </div>
-              <div className="flex flex-col gap-[9px]">
-                {byStage[col.key].map((c) => {
-                  const mark = platMark(c.platform);
-                  return (
-                    <div
-                      key={c.id}
-                      draggable
-                      onDragStart={() => setDragging(c.id)}
-                      onDragEnd={() => setDragging(null)}
-                      className="bg-surface border-[1.5px] border-border rounded-[14px] p-[13px] cursor-grab active:cursor-grabbing"
-                    >
-                      <div className="flex gap-[10px] items-center">
-                        {c.avatar_url ? (
-                          <img
-                            src={c.avatar_url}
-                            alt=""
-                            className="w-[30px] h-[30px] rounded-[9px] shrink-0 object-cover"
-                          />
-                        ) : (
-                          <div
-                            className="w-[30px] h-[30px] rounded-[9px] text-surface grid place-items-center font-extrabold text-[11px] shrink-0"
-                            style={{ background: mark.color }}
-                          >
-                            {mark.glyph}
+        <div className="relative after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-[48px] after:bg-gradient-to-l after:from-cream after:to-transparent after:content-['']">
+          <div className="flex gap-[14px] overflow-x-auto pb-[12px] pr-[34px]">
+            {STAGES.map((col) => (
+              <div
+                key={col.key}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => {
+                  if (dragging) moveTo(dragging, col.key);
+                  setDragging(null);
+                }}
+                className="min-w-[262px] w-[262px] shrink-0 bg-sand-deep rounded-[18px] p-[14px]"
+              >
+                <div className="flex items-center gap-[8px] mb-[12px]">
+                  <span className="font-bold text-[14px]">{col.label}</span>
+                  <span className="text-[11px] font-bold text-subtle bg-surface p-[2px_8px] rounded-[7px]">
+                    {byStage[col.key].length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-[9px]">
+                  {byStage[col.key].map((c) => {
+                    const mark = platMark(c.platform);
+                    return (
+                      <div
+                        key={c.id}
+                        role="group"
+                        tabIndex={0}
+                        aria-label={`${c.creator_name}, ${col.label} stage. Use the left and right arrow keys to change stage.`}
+                        aria-roledescription="draggable creator card"
+                        aria-keyshortcuts="ArrowLeft ArrowRight"
+                        data-hotlist-card-id={c.id}
+                        draggable
+                        onDragStart={() => setDragging(c.id)}
+                        onDragEnd={() => setDragging(null)}
+                        onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return;
+                          const direction =
+                            event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+                          if (!direction) return;
+                          event.preventDefault();
+                          const currentIndex = STAGES.findIndex((stage) => stage.key === col.key);
+                          const nextStage = STAGES[currentIndex + direction];
+                          if (!nextStage) return;
+                          void moveTo(c.id, nextStage.key);
+                          window.requestAnimationFrame(() => {
+                            const movedCard = document.querySelector<HTMLElement>(
+                              `[data-hotlist-card-id="${c.id}"]`,
+                            );
+                            movedCard?.focus();
+                          });
+                        }}
+                        className="bg-surface border-[1.5px] border-border rounded-[14px] p-[13px] cursor-grab active:cursor-grabbing"
+                      >
+                        <div className="flex gap-[10px] items-center">
+                          {c.avatar_url ? (
+                            <img
+                              src={c.avatar_url}
+                              alt=""
+                              className="w-[30px] h-[30px] rounded-[9px] shrink-0 object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="w-[30px] h-[30px] rounded-[9px] text-surface grid place-items-center font-extrabold text-[11px] shrink-0"
+                              style={{ background: mark.color }}
+                            >
+                              {mark.glyph}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              to="/app/creators/$id"
+                              params={{ id: c.id }}
+                              className="text-[13.5px] font-bold leading-[1.3] block truncate"
+                            >
+                              {c.creator_name}
+                            </Link>
                           </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            to="/app/creators/$id"
-                            params={{ id: c.id }}
-                            className="text-[13.5px] font-bold leading-[1.3] block truncate"
-                          >
-                            {c.creator_name}
-                          </Link>
+                        </div>
+                        <div className="flex gap-[6px] mt-[10px] flex-wrap">
+                          {typeof c.score === "number" ? (
+                            <span className="text-[10.5px] font-bold bg-tint text-accent-ink p-[3px_7px] rounded-[6px]">
+                              {c.score}% fit
+                            </span>
+                          ) : null}
+                          {c.cpm ? (
+                            <span className="text-[10.5px] font-bold bg-sand text-muted p-[3px_7px] rounded-[6px]">
+                              {c.cpm}
+                            </span>
+                          ) : null}
+                        </div>
+                        {/* Keyboard/no-drag fallback, as the dark version had. */}
+                        <div className="flex gap-[8px] mt-[9px] flex-wrap">
+                          {STAGES.filter((s) => s.key !== (c.stage ?? "saved")).map((s) => (
+                            <button
+                              key={s.key}
+                              type="button"
+                              onClick={() => moveTo(c.id, s.key)}
+                              className="border-0 bg-transparent p-0 text-[10.5px] font-semibold text-subtle cursor-pointer ah20"
+                            >
+                              → {s.label}
+                            </button>
+                          ))}
                         </div>
                       </div>
-                      <div className="flex gap-[6px] mt-[10px] flex-wrap">
-                        {typeof c.score === "number" ? (
-                          <span className="text-[10.5px] font-bold bg-tint text-accent-ink p-[3px_7px] rounded-[6px]">
-                            {c.score}% fit
-                          </span>
-                        ) : null}
-                        {c.cpm ? (
-                          <span className="text-[10.5px] font-bold bg-sand text-muted p-[3px_7px] rounded-[6px]">
-                            {c.cpm}
-                          </span>
-                        ) : null}
-                      </div>
-                      {/* Keyboard/no-drag fallback, as the dark version had. */}
-                      <div className="flex gap-[8px] mt-[9px] flex-wrap">
-                        {STAGES.filter((s) => s.key !== (c.stage ?? "saved")).map((s) => (
-                          <button
-                            key={s.key}
-                            onClick={() => moveTo(c.id, s.key)}
-                            className="border-0 bg-transparent p-0 text-[10.5px] font-semibold text-subtle cursor-pointer ah20"
-                          >
-                            → {s.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </DataGate>
     </div>

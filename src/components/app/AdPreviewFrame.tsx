@@ -1,8 +1,33 @@
-import { ThumbsUp, MessageSquare, Repeat2, Heart, ArrowBigUp, ArrowBigDown, Play } from "lucide-react";
+import {
+  ThumbsUp,
+  MessageSquare,
+  Repeat2,
+  Heart,
+  ArrowBigUp,
+  ArrowBigDown,
+  Play,
+} from "lucide-react";
 
 // Ads Engine v2: platform-true preview frames. Renders generated copy (and an
 // optional image) inside a realistic LinkedIn / X / Reddit / YouTube ad shell
 // so brands see how the creative will actually land. Pure presentation.
+
+/* These reproduce YouTube's and Reddit's own ad chrome — the surfaces, badges
+   and CTA fills those products actually ship. They are content, not theme: if
+   YouTube restyles its ad slot these change with it, and they must NOT track
+   the Aspen palette. So they stay literal rather than becoming design tokens,
+   collected here so a hex sweep finds them in one place instead of scattered
+   through the JSX. Aspen's own colours in this file (the brand-green avatar,
+   the LinkedIn mark) are tokenised normally. */
+const PLATFORM_CHROME = {
+  linkedinInk: "#1a1a1a",
+  ytSurface: "#0f0f0f",
+  ytThumb: "#1f1f1f",
+  ytAdBadge: "#FCC934",
+  ytCta: "#3ea6ff",
+  redditSurface: "#0b1416",
+  redditCta: "#d93a00",
+} as const;
 
 export function AdPreviewFrame({
   platform,
@@ -20,7 +45,7 @@ export function AdPreviewFrame({
   imageUrl?: string | null;
 }) {
   const avatar = (
-    <div className="w-9 h-9 rounded-full bg-[#00D97E]/20 text-[#00D97E] flex items-center justify-center text-xs font-bold shrink-0">
+    <div className="w-9 h-9 rounded-full bg-brand-green/20 text-brand-green flex items-center justify-center text-xs font-bold shrink-0">
       {brand.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -30,7 +55,10 @@ export function AdPreviewFrame({
 
   if (platform === "linkedin") {
     return (
-      <div className="rounded-xl bg-white text-[#1a1a1a] p-3.5 text-left shadow">
+      <div
+        className="rounded-xl bg-white p-3.5 text-left shadow"
+        style={{ color: PLATFORM_CHROME.linkedinInk }}
+      >
         <div className="flex items-center gap-2">
           {avatar}
           <div>
@@ -43,15 +71,21 @@ export function AdPreviewFrame({
         <div className="mt-2 rounded-lg bg-gray-100 px-3 py-2 flex items-center justify-between gap-2">
           <p className="text-[12px] font-semibold leading-tight">{headline}</p>
           {cta && (
-            <span className="text-[11px] font-bold text-[#0a66c2] border border-[#0a66c2] rounded-full px-2.5 py-1 whitespace-nowrap">
+            <span className="text-[11px] font-bold text-linkedin border border-linkedin rounded-full px-2.5 py-1 whitespace-nowrap">
               {cta}
             </span>
           )}
         </div>
         <div className="mt-2 flex gap-4 text-gray-500 text-[11px]">
-          <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> Like</span>
-          <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Comment</span>
-          <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> Repost</span>
+          <span className="flex items-center gap-1">
+            <ThumbsUp className="w-3 h-3" /> Like
+          </span>
+          <span className="flex items-center gap-1">
+            <MessageSquare className="w-3 h-3" /> Comment
+          </span>
+          <span className="flex items-center gap-1">
+            <Repeat2 className="w-3 h-3" /> Repost
+          </span>
         </div>
       </div>
     );
@@ -85,14 +119,23 @@ export function AdPreviewFrame({
 
   if (platform === "youtube") {
     return (
-      <div className="rounded-xl bg-[#0f0f0f] border border-white/10 p-3.5 text-left">
-        <div className="relative rounded-lg bg-[#1f1f1f] aspect-video flex items-center justify-center overflow-hidden">
+      <div
+        className="rounded-xl border border-white/10 p-3.5 text-left"
+        style={{ background: PLATFORM_CHROME.ytSurface }}
+      >
+        <div
+          className="relative rounded-lg aspect-video flex items-center justify-center overflow-hidden"
+          style={{ background: PLATFORM_CHROME.ytThumb }}
+        >
           {imageUrl ? (
             <img src={imageUrl} alt="" className="w-full h-full object-cover" />
           ) : (
             <Play className="w-10 h-10 text-white/40" />
           )}
-          <span className="absolute bottom-2 left-2 text-[10px] font-bold bg-[#FCC934] text-black px-1.5 py-0.5 rounded">
+          <span
+            className="absolute bottom-2 left-2 text-[10px] font-bold text-black px-1.5 py-0.5 rounded"
+            style={{ background: PLATFORM_CHROME.ytAdBadge }}
+          >
             Ad
           </span>
         </div>
@@ -100,13 +143,14 @@ export function AdPreviewFrame({
           {avatar}
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-white leading-snug">{headline}</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {brand} · Sponsored
-            </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">{brand} · Sponsored</p>
             <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{body}</p>
           </div>
           {cta && (
-            <span className="ml-auto shrink-0 text-[11px] font-bold text-black bg-[#3ea6ff] rounded px-2.5 py-1.5">
+            <span
+              className="ml-auto shrink-0 text-[11px] font-bold text-black rounded px-2.5 py-1.5"
+              style={{ background: PLATFORM_CHROME.ytCta }}
+            >
               {cta}
             </span>
           )}
@@ -117,18 +161,25 @@ export function AdPreviewFrame({
 
   // reddit (default)
   return (
-    <div className="rounded-xl bg-[#0b1416] border border-white/10 p-3.5 text-left">
+    <div
+      className="rounded-xl border border-white/10 p-3.5 text-left"
+      style={{ background: PLATFORM_CHROME.redditSurface }}
+    >
       <div className="flex items-center gap-2">
         {avatar}
         <p className="text-[12px] text-gray-300 font-semibold">
-          u/{brand.replace(/\s+/g, "")} <span className="text-gray-500 font-normal">· Promoted</span>
+          u/{brand.replace(/\s+/g, "")}{" "}
+          <span className="text-gray-500 font-normal">· Promoted</span>
         </p>
       </div>
       <p className="mt-2 text-[14px] font-semibold text-white leading-snug">{headline}</p>
       {body && <p className="mt-1 text-[12px] text-gray-300 leading-snug">{body}</p>}
       {image && <div className="mt-2">{image}</div>}
       {cta && (
-        <div className="mt-2 inline-block rounded-full bg-[#d93a00] text-white text-[11px] font-bold px-3 py-1.5">
+        <div
+          className="mt-2 inline-block rounded-full text-white text-[11px] font-bold px-3 py-1.5"
+          style={{ background: PLATFORM_CHROME.redditCta }}
+        >
           {cta}
         </div>
       )}
@@ -136,7 +187,9 @@ export function AdPreviewFrame({
         <span className="flex items-center gap-1">
           <ArrowBigUp className="w-3.5 h-3.5" /> Vote <ArrowBigDown className="w-3.5 h-3.5" />
         </span>
-        <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Comments</span>
+        <span className="flex items-center gap-1">
+          <MessageSquare className="w-3 h-3" /> Comments
+        </span>
       </div>
     </div>
   );

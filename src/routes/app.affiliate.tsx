@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { DataGate } from "@/components/app/DataGate";
+import { DataGate, RetryButton } from "@/components/app/DataGate";
 import { useAuth } from "@/hooks/useAuth";
 import {
   getAccountConnections,
@@ -27,6 +27,17 @@ export const Route = createFileRoute("/app/affiliate")({
 
 const PROVIDERS = ["stripe", "shopify", "paddle", "lemonsqueezy", "manual"] as const;
 
+function destinationError(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "https:" ? null : "Use a secure URL beginning with https://.";
+  } catch {
+    return "Enter a complete URL beginning with https://.";
+  }
+}
+
 function money(minor: number, currency: string): string {
   try {
     return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(minor / 100);
@@ -43,10 +54,15 @@ function AffiliatePage() {
   const [perf, setPerf] = useState<AffiliatePerformance | null>(null);
   const [links, setLinks] = useState<AffiliateLink[]>([]);
   const [loading, setLoading] = useState(true);
+  /* The catch below used to set salesConnected = false, so a failed load told
+     the user their sales provider was disconnected and offered to reconnect it.
+     The failure is now its own state and says nothing about the connection. */
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     if (!orgId) return;
     setLoading(true);
+    setFailed(false);
     try {
       const [conn, performance, linkList] = await Promise.all([
         getAccountConnections({ data: { organizationId: orgId } }),
@@ -58,7 +74,8 @@ function AffiliatePage() {
       setLinks(linkList);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not load affiliate data");
-      setSalesConnected(false);
+      setFailed(true);
+      setSalesConnected(undefined);
     } finally {
       setLoading(false);
     }
@@ -89,8 +106,9 @@ function AffiliatePage() {
   const [dest, setDest] = useState("");
   const [label, setLabel] = useState("");
   const [creating, setCreating] = useState(false);
+  const destError = destinationError(dest);
   const create = async () => {
-    if (!orgId || !dest.trim()) return;
+    if (!orgId || !dest.trim() || destinationError(dest)) return;
     setCreating(true);
     try {
       await createAffiliateLink({
@@ -146,18 +164,26 @@ function AffiliatePage() {
             SALES CONNECTION
           </div>
           <div className="text-[14.5px] font-semibold mt-[5px]">
-            {salesConnected
-              ? "Connected — conversions post in through the ingest endpoint."
-              : "Not connected. Pick a provider to start attributing revenue."}
+            {failed
+              ? "We could not check your sales connection just now."
+              : salesConnected
+                ? "Connected — conversions post in through the ingest endpoint."
+                : "Not connected. Pick a provider to start attributing revenue."}
           </div>
         </div>
-        {salesConnected ? (
+        {failed ? (
+          <RetryButton onClick={() => void load()} />
+        ) : salesConnected ? (
           <span className="text-[12px] font-bold text-success-ink bg-success-wash p-[7px_13px] rounded-[9px]">
             ✓ Live
           </span>
         ) : (
           <div className="flex gap-[8px] items-center">
+            <label htmlFor="affiliate-sales-provider" className="sr-only">
+              Sales provider
+            </label>
             <select
+              id="affiliate-sales-provider"
               value={provider}
               onChange={(e) => setProvider(e.target.value as (typeof PROVIDERS)[number])}
               className="h-[42px] p-[0_12px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] capitalize"
@@ -179,7 +205,7 @@ function AffiliatePage() {
         )}
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[16px] mb-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[16px] mb-[16px]">
         <div className="bg-dark text-cream rounded-[20px] p-[22px]">
           <div className="text-[12px] font-bold tracking-[0.1em] text-subtle">
             ATTRIBUTED REVENUE
@@ -213,21 +239,39 @@ function AffiliatePage() {
 
       <div className="flex gap-[10px] items-end bg-surface border-[1.5px] border-border rounded-[20px] p-[20px_22px] mb-[16px] flex-wrap">
         <div className="flex-[1_1_260px] min-w-[220px]">
-          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+          <label
+            htmlFor="affiliate-destination"
+            className="block text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]"
+          >
             DESTINATION URL
-          </div>
+          </label>
           <input
+            id="affiliate-destination"
+            type="url"
+            inputMode="url"
             value={dest}
             onChange={(e) => setDest(e.target.value)}
             placeholder="https://example.com/pricing"
+            aria-invalid={!!destError}
+            aria-describedby="affiliate-destination-help"
             className="w-full box-border h-[44px] p-[0_13px] rounded-[11px] border-[1.5px] border-border bg-cream text-[14px] outline-none"
           />
+          <p
+            id="affiliate-destination-help"
+            className={`text-[11.5px] m-[6px_0_0] ${destError ? "text-danger-ink" : "text-subtle"}`}
+          >
+            {destError ?? "Use the full secure destination URL, beginning with https://."}
+          </p>
         </div>
         <div className="flex-[0_1_180px] min-w-[150px]">
-          <div className="text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]">
+          <label
+            htmlFor="affiliate-link-label"
+            className="block text-[11.5px] font-bold tracking-[0.12em] text-subtle mb-[7px]"
+          >
             LABEL
-          </div>
+          </label>
           <input
+            id="affiliate-link-label"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="Optional"
@@ -236,7 +280,7 @@ function AffiliatePage() {
         </div>
         <button
           onClick={create}
-          disabled={!dest.trim() || creating}
+          disabled={!dest.trim() || !!destError || creating}
           className="border-0 bg-accent text-cream text-[14px] font-bold h-[44px] p-[0_20px] rounded-[11px] cursor-pointer ah42 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {creating ? "Creating…" : "Create link"}
@@ -247,43 +291,53 @@ function AffiliatePage() {
         connected={true}
         loading={loading}
         empty={links.length === 0}
+        error={failed}
+        errorTitle="Could not load your tracking links"
+        errorHint="Your links and the conversions recorded against them are unchanged — this is only the list."
+        errorAction={<RetryButton onClick={() => void load()} />}
         emptyTitle="No tracking links yet"
         emptyHint="Create a link per creator above. Clicks, conversions and revenue then show here, and payouts follow the same rows."
       >
-        <div className="bg-surface border-[1.5px] border-border rounded-[20px] overflow-hidden">
-          <div className="flex gap-[12px] p-[14px_22px] border-b-[1.5px] border-border-soft text-[10.5px] font-bold tracking-[0.12em] text-subtle">
-            <span className="flex-[2]">CREATOR / LINK</span>
-            <span className="flex-1 text-right">CLICKS</span>
-            <span className="flex-1 text-right">CONV.</span>
-            <span className="flex-1 text-right">REVENUE</span>
-            <span className="flex-1 text-right">RATE</span>
-          </div>
-          {links.map((l) => {
-            const stat = perfByLink.get(l.id);
-            return (
-              <div
-                key={l.id}
-                className="flex gap-[12px] items-center p-[15px_22px] border-b-[1px] border-sand"
-              >
-                <div className="flex-[2] min-w-0">
-                  <div className="text-[14.5px] font-bold">{l.label || "Untitled link"}</div>
-                  <div className="text-[12.5px] text-subtle mt-[2px] truncate">{l.trackingUrl}</div>
-                </div>
-                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
-                  {stat ? stat.clicks.toLocaleString() : dash}
-                </span>
-                <span className="flex-1 text-right text-[14px] font-semibold text-muted">
-                  {stat ? stat.conversions.toLocaleString() : dash}
-                </span>
-                <span className="flex-1 text-right text-[14px] font-bold">
-                  {stat ? money(stat.revenueMinor, currency) : dash}
-                </span>
-                <span className="flex-1 text-right text-[14px] font-bold text-accent">
-                  {stat ? `${(stat.conversionRate * 100).toFixed(1)}%` : dash}
-                </span>
+        <div className="relative rounded-[20px] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-[44px] after:rounded-r-[20px] after:bg-gradient-to-l after:from-surface after:to-transparent after:content-['']">
+          <div className="overflow-x-auto rounded-[20px] border-[1.5px] border-border bg-surface">
+            <div className="min-w-[680px]">
+              <div className="flex gap-[12px] p-[14px_22px] border-b-[1.5px] border-border-soft text-[10.5px] font-bold tracking-[0.12em] text-subtle">
+                <span className="flex-[2]">CREATOR / LINK</span>
+                <span className="flex-1 text-right">CLICKS</span>
+                <span className="flex-1 text-right">CONV.</span>
+                <span className="flex-1 text-right">REVENUE</span>
+                <span className="flex-1 text-right">RATE</span>
               </div>
-            );
-          })}
+              {links.map((l) => {
+                const stat = perfByLink.get(l.id);
+                return (
+                  <div
+                    key={l.id}
+                    className="flex gap-[12px] items-center p-[15px_22px] border-b-[1px] border-sand"
+                  >
+                    <div className="flex-[2] min-w-0">
+                      <div className="text-[14.5px] font-bold">{l.label || "Untitled link"}</div>
+                      <div className="text-[12.5px] text-subtle mt-[2px] truncate">
+                        {l.trackingUrl}
+                      </div>
+                    </div>
+                    <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                      {stat ? stat.clicks.toLocaleString() : dash}
+                    </span>
+                    <span className="flex-1 text-right text-[14px] font-semibold text-muted">
+                      {stat ? stat.conversions.toLocaleString() : dash}
+                    </span>
+                    <span className="flex-1 text-right text-[14px] font-bold">
+                      {stat ? money(stat.revenueMinor, currency) : dash}
+                    </span>
+                    <span className="flex-1 text-right text-[14px] font-bold text-accent">
+                      {stat ? `${(stat.conversionRate * 100).toFixed(1)}%` : dash}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </DataGate>
     </div>

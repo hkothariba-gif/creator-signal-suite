@@ -9,6 +9,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { findCreatorsForCampaign, type SourceStatus } from "@/lib/discover-creators.functions";
 import { useCampaignPerformance, formatMoney } from "@/hooks/useCampaignPerformance";
 import { CampaignDocuments } from "@/components/app/CampaignDocuments";
+import { ConfirmDialog } from "@/components/app/AppDialog";
 
 /* CAMPAIGN DETAIL — new Aspen screen, per SCREENS-TO-PORT.md §5.
 
@@ -229,7 +230,10 @@ function CampaignDetailPage() {
     return (
       <div className="aspen-scope flex flex-col gap-[16px] max-w-[1080px]">
         {back}
-        <div className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]" aria-hidden>
+        <div
+          className="bg-surface border-[1.5px] border-border rounded-[20px] p-[22px]"
+          aria-hidden
+        >
           <div className="h-[30px] w-[40%] rounded-[8px] bg-sand animate-pulse" />
           <div className="h-[16px] w-[65%] rounded-[6px] bg-sand animate-pulse mt-[12px]" />
         </div>
@@ -269,7 +273,11 @@ function CampaignDetailPage() {
     );
   }
 
-  const ss = STATUS_STYLE[c.status] ?? { bg: "var(--color-sand)", fg: "var(--color-subtle)", label: c.status };
+  const ss = STATUS_STYLE[c.status] ?? {
+    bg: "var(--color-sand)",
+    fg: "var(--color-subtle)",
+    label: c.status,
+  };
   const rows = hotlist.data ?? [];
   const stageOf = (r: HotlistRow) => (r.stage ?? "saved").toLowerCase();
   // The board has a "negotiating" stage the funnel does not; those creators
@@ -404,7 +412,10 @@ function CampaignDetailPage() {
           <div className="flex-1 min-w-[240px]">
             {spendText && budgetText ? (
               <>
-                <div className="text-[13px]" style={{ color: over ? "var(--color-accent)" : "var(--color-muted)" }}>
+                <div
+                  className="text-[13px]"
+                  style={{ color: over ? "var(--color-accent)" : "var(--color-muted)" }}
+                >
                   <strong className={over ? "" : "text-dark"}>{spendText}</strong> of{" "}
                   <strong className={over ? "" : "text-dark"}>{budgetText}</strong> spent
                 </div>
@@ -493,7 +504,10 @@ function CampaignDetailPage() {
             <div className="flex flex-col gap-[9px]">
               {rows.map((h) => {
                 const mark = platMark(h.platform);
-                const pill = STAGE_PILL[stageOf(h)] ?? { bg: "var(--color-sand)", fg: "var(--color-subtle)" };
+                const pill = STAGE_PILL[stageOf(h)] ?? {
+                  bg: "var(--color-sand)",
+                  fg: "var(--color-subtle)",
+                };
                 const creatorStat = p?.perCreator[h.id];
                 return (
                   <Link
@@ -633,8 +647,6 @@ function CampaignDetailPage() {
         }
       />
 
-
-
       {/* ── Proof band ── */}
       <div className="bg-dark text-cream rounded-[22px] p-[26px] flex gap-[26px] items-center flex-wrap">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[20px] flex-1 min-w-0">
@@ -713,7 +725,12 @@ function CampaignDetailPage() {
                       className="flex-1 rounded-[5px_5px_0_0]"
                       style={{
                         height: `${h}%`,
-                        background: i >= 9 ? "var(--color-accent)" : i >= 5 ? "var(--color-highlight)" : "var(--color-dark-line)",
+                        background:
+                          i >= 9
+                            ? "var(--color-accent)"
+                            : i >= 5
+                              ? "var(--color-highlight)"
+                              : "var(--color-dark-line)",
                       }}
                     />
                   );
@@ -758,7 +775,10 @@ function CampaignDetailPage() {
           ) : (
             <div className="text-[13px] text-on-dark leading-[1.55]">
               {perf.isLoading ? (
-                <span className="block h-[96px] rounded-[10px] bg-dark-raised animate-pulse" aria-hidden />
+                <span
+                  className="block h-[96px] rounded-[10px] bg-dark-raised animate-pulse"
+                  aria-hidden
+                />
               ) : perfFailed ? (
                 <>
                   Revenue and spend could not be loaded, so this campaign&rsquo;s performance is not
@@ -805,13 +825,21 @@ function CampaignDetailPage() {
         ) : null}
       </div>
 
-      <button
-        onClick={() => setStatus("completed", "Campaign archived")}
-        disabled={busy !== null || c.status === "completed"}
-        className="self-start border-0 bg-transparent text-[13px] font-bold text-subtle cursor-pointer p-0 transition-colors hover:text-accent disabled:opacity-40"
-      >
-        Archive this campaign
-      </button>
+      <ConfirmDialog
+        trigger={
+          <button
+            type="button"
+            disabled={busy !== null || c.status === "completed"}
+            className="self-start border-0 bg-transparent text-[13px] font-bold text-subtle cursor-pointer p-0 transition-colors hover:text-accent disabled:opacity-40"
+          >
+            Archive this campaign
+          </button>
+        }
+        title={`Archive “${c.name}”?`}
+        description="This marks the campaign completed and removes it from active work. Its creators, documents and performance history remain available."
+        confirmLabel="Archive campaign"
+        onConfirm={() => setStatus("completed", "Campaign archived")}
+      />
     </div>
   );
 }
@@ -918,7 +946,10 @@ function DiscoveryRunPanel({ run, onDismiss }: { run: DiscoveryRun; onDismiss: (
                     className="text-[11px] font-bold p-[3px_8px] rounded-[6px]"
                     style={
                       s.ok
-                        ? { background: "var(--color-success-wash)", color: "var(--color-success-ink)" }
+                        ? {
+                            background: "var(--color-success-wash)",
+                            color: "var(--color-success-ink)",
+                          }
                         : { background: "var(--color-tint)", color: "var(--color-accent-ink)" }
                     }
                   >

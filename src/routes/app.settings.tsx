@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth, type OrgRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { DataGate, RetryButton, RowsSkeleton, useConnectorStatus } from "@/components/app/DataGate";
+import { ConfirmDialog } from "@/components/app/AppDialog";
 import { listAllBrandDocs } from "@/lib/brand-docs.functions";
 
 /* SETTINGS — the `v.isSettings` block of src/aspen/AspenApp.tsx, on the live
@@ -207,8 +208,21 @@ function TeamCard() {
   const [inviteRole, setInviteRole] = useState<OrgRole>("editor");
   const [inviting, setInviting] = useState(false);
   const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
+  const roleTriggerRef = useRef<HTMLSelectElement | null>(null);
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    memberId: string;
+    email: string;
+    from: OrgRole;
+    to: OrgRole;
+  } | null>(null);
   const inviteEmailError =
     inviteEmail.trim() && !isValidEmail(inviteEmail) ? "Enter a complete email address." : null;
+
+  const closeRoleConfirmation = () => {
+    const trigger = roleTriggerRef.current;
+    setPendingRoleChange(null);
+    window.requestAnimationFrame(() => trigger?.focus());
+  };
 
   const membersQuery = useQuery({
     queryKey: ["org-members", orgId],
@@ -441,7 +455,15 @@ function TeamCard() {
                 <>
                   <select
                     value={m.role}
-                    onChange={(e) => changeRole(m.id, e.target.value as OrgRole)}
+                    onChange={(e) => {
+                      roleTriggerRef.current = e.currentTarget;
+                      setPendingRoleChange({
+                        memberId: m.id,
+                        email: m.email,
+                        from: m.role,
+                        to: e.target.value as OrgRole,
+                      });
+                    }}
                     className="h-[34px] p-[0_10px] rounded-[9px] border-[1.5px] border-border bg-cream text-[12.5px] capitalize"
                   >
                     {ROLE_OPTIONS.map((r) => (
@@ -450,12 +472,20 @@ function TeamCard() {
                       </option>
                     ))}
                   </select>
-                  <button
-                    onClick={() => removeMember(m.id)}
-                    className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
-                  >
-                    Remove
-                  </button>
+                  <ConfirmDialog
+                    trigger={
+                      <button
+                        type="button"
+                        className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
+                      >
+                        Remove
+                      </button>
+                    }
+                    title={`Remove ${m.email}?`}
+                    description="This immediately removes the member’s access to this Aspen workspace. Their historical activity remains recorded."
+                    confirmLabel="Remove member"
+                    onConfirm={() => removeMember(m.id)}
+                  />
                 </>
               ) : (
                 <span className="text-[12px] font-bold text-muted capitalize">{m.role}</span>
@@ -492,16 +522,34 @@ function TeamCard() {
             </div>
             <span className="text-[12px] font-bold text-subtle capitalize">{i.role} · pending</span>
             {isAdmin ? (
-              <button
-                onClick={() => revokeInvite(i.id)}
-                className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
-              >
-                Revoke
-              </button>
+              <ConfirmDialog
+                trigger={
+                  <button
+                    type="button"
+                    className="border-0 bg-transparent text-[12.5px] font-bold text-subtle cursor-pointer ah20"
+                  >
+                    Revoke
+                  </button>
+                }
+                title={`Revoke ${i.email}’s invitation?`}
+                description="The current invitation link will stop working immediately. You can send a new invitation later."
+                confirmLabel="Revoke invitation"
+                onConfirm={() => revokeInvite(i.id)}
+              />
             ) : null}
           </div>
         ))}
       </div>
+      {pendingRoleChange ? (
+        <ConfirmDialog
+          open
+          onOpenChange={(open) => !open && closeRoleConfirmation()}
+          title={`Change ${pendingRoleChange.email} to ${pendingRoleChange.to}?`}
+          description={`This changes their workspace permissions from ${pendingRoleChange.from} to ${pendingRoleChange.to} immediately.`}
+          confirmLabel="Change role"
+          onConfirm={() => changeRole(pendingRoleChange.memberId, pendingRoleChange.to)}
+        />
+      ) : null}
     </div>
   );
 }

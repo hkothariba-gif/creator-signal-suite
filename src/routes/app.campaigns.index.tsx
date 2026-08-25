@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CampaignIntelligence } from "@/components/app/CampaignIntelligence";
+import { AppDialog, AppDialogClose, AppDialogContent } from "@/components/app/AppDialog";
 import { DataGate, RetryButton } from "@/components/app/DataGate";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,7 +63,9 @@ function CampaignsPage() {
   // Active tab made people think creation had failed.
   const [tab, setTab] = useState<"all" | "active" | "draft" | "completed">("all");
   const [drawer, setDrawer] = useState(false);
+  const drawerTriggerRef = useRef<HTMLElement | null>(null);
   const [intel, setIntel] = useState<{ id: string; name: string } | null>(null);
+  const intelTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [rows, setRows] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   /* A toast is transient; once it fades an empty `rows` reads as "no campaigns
@@ -91,7 +94,11 @@ function CampaignsPage() {
 
   // The shell's "+ New campaign" button links here with ?new=1.
   useEffect(() => {
-    if (openNew) setDrawer(true);
+    if (openNew) {
+      drawerTriggerRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setDrawer(true);
+    }
   }, [openNew]);
 
   // The param is cleared when the drawer closes, not when it opens. Clearing it
@@ -99,8 +106,16 @@ function CampaignsPage() {
   // remounts the route and throws away the `drawer` state we just set — so
   // arriving on /app/campaigns?new=1 by URL flashed nothing at all.
   const closeDrawer = () => {
+    const trigger = drawerTriggerRef.current;
     setDrawer(false);
     if (openNew) navigate({ to: "/app/campaigns", search: { new: undefined }, replace: true });
+    window.requestAnimationFrame(() => trigger?.focus());
+  };
+
+  const closeIntelligence = () => {
+    const trigger = intelTriggerRef.current;
+    setIntel(null);
+    window.requestAnimationFrame(() => trigger?.focus());
   };
 
   const setStatus = async (c: Campaign, status: "active" | "draft" | "completed") => {
@@ -158,7 +173,10 @@ function CampaignsPage() {
         emptyAction={
           tab === "all" ? (
             <button
-              onClick={() => setDrawer(true)}
+              onClick={(event) => {
+                drawerTriggerRef.current = event.currentTarget;
+                setDrawer(true);
+              }}
               className="border-0 bg-accent text-cream text-[13.5px] font-bold p-[10px_16px] rounded-[12px] cursor-pointer"
             >
               Create your first campaign
@@ -238,7 +256,10 @@ function CampaignsPage() {
                     </button>
                   ) : null}
                   <button
-                    onClick={() => setIntel({ id: c.id, name: c.name })}
+                    onClick={(event) => {
+                      intelTriggerRef.current = event.currentTarget;
+                      setIntel({ id: c.id, name: c.name });
+                    }}
                     className="border-[1.5px] border-border bg-transparent text-[13px] font-bold p-[8px_13px] rounded-[11px] cursor-pointer ah26"
                   >
                     Intel
@@ -265,12 +286,12 @@ function CampaignsPage() {
         </div>
       </DataGate>
 
-      {drawer && <CampaignDrawer onClose={closeDrawer} onCreated={refresh} />}
+      <CampaignDrawer open={drawer} onClose={closeDrawer} onCreated={refresh} />
       {intel && (
         <CampaignIntelligence
           campaignId={intel.id}
           campaignName={intel.name}
-          onClose={() => setIntel(null)}
+          onClose={closeIntelligence}
         />
       )}
     </div>
@@ -282,9 +303,11 @@ function CampaignsPage() {
    the dark form repainted in the Aspen palette so it does not flash a navy
    modal over a cream page. app.ads imports this. */
 export function CampaignDrawer({
+  open,
   onClose,
   onCreated,
 }: {
+  open: boolean;
   onClose: () => void;
   onCreated: (createdId?: string) => void;
 }) {
@@ -303,6 +326,19 @@ export function CampaignDrawer({
   const [endDate, setEndDate] = useState("");
   const [brief, setBrief] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) return;
+    setName("");
+    setProduct("");
+    setPlatform("All");
+    setGoal("Brand Awareness");
+    setBudget("");
+    setCurrency("USD");
+    setStartDate("");
+    setEndDate("");
+    setBrief("");
+  }, [open]);
 
   // Accepts "24000", "24,000", "$24,000.50". Anything else is rejected rather
   // than silently stored as a wrong number — the same trap the SQL backfill fell
@@ -398,18 +434,23 @@ export function CampaignDrawer({
     "w-full box-border h-[46px] p-[0_14px] rounded-[12px] border-[1.5px] border-border bg-cream text-[14.5px] outline-none";
 
   return (
-    <div className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]">
-      <div className="absolute inset-0 bg-[rgba(23,20,30,0.55)]" onClick={onClose} />
-      <div className="relative w-full max-w-[520px] max-h-[90vh] bg-surface border-[1.5px] border-border rounded-[22px] overflow-y-auto">
+    <AppDialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <AppDialogContent
+        title="New campaign"
+        description="Create a campaign with its platform, goal, budget, dates and brief."
+        contentClassName="w-[calc(100%-32px)] max-w-[520px] bg-surface border-[1.5px] border-border rounded-[22px] overflow-y-auto"
+      >
         <div className="flex items-center justify-between p-[22px_24px] border-b-[1.5px] border-border-soft">
           <h3 className="font-heading font-bold text-[19px] m-0">New campaign</h3>
-          <button
-            onClick={onClose}
-            className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <AppDialogClose asChild>
+            <button
+              type="button"
+              className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
+              aria-label="Close new campaign"
+            >
+              ✕
+            </button>
+          </AppDialogClose>
         </div>
         <div className="p-[24px] flex flex-col gap-[16px]">
           <Field label="CAMPAIGN NAME" htmlFor="campaign-name">
@@ -536,8 +577,8 @@ export function CampaignDrawer({
             {saving ? "Creating…" : "Create campaign →"}
           </button>
         </div>
-      </div>
-    </div>
+      </AppDialogContent>
+    </AppDialog>
   );
 }
 

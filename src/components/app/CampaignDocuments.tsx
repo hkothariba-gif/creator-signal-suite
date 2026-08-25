@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ConfirmDialog } from "@/components/app/AppDialog";
 import {
   listBrandDocs,
   processBrandDoc,
@@ -219,13 +220,21 @@ export function CampaignDocuments({
                 >
                   {d.status === "processed" ? "Re-extract" : "Retry"}
                 </button>
-                <button
-                  onClick={() => remove(d.id, d.file_name)}
-                  disabled={working}
-                  className="border-[1.5px] border-border bg-transparent text-[12.5px] font-bold p-[7px_12px] rounded-[10px] cursor-pointer disabled:opacity-50"
-                >
-                  Delete
-                </button>
+                <ConfirmDialog
+                  trigger={
+                    <button
+                      type="button"
+                      disabled={working}
+                      className="border-[1.5px] border-border bg-transparent text-[12.5px] font-bold p-[7px_12px] rounded-[10px] cursor-pointer disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  }
+                  title={`Delete “${d.file_name}”?`}
+                  description="This permanently removes the document and its mined excerpts from this campaign. This cannot be undone."
+                  confirmLabel="Delete document"
+                  onConfirm={() => remove(d.id, d.file_name)}
+                />
               </div>
             );
           })

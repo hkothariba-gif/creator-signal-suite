@@ -1,11 +1,16 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useConnectorStatus } from "@/components/app/DataGate";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AppDialog,
+  AppDialogClose,
+  AppDialogContent,
+  AppDialogTrigger,
+} from "@/components/app/AppDialog";
 import { supabase } from "@/integrations/supabase/client";
 import "@/aspen/aspen.css";
 
@@ -508,7 +513,7 @@ function AppLayout() {
 
   return (
     <CampaignContext.Provider value={{ campaigns, selected, selectedId: selected?.id }}>
-      <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+      <AppDialog open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <div className="aspen-scope flex min-h-screen bg-cream">
           {/* Desktop navigation keeps the existing sticky 246 px treatment. */}
           <aside className="hidden w-[246px] shrink-0 bg-dark text-cream p-[22px_16px] lg:flex flex-col gap-[26px] sticky top-0 h-[100vh] box-border overflow-y-auto">
@@ -517,28 +522,35 @@ function AppLayout() {
 
           {/* Radix supplies modal semantics, Escape/backdrop dismissal, focus
               trapping and focus restoration to the header trigger. */}
-          <SheetContent
+          <AppDialogContent
             id="mobile-navigation"
-            side="left"
-            role="dialog"
-            aria-modal="true"
-            aria-describedby={undefined}
-            className="aspen-scope w-[min(86vw,320px)] max-w-none border-0 bg-dark text-cream p-0 gap-0 lg:hidden [&>button]:text-cream [&>button]:z-10"
+            title="Aspen navigation"
+            variant="left"
+            overlayClassName="lg:hidden"
+            contentClassName="w-[min(86vw,320px)] max-w-none border-0 bg-dark text-cream p-0 gap-0 lg:hidden"
           >
-            <SheetTitle className="sr-only">Aspen navigation</SheetTitle>
+            <AppDialogClose asChild>
+              <button
+                type="button"
+                aria-label="Close navigation"
+                className="absolute right-[14px] top-[14px] z-10 grid h-[32px] w-[32px] place-items-center rounded-[9px] border-0 bg-transparent text-cream cursor-pointer"
+              >
+                <X aria-hidden="true" className="h-[18px] w-[18px]" />
+              </button>
+            </AppDialogClose>
             <nav
               aria-label="Aspen application"
               className="h-full box-border overflow-y-auto p-[22px_16px] flex flex-col gap-[26px]"
             >
               {sidebarContent}
             </nav>
-          </SheetContent>
+          </AppDialogContent>
 
           {/* MAIN */}
           <main className="flex-1 min-w-0 flex flex-col">
             <header className="flex items-center justify-between gap-[16px] p-[16px] sm:p-[20px_32px] border-b-[1.5px] border-border bg-cream sticky top-0 z-10 flex-wrap">
               <div className="flex items-start gap-[12px] min-w-0">
-                <SheetTrigger asChild>
+                <AppDialogTrigger asChild>
                   <button
                     type="button"
                     aria-label="Open navigation"
@@ -547,7 +559,7 @@ function AppLayout() {
                   >
                     <Menu aria-hidden="true" className="w-[20px] h-[20px]" />
                   </button>
-                </SheetTrigger>
+                </AppDialogTrigger>
                 <div className="min-w-0">
                   <h1 className="font-heading font-extrabold text-[24px] sm:text-[26px] tracking-[-0.025em] m-0">
                     {title}
@@ -594,7 +606,7 @@ function AppLayout() {
             </div>
           </main>
         </div>
-      </Sheet>
+      </AppDialog>
     </CampaignContext.Provider>
   );
 }

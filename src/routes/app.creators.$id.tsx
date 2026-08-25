@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DataGate, RetryButton, useConnectorStatus } from "@/components/app/DataGate";
+import { AppDialog, AppDialogClose, AppDialogContent } from "@/components/app/AppDialog";
 import { OutreachComposer } from "@/components/app/OutreachComposer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,13 @@ function CreatorProfilePage() {
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [composing, setComposing] = useState(false);
+  const composeTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const closeComposer = () => {
+    const trigger = composeTriggerRef.current;
+    setComposing(false);
+    window.requestAnimationFrame(() => trigger?.focus());
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -220,7 +228,10 @@ function CreatorProfilePage() {
         </div>
         <div className="flex gap-[10px]">
           <button
-            onClick={() => setComposing(true)}
+            onClick={(event) => {
+              composeTriggerRef.current = event.currentTarget;
+              setComposing(true);
+            }}
             className="border-0 bg-accent text-cream text-[14px] font-bold p-[12px_18px] rounded-[12px] cursor-pointer ah33"
           >
             Contact creator
@@ -284,35 +295,35 @@ function CreatorProfilePage() {
         </div>
       </div>
 
-      {composing ? (
-        <div
-          className="aspen-scope fixed inset-0 z-50 flex items-center justify-center p-[16px]"
-          onClick={() => setComposing(false)}
+      <AppDialog
+        open={composing}
+        onOpenChange={(open) => (open ? setComposing(true) : closeComposer())}
+      >
+        <AppDialogContent
+          title={`Reach out to ${row.creator_name}`}
+          description="Choose a channel, confirm the recipient and draft a message."
+          contentClassName="w-[calc(100%-32px)] max-w-[560px] overflow-y-auto bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
         >
-          <div className="absolute inset-0 bg-[rgba(23,20,30,0.55)]" />
-          <div
-            className="relative w-full max-w-[560px] max-h-[90vh] overflow-y-auto bg-surface border-[1.5px] border-border rounded-[22px] p-[24px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-end">
+          <div className="flex justify-end">
+            <AppDialogClose asChild>
               <button
-                onClick={() => setComposing(false)}
+                type="button"
                 className="border-0 bg-transparent text-[18px] text-subtle cursor-pointer ah20"
-                aria-label="Close"
+                aria-label="Close outreach composer"
               >
                 ✕
               </button>
-            </div>
-            <OutreachComposer
-              hotlistId={row.id}
-              campaignId={row.campaign_id}
-              creatorName={row.creator_name}
-              onSent={() => setComposing(false)}
-              onClose={() => setComposing(false)}
-            />
+            </AppDialogClose>
           </div>
-        </div>
-      ) : null}
+          <OutreachComposer
+            hotlistId={row.id}
+            campaignId={row.campaign_id}
+            creatorName={row.creator_name}
+            onSent={closeComposer}
+            onClose={closeComposer}
+          />
+        </AppDialogContent>
+      </AppDialog>
     </div>
   );
 }

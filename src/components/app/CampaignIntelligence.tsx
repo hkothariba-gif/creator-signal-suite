@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { AppDialog, AppDialogClose, AppDialogContent } from "@/components/app/AppDialog";
 
 // Ad and brief drafts are generated on the server from live campaign
 // signals. Each panel gates on the connectors it depends on, so nothing
@@ -21,17 +22,30 @@ export function CampaignIntelligence({
   const xReady = status.data ? p!.llm && p!.youtube && p!.x : undefined;
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative w-full max-w-[680px] h-full bg-bg-surface border-l border-white/[0.07] overflow-y-auto">
+    <AppDialog open onOpenChange={(open) => !open && onClose()}>
+      <AppDialogContent
+        title={`${campaignName} intelligence`}
+        description="Generated channel intelligence and draft readiness for this campaign."
+        variant="right"
+        overlayClassName="bg-black/60"
+        contentClassName="w-full max-w-[680px] bg-bg-surface border-l border-white/[0.07] overflow-y-auto"
+      >
         <div className="sticky top-0 z-10 bg-bg-surface flex items-center justify-between p-6 border-b border-white/[0.07]">
           <div>
-            <div className="text-xs uppercase tracking-wider text-brand-green font-bold">Intelligence</div>
+            <div className="text-xs uppercase tracking-wider text-brand-green font-bold">
+              Intelligence
+            </div>
             <h3 className="font-bold text-lg mt-0.5">{campaignName}</h3>
           </div>
-          <button onClick={onClose} className="text-brand-muted hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
+          <AppDialogClose asChild>
+            <button
+              type="button"
+              aria-label={`Close ${campaignName} intelligence`}
+              className="text-brand-muted hover:text-white"
+            >
+              <X aria-hidden="true" className="w-5 h-5" />
+            </button>
+          </AppDialogClose>
         </div>
 
         <div className="p-6 space-y-6">
@@ -71,12 +85,20 @@ export function CampaignIntelligence({
             </DataGate>
           </Panel>
         </div>
-      </div>
-    </div>
+      </AppDialogContent>
+    </AppDialog>
   );
 }
 
-function Panel({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+function Panel({
+  title,
+  accent,
+  children,
+}: {
+  title: string;
+  accent: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-bg-elevated p-5">
       <div className="flex items-center gap-2 mb-4">

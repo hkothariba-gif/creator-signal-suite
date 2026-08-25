@@ -422,8 +422,8 @@ Sizes are relative (S / M / L / XL) with agent-pace week ranges assuming one rev
 stream and no approval delays. **The calendar risk in this plan is approvals, not code.**
 
 ### Wave 0 · Finish what's open — 1 week, in flight
-B3 error and loading states is complete. B4 responsive and B5 accessibility remain. One PR
-off `uiux-remediation`.
+B3 error/loading, B4 responsive, B5 accessibility and B6 quality/security are complete on
+`uiux-remediation`, pending merge review. One PR off that branch.
 New screens shouldn't land on a half-migrated repo.
 **In parallel, today: start every external application in Part 6.** They are the long pole.
 

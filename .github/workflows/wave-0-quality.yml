@@ -1,0 +1,30 @@
+name: Wave 0 quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - uiux-remediation
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      LINT_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint:changed -- "$LINT_BASE_REF"
+      - run: npx tsc --noEmit -p tsconfig.json
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --omit=dev

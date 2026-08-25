@@ -62,6 +62,8 @@ Run typecheck and build after each point. Record any remaining overflow by route
 Deliver the five groups from the UI/UX plan as separate commits: forms/labels,
 semantics/roles, shared modal behavior, focus/feedback, then DataGate/copy cleanup.
 
+### B6 · Wave 0 quality and security gate
+
 Before merging Wave 0, add a small test foundation rather than entering Wave 1 with no
 safety net. Minimum coverage:
 
@@ -70,9 +72,10 @@ safety net. Minimum coverage:
 - One authenticated route smoke test for the app shell.
 - A changed-file lint check in CI while the historical whole-repo lint backlog is burned
   down separately.
+- Same-origin CSRF protection for server-function requests.
 
-Exit: B3–B5 merged to `main`; typecheck and build green; responsive and accessibility
-acceptance recorded; a basic test command exists.
+Exit: B3–B6 merged to `main`; typecheck, tests and build green; responsive, accessibility
+and security acceptance recorded; the changed-file lint gate exists in CI.
 
 ## Stage C — freeze Wave 1 contracts
 

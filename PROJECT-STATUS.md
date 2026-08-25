@@ -6,19 +6,20 @@ Updated 2026-08-25. Operational control panel only. Scope lives in
 
 ## NOW
 
-- **Wave 0 / B6:** build the repository-defined test foundation and resolve the
-  server-function CSRF warning before the Wave 0 merge.
-- B5 is complete: responsive, accessibility, feedback, DataGate and copy remediation are
-  implemented and approved by instruction to continue.
+- **Wave 0 exit review:** B3–B6 are complete on `uiux-remediation`; the branch is ready for
+  merge review but has not been merged to `main`.
+- B6 adds DataGate/dialog component tests, an authenticated app-shell smoke test,
+  changed-file lint CI, server-function CSRF protection and a clean dependency audit.
 
 ## NEXT
 
-1. Add DataGate and shared-dialog component coverage.
-2. Add one authenticated app-shell smoke test and changed-file lint CI gate.
-3. Resolve the CSRF warning, then run the Wave 0 exit checks before merge review.
+1. Review and merge `uiux-remediation` to `main` without rewriting Lovable history.
+2. Review the Stage C contract set as one package.
+3. Begin Wave 1 only after the contract review and Wave 0 merge gate.
 
 ## WAITING ON HARISH
 
+- Approve the Wave 0 branch merge after the B3–B6 handoff.
 - Start and date the access actions in `EXTERNAL-ACCESS-CHECKLIST.md`; never commit secrets.
 - Nominate 5–10 B2B SaaS design partners and agree their data/feedback permissions.
 - Obtain representative cross-channel and creator/payment exports for import design.
@@ -37,6 +38,8 @@ Updated 2026-08-25. Operational control panel only. Scope lives in
 
 ## RECENTLY COMPLETED
 
+- B6 established 3 automated test files/5 tests, changed-file lint CI, CSRF protection and
+  a zero-vulnerability dependency audit.
 - B5.5 inverted DataGate safely, centralized connector names, clarified empty and
   coming-soon copy, and excluded developer quick login from production output.
 - B5 focus/feedback added one keyboard-only focus treatment for native and ARIA controls
@@ -65,11 +68,8 @@ Updated 2026-08-25. Operational control panel only. Scope lives in
 
 ## HEALTH
 
-- **Git:** `uiux-remediation` is synchronized to origin through B5.4; current bounded diff
-  is B5.5 plus status/ledger updates. Never rebase or force-push Lovable history.
-- **Typecheck:** passing for B5.5.
-- **Production build:** passing for B5.5; existing deprecation/chunk warnings remain.
-- **Security:** local development reports missing TanStack server-function CSRF middleware;
-  resolve before the Wave 0 merge.
-- **Tests:** no automated suite yet; `W0-QA-001` is required before Wave 1.
-- **Lint:** historical whole-repository backlog remains; do not treat it as a new B4 failure.
+- **Git:** B6 is complete on `uiux-remediation`; never rebase or force-push Lovable history.
+- **Typecheck/build:** passing; existing framework deprecation/chunk warnings remain.
+- **Tests:** 3 files/5 tests passing for DataGate, shared dialog and authenticated app shell.
+- **Security:** CSRF startup warning resolved; `npm audit` reports zero vulnerabilities.
+- **Lint:** changed-file CI gate is active; historical whole-repository backlog remains.

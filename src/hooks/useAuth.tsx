@@ -97,12 +97,22 @@ function brandFromJson(json: unknown): BrandProfile {
   };
 }
 
-async function hydrateUser(supaUser: User): Promise<AuthUser> {
+function getSupabaseOrNull(): typeof supabase | null {
+  try {
+    void supabase.auth;
+    return supabase;
+  } catch (error) {
+    console.warn("[Supabase] Auth is unavailable in this preview runtime.", error);
+    return null;
+  }
+}
+
+async function hydrateUser(supaUser: User, client: typeof supabase = supabase): Promise<AuthUser> {
   const u = baseUser(supaUser);
 
   const [{ data: profile }, { data: membership }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", supaUser.id).maybeSingle(),
-    supabase
+    client.from("profiles").select("*").eq("id", supaUser.id).maybeSingle(),
+    client
       .from("organization_members")
       .select("role, organizations(id, name, brand_profile)")
       .eq("user_id", supaUser.id)
@@ -141,45 +151,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const client = getSupabaseOrNull();
+    if (!client) {
+      setSession(null);
+      setUser(null);
+      setLoading(false);
+      return undefined;
+    }
+
+    const { data: sub } = client.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       if (s?.user) {
         // Defer async fetch to avoid deadlocks in the auth callback.
         setUser((prev) => prev ?? baseUser(s.user));
-        hydrateUser(s.user).then(setUser).catch(() => {});
+        hydrateUser(s.user, client).then(setUser).catch(() => {});
       } else {
         setUser(null);
       }
     });
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) {
-        setUser(await hydrateUser(data.session.user));
-      } else {
+    client.auth
+      .getSession()
+      .then(async ({ data }) => {
+        setSession(data.session);
+        if (data.session?.user) {
+          setUser(await hydrateUser(data.session.user, client));
+        } else {
+          setUser(null);
+        }
+      })
+      .catch((error) => {
+        console.warn("[Supabase] Could not load auth session.", error);
         setUser(null);
-      }
-      setLoading(false);
-    });
+      })
+      .finally(() => setLoading(false));
     return () => sub.subscription.unsubscribe();
   }, []);
 
   const refresh = async () => {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) setUser(await hydrateUser(data.user));
+    const client = getSupabaseOrNull();
+    if (!client) return;
+    const { data } = await client.auth.getUser();
+    if (data.user) setUser(await hydrateUser(data.user, client));
   };
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const client = getSupabaseOrNull();
+    if (!client) return { error: "Supabase is not configured for this preview", user: null };
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
     if (error || !data.user) return { error: error?.message ?? "Sign in failed", user: null };
-    const u = await hydrateUser(data.user);
+    const u = await hydrateUser(data.user, client);
     setUser(u);
     setSession(data.session);
     return { error: null, user: u };
   };
 
   const signUp: AuthCtx["signUp"] = async (email, password, companyName) => {
+    const client = getSupabaseOrNull();
+    if (!client) return { error: "Supabase is not configured for this preview", user: null };
     const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await client.auth.signUp({
       email,
       password,
       options: {
@@ -189,8 +219,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (error || !data.user) return { error: error?.message ?? "Sign up failed", user: null };
     if (data.session) {
-      await supabase.from("profiles").update({ company_name: companyName }).eq("id", data.user.id);
-      const u = await hydrateUser(data.user);
+      await client.from("profiles").update({ company_name: companyName }).eq("id", data.user.id);
+      const u = await hydrateUser(data.user, client);
       setUser(u);
       setSession(data.session);
       return { error: null, user: u };
@@ -202,6 +232,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Onboarding state and the brand profile live in Supabase.
   // profiles.onboarded holds the flag; organizations.brand_profile holds the brand.
   const update: AuthCtx["update"] = async (patch) => {
+    const client = getSupabaseOrNull();
+    if (!client) return { error: "Supabase is not configured for this preview" };
     if (!user) return { error: "Not signed in" };
 
     const nextCompany = patch.company_name ?? user.company_name;
@@ -229,7 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { error: e instanceof Error ? e.message : "Could not create organization" };
         }
       } else {
-        const { error } = await supabase
+        const { error } = await client
           .from("organizations")
           .update({ brand_profile: brandJson })
           .eq("id", user.organization.id);
@@ -238,7 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (patch.onboarded !== undefined || patch.company_name !== undefined) {
-      const { error } = await supabase
+      const { error } = await client
         .from("profiles")
         .update({
           ...(patch.onboarded !== undefined ? { onboarded: patch.onboarded } : {}),
@@ -253,7 +285,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    const client = getSupabaseOrNull();
+    if (client) await client.auth.signOut();
     setUser(null);
     setSession(null);
   };

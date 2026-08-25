@@ -476,19 +476,22 @@ function CampaignDetailPage() {
               Open hotlist →
             </Link>
           </div>
-          {/* Kept from the dark version: the other two sources are not built yet. */}
+          {/* The other two sources are not built yet, so they read as labelled
+              placeholders rather than working discovery controls. */}
           <div className="flex gap-[7px] mb-[14px]">
             <button
-              onClick={() => toast.info("X (Twitter) discovery is coming soon")}
-              className="border-[1.5px] border-border bg-transparent text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-pointer transition-colors hover:border-dark hover:text-dark"
+              type="button"
+              disabled
+              className="border-[1.5px] border-dashed border-sand-line bg-sand text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-not-allowed disabled:opacity-100"
             >
-              X
+              X · coming soon
             </button>
             <button
-              onClick={() => toast.info("LinkedIn discovery is coming soon")}
-              className="border-[1.5px] border-border bg-transparent text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-pointer transition-colors hover:border-dark hover:text-dark"
+              type="button"
+              disabled
+              className="border-[1.5px] border-dashed border-sand-line bg-sand text-[11.5px] font-bold text-subtle rounded-[8px] px-[10px] h-[26px] cursor-not-allowed disabled:opacity-100"
             >
-              LinkedIn
+              LinkedIn · coming soon
             </button>
           </div>
 
@@ -813,9 +816,7 @@ function CampaignDetailPage() {
         <div className="flex flex-col">
           <BriefRow label="Product" value={c.product_description} />
           <BriefRow label="Audience" value={audienceText(c.target_audience)} />
-          {/* No offer column on campaigns — the brief has product, audience,
-              never_say and free text, but nothing that means "the offer". */}
-          <BriefRow label="Offer" value={null} missing="No offer field on campaigns yet" />
+          <BriefRow label="Offer" value={null} missing="No offer added to this campaign brief" />
           <BriefRow label="Avoid" value={c.never_say} />
         </div>
         {c.brief ? (

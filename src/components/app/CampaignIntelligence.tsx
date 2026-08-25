@@ -53,6 +53,7 @@ export function CampaignIntelligence({
             <DataGate
               connected={redditReady}
               loading={status.isLoading}
+              variant="dark"
               label="Needs the LLM, YouTube, and Reddit connections"
             >
               <p className="text-sm text-brand-muted">
@@ -65,6 +66,7 @@ export function CampaignIntelligence({
             <DataGate
               connected={linkedinReady}
               loading={status.isLoading}
+              variant="dark"
               label="Needs the LLM and YouTube connections"
             >
               <p className="text-sm text-brand-muted">
@@ -77,6 +79,7 @@ export function CampaignIntelligence({
             <DataGate
               connected={xReady}
               loading={status.isLoading}
+              variant="dark"
               label="Needs the LLM, YouTube, and X connections"
             >
               <p className="text-sm text-brand-muted">

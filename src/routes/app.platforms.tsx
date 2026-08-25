@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RetryButton, useConnectorStatus, WAITING_COPY } from "@/components/app/DataGate";
+import { CONNECTOR_LABELS } from "@/lib/connectors.functions";
 
 /* PLATFORMS — the `v.isPlatforms` block of src/aspen/AspenApp.tsx, on real
    connector status. Shell, header and title come from the /app layout route.
@@ -68,27 +69,31 @@ const CARDS: {
 
 // Moved here from the Settings > Connectors tab.
 const CONNECTOR_ROWS: { key: string; label: string; desc: string }[] = [
-  { key: "listening", label: "Social listening", desc: "Chatter and sentiment across the web" },
+  {
+    key: "listening",
+    label: CONNECTOR_LABELS.listening,
+    desc: "Chatter and sentiment across the web",
+  },
   {
     key: "creatorPerformance",
-    label: "Creator performance",
+    label: CONNECTOR_LABELS.creatorPerformance,
     desc: "How content performs for creators in your space",
   },
-  { key: "youtube", label: "YouTube Data API", desc: "Video stats and comments" },
-  { key: "x", label: "X API", desc: "Posts and search" },
-  { key: "reddit", label: "Reddit Data API", desc: "Posts and comments" },
-  { key: "trends", label: "Trends", desc: "Search interest over time" },
-  { key: "llm", label: "Ad copy model", desc: "Generates ad copy from ranked hooks" },
-  { key: "image", label: "Ad imagery", desc: "Generates ad images" },
-  { key: "email", label: "Team invite email", desc: "Delivers invitation emails" },
+  { key: "youtube", label: CONNECTOR_LABELS.youtube, desc: "Video stats and comments" },
+  { key: "x", label: CONNECTOR_LABELS.x, desc: "Posts and search" },
+  { key: "reddit", label: CONNECTOR_LABELS.reddit, desc: "Posts and comments" },
+  { key: "trends", label: CONNECTOR_LABELS.trends, desc: "Search interest over time" },
+  { key: "llm", label: CONNECTOR_LABELS.llm, desc: "Generates ad copy from ranked hooks" },
+  { key: "image", label: CONNECTOR_LABELS.image, desc: "Generates ad images" },
+  { key: "email", label: CONNECTOR_LABELS.email, desc: "Delivers invitation emails" },
   {
     key: "adsMiddleware",
-    label: "Ads middleware",
+    label: CONNECTOR_LABELS.adsMiddleware,
     desc: "Publishes paid campaigns to Reddit, X, and YouTube",
   },
-  { key: "stripe", label: "Stripe", desc: "Brand billing" },
-  { key: "paypal", label: "PayPal Payouts", desc: "Affiliate cash out" },
-  { key: "identity", label: "Identity and tax", desc: "Verification before payout" },
+  { key: "stripe", label: CONNECTOR_LABELS.stripe, desc: "Brand billing" },
+  { key: "paypal", label: CONNECTOR_LABELS.paypal, desc: "Affiliate cash out" },
+  { key: "identity", label: CONNECTOR_LABELS.identity, desc: "Verification before payout" },
 ];
 
 function PlatformsPage() {

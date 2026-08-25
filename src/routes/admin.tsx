@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, StatCard } from "@/components/app/Card";
 import { DataGate, useConnectorStatus } from "@/components/app/DataGate";
+import { CONNECTOR_LABELS, type PlatformConnectors } from "@/lib/connectors.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
@@ -98,7 +99,7 @@ function AdminPage() {
               <ul className="space-y-3 text-sm">
                 {Object.entries(connectors.data?.platform ?? {}).map(([key, ok]) => (
                   <li key={key} className="flex items-center justify-between">
-                    <span className="capitalize">{key.replace(/([A-Z])/g, " $1").toLowerCase()}</span>
+                    <span>{CONNECTOR_LABELS[key as keyof PlatformConnectors]}</span>
                     <span
                       className="text-xs font-medium px-2 py-1 rounded-md"
                       style={{
@@ -115,7 +116,14 @@ function AdminPage() {
           </Card>
           <Card className="p-6">
             <h3 className="font-semibold mb-4">Activity</h3>
-            <DataGate connected={true} empty={true}>
+            <DataGate
+              connected={true}
+              empty={true}
+              variant="dark"
+              label="Organization activity"
+              emptyTitle="No activity yet"
+              emptyHint="Workspace activity will appear here as your team uses Aspen."
+            >
               <span />
             </DataGate>
           </Card>

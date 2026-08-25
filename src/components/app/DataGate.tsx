@@ -43,6 +43,8 @@ type DataGateProps = {
   errorHint?: string;
   /** Retry control for the error state. */
   errorAction?: ReactNode;
+  /** Aspen is the safe default. Dark surfaces must opt in explicitly. */
+  variant?: "aspen" | "dark";
   className?: string;
   children: ReactNode;
 };
@@ -88,13 +90,18 @@ export function DataGate({
   errorTitle,
   errorHint,
   errorAction,
+  variant = "aspen",
   className,
   children,
 }: DataGateProps) {
+  const mutedText = variant === "dark" ? "text-brand-muted" : "text-subtle";
+  const titleText = variant === "dark" ? "text-brand-muted" : "text-dark";
+  const hintText = variant === "dark" ? "text-brand-dim" : "text-subtle";
+
   if (loading) {
     return (
-      <div className={panelClass(className)}>
-        <span className="text-sm text-brand-muted">Loading</span>
+      <div className={panelClass(variant, className)}>
+        <span className={`text-sm ${mutedText}`}>Loading</span>
       </div>
     );
   }
@@ -102,12 +109,12 @@ export function DataGate({
   // can tell "nothing here yet" apart from "we could not reach the data".
   if (error) {
     return (
-      <div className={panelClass(className)}>
-        <span className="datagate-empty-title text-[15px] font-bold text-brand-muted">
+      <div className={panelClass(variant, className)}>
+        <span className={`text-[15px] font-bold ${titleText}`}>
           {errorTitle ?? "Could not load this panel"}
         </span>
         {errorHint ? (
-          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-brand-dim">
+          <span className={`mt-2 max-w-[380px] text-[13px] leading-[1.5] ${hintText}`}>
             {errorHint}
           </span>
         ) : null}
@@ -117,9 +124,9 @@ export function DataGate({
   }
   if (!connected) {
     return (
-      <div className={panelClass(className)}>
-        <span className="text-sm font-semibold text-brand-muted">{WAITING_COPY}</span>
-        {label ? <span className="mt-1 text-xs text-brand-dim">{label}</span> : null}
+      <div className={panelClass(variant, className)}>
+        <span className={`text-sm font-semibold ${mutedText}`}>{WAITING_COPY}</span>
+        {label ? <span className={`mt-1 text-xs ${hintText}`}>{label}</span> : null}
       </div>
     );
   }
@@ -129,12 +136,12 @@ export function DataGate({
     // can name its next step passes one in. The bare copy stays the default for
     // panels where there is nothing useful to offer.
     return (
-      <div className={panelClass(className)}>
-        <span className="datagate-empty-title text-[15px] font-bold text-brand-muted">
+      <div className={panelClass(variant, className)}>
+        <span className={`text-[15px] font-bold ${titleText}`}>
           {emptyTitle ?? EMPTY_COPY}
         </span>
         {emptyHint ? (
-          <span className="datagate-empty-hint mt-2 max-w-[380px] text-[13px] leading-[1.5] text-brand-dim">
+          <span className={`mt-2 max-w-[380px] text-[13px] leading-[1.5] ${hintText}`}>
             {emptyHint}
           </span>
         ) : null}
@@ -145,14 +152,14 @@ export function DataGate({
   return <>{children}</>;
 }
 
+function panelClass(variant: "aspen" | "dark", extra?: string) {
+  const treatment =
+    variant === "dark"
+      ? "rounded-xl border border-white/[0.07] bg-bg-surface"
+      : "rounded-[20px] border-[1.5px] border-sand-line bg-surface";
 
-// The `datagate-panel` hook lets the Aspen pages repaint this placeholder for a
-// cream surface without every call site passing a variant — see the
-// `.aspen-scope .datagate-panel` block in src/styles.css. The dark utilities
-// below stay the default for /admin and the not-yet-redesigned screens.
-function panelClass(extra?: string) {
   return [
-    "datagate-panel flex flex-col items-center justify-center rounded-xl border border-white/[0.07] bg-[#0C1222] px-6 py-10 text-center",
+    `datagate-panel flex flex-col items-center justify-center px-6 py-10 text-center ${treatment}`,
     extra ?? "",
   ].join(" ");
 }

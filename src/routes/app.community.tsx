@@ -24,10 +24,20 @@ function CommunityPage() {
 
   return (
     <div className="aspen-scope">
-      <div className="flex gap-[26px] border-b-[1.5px] border-border mb-[22px] overflow-x-auto">
+      <div
+        role="tablist"
+        aria-label="Community signal type"
+        className="flex gap-[26px] border-b-[1.5px] border-border mb-[22px] overflow-x-auto"
+      >
         {TABS.map((label, i) => (
           <button
             key={label}
+            type="button"
+            id={`community-tab-${i}`}
+            role="tab"
+            aria-selected={tab === i}
+            aria-controls="community-tab-panel"
+            tabIndex={tab === i ? 0 : -1}
             onClick={() => setTab(i)}
             className="border-0 bg-transparent cursor-pointer p-[0_0_13px] text-[14.5px] font-bold whitespace-nowrap mb-[-1.5px]"
             style={{
@@ -39,7 +49,12 @@ function CommunityPage() {
           </button>
         ))}
       </div>
-      <div className="max-w-[920px]">
+      <div
+        id="community-tab-panel"
+        role="tabpanel"
+        aria-labelledby={`community-tab-${tab}`}
+        className="max-w-[920px]"
+      >
         <DataGate
           connected={listeningReady}
           empty

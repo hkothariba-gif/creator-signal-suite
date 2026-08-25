@@ -239,6 +239,8 @@ function CreatorProfilePage() {
             return (
               <button
                 key={s.key}
+                type="button"
+                aria-pressed={on}
                 onClick={() => !on && moveTo(s.key)}
                 className="text-[13px] font-bold p-[9px_15px] rounded-[11px] cursor-pointer"
                 style={{

@@ -6,22 +6,21 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## NOW
 
-- **Wave 0 / B5 forms review:** labels, form help and client-side validation are complete;
-  stop here before the semantics/roles group.
-- Affiliate destinations reject incomplete/non-HTTPS URLs and team invites reject invalid
-  emails with associated inline guidance.
-- Ads, campaigns, affiliate and settings controls expose browser-verified accessible names;
-  document uploads re-check extension/MIME and fallback invite links can be copied.
+- **Wave 0 / B5 semantics review:** navigation, tabs, stage controls and hotlist cards now
+  expose their current state and keyboard alternatives; stop here before the modal group.
+- Community tabs use tab/tab-panel relationships, stage controls expose their selected state,
+  and active navigation identifies the current page.
+- Hotlist cards can move between stages with Left/Right Arrow while keyboard focus follows.
 
 ## NEXT
 
-1. After Harish reviews B5 forms, deliver the B5 semantics/roles group.
-2. Complete B5 modal, focus/feedback and DataGate/copy groups separately.
+1. After Harish reviews B5 semantics, deliver the B5 shared-modal group.
+2. Complete B5 focus/feedback and DataGate/copy groups separately.
 3. Add the Wave 0 test foundation, then merge Wave 0 before Stage C/Wave 1 contracts.
 
 ## WAITING ON HARISH
 
-- Review the B5 forms/labels/validation checkpoint when presented.
+- Review the B5 navigation/tabs/hotlist semantics checkpoint when presented.
 - Start and date the access actions in `EXTERNAL-ACCESS-CHECKLIST.md`; never commit secrets.
 - Nominate 5–10 B2B SaaS design partners and agree their data/feedback permissions.
 - Obtain representative cross-channel and creator/payment exports for import design.
@@ -40,8 +39,11 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## RECENTLY COMPLETED
 
+- B5 semantics added current-page navigation, tab/tab-panel relationships, pressed stage
+  states and keyboard hotlist movement with focus restoration.
 - B5 forms added explicit labels and accessible names, HTTPS and email validation,
-  pre-submit budget guidance, file extension/MIME checks and fallback invite-link copy.
+  pre-submit budget guidance, file extension/MIME checks and fallback invite-link copy;
+  approved by continuation to semantics.
 - B4.3 contained the affiliate performance rows and hotlist board in horizontally
   scrollable regions with visible edge fades; all authenticated app routes passed the
   375 px document-overflow sweep.
@@ -59,9 +61,9 @@ Updated 2026-08-24. Operational control panel only. Scope lives in
 
 ## HEALTH
 
-- **Git:** `uiux-remediation` was synchronized to origin before B5; current bounded diff is
-  the B5 forms group plus status/ledger updates. Never rebase or force-push Lovable history.
-- **Typecheck:** passing for B5 forms.
-- **Production build:** passing for B5 forms; existing deprecation/chunk warnings remain.
+- **Git:** `uiux-remediation` is synchronized to origin through B5 forms; current bounded
+  diff is B5 semantics plus status/ledger updates. Never rebase or force-push Lovable history.
+- **Typecheck:** passing for B5 semantics.
+- **Production build:** passing for B5 semantics; existing deprecation/chunk warnings remain.
 - **Tests:** no automated suite yet; `W0-QA-001` is required before Wave 1.
 - **Lint:** historical whole-repository backlog remains; do not treat it as a new B4 failure.

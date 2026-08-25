@@ -287,9 +287,32 @@ function HotlistPage() {
                     return (
                       <div
                         key={c.id}
+                        role="group"
+                        tabIndex={0}
+                        aria-label={`${c.creator_name}, ${col.label} stage. Use the left and right arrow keys to change stage.`}
+                        aria-roledescription="draggable creator card"
+                        aria-keyshortcuts="ArrowLeft ArrowRight"
+                        data-hotlist-card-id={c.id}
                         draggable
                         onDragStart={() => setDragging(c.id)}
                         onDragEnd={() => setDragging(null)}
+                        onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return;
+                          const direction =
+                            event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+                          if (!direction) return;
+                          event.preventDefault();
+                          const currentIndex = STAGES.findIndex((stage) => stage.key === col.key);
+                          const nextStage = STAGES[currentIndex + direction];
+                          if (!nextStage) return;
+                          void moveTo(c.id, nextStage.key);
+                          window.requestAnimationFrame(() => {
+                            const movedCard = document.querySelector<HTMLElement>(
+                              `[data-hotlist-card-id="${c.id}"]`,
+                            );
+                            movedCard?.focus();
+                          });
+                        }}
                         className="bg-surface border-[1.5px] border-border rounded-[14px] p-[13px] cursor-grab active:cursor-grabbing"
                       >
                         <div className="flex gap-[10px] items-center">
@@ -334,6 +357,7 @@ function HotlistPage() {
                           {STAGES.filter((s) => s.key !== (c.stage ?? "saved")).map((s) => (
                             <button
                               key={s.key}
+                              type="button"
                               onClick={() => moveTo(c.id, s.key)}
                               className="border-0 bg-transparent p-0 text-[10.5px] font-semibold text-subtle cursor-pointer ah20"
                             >

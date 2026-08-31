@@ -456,6 +456,11 @@ reporting live in Aspen. PartnerStack, Rewardful and similar products are option
 sources for a customer who already uses them; Aspen does not depend on them to run an
 affiliate program, and no account with them is required for the core build.
 
+Direct affiliate migration adapters are planned for **PartnerStack, Rewardful, impact.com
+and CJ Affiliate**. They import into Aspen's native model with source provenance and
+read-only external references; universal CSV/manual migration ships first and remains the
+fallback when API access is unavailable.
+
 **Design-partner checkpoint 1.** Everything here works on the creator and affiliate product
 that already exists, which makes this the first point Aspen is demonstrable end-to-end. Not a
 launch — launch is end of Wave 7 — but the right moment to put it in front of a few real B2B
@@ -500,6 +505,11 @@ cannot predict from inside the building.
 
 The portal is the one piece where a rushed guess is expensive: a creator uploading unreleased
 content must be certain the wrong brand cannot see it. Design it fully here first.
+
+Affiliate migration adapters for PartnerStack, Rewardful, impact.com and CJ Affiliate land
+against the same import contract as the universal CSV mapper. Implementation order follows
+usable customer-authorized access; they do not replace Aspen-native links, commissions or
+payouts.
 
 Creator migration starts with the universal CSV mapper from Wave 2, followed by GRIN when
 access is available. CreatorIQ and Aspire remain feasibility decisions driven by

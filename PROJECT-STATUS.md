@@ -39,7 +39,8 @@ Updated 2026-08-31. Operational control panel only. Scope lives in
 - Harish approved the complete Stage C action, event/identity, attribution, money/fidelity,
   organisation/RLS and schema package, including conversation and creative-generation scope.
 - The plan now states unambiguously that Aspen's native affiliate program is the core
-  product; PartnerStack/Rewardful are optional migration sources, not dependencies.
+  product, with planned PartnerStack, Rewardful, impact.com and CJ Affiliate import adapters
+  after universal CSV; none is a runtime dependency.
 - Stage C now has one consolidated 4a–4i schema/contract review package, and both older
   implementation specs point to its controlling boundaries.
 - The durable plan and feature ledger now explicitly cover a conversational campaign

@@ -68,9 +68,9 @@ the common channel, identity, attribution, money and action contracts still land
 - **Paid:** Google Ads, Meta Ads and LinkedIn Ads; Reddit feasibility next. YouTube uses
   Google Ads. X remains discovery/export-only.
 - **Affiliate:** Aspen-native recruitment, links, attribution, commissions and payouts are
-  the core product. Universal CSV/manual migration comes first; PartnerStack and Rewardful
-  are optional source adapters only when a design partner needs them, with impact.com a
-  later feasibility path. None is an Aspen runtime dependency.
+  the core product. Universal CSV/manual migration comes first. Direct import adapters for
+  PartnerStack, Rewardful, impact.com and CJ Affiliate are planned, ordered by usable
+  customer-authorized access and design-partner demand. None is an Aspen runtime dependency.
 - **Creator:** universal CSV first, then GRIN; CreatorIQ/Aspire are demand-led feasibility.
 - **Retention:** HubSpot and Customer.io first, Klaviyo next, Braze later.
 

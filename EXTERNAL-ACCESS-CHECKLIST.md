@@ -1,6 +1,6 @@
 # Aspen — external access checklist
 
-Updated 2026-08-23. This tracks applications, accounts and materials that Harish must obtain.
+Updated 2026-08-31. This tracks applications, accounts and materials that Harish must obtain.
 
 **Never store API keys, client secrets, access tokens, private keys or passwords in this
 file or anywhere committed to Git.** Record only status, account owner, request date, approval
@@ -27,9 +27,10 @@ not accounts Harish needs for the core product. Universal CSV/manual import is f
 
 | Platform | Priority | Status | Access needed | Harish's next action | Blocks |
 | --- | --- | --- | --- | --- | --- |
-| PartnerStack | Optional after CSV | not-needed | Production API credentials and webhook configuration | No action now; obtain design-partner authorization only if migration demand is proven | Optional partner, deal, customer, reward and transaction migration |
-| Rewardful | Optional after CSV | not-needed | Merchant API secret and webhook access | No action now; obtain design-partner authorization only if migration demand is proven | Optional campaign, affiliate, link and commission migration |
-| impact.com | Tier 2 / feasibility | not-started | Brand/partner API access and commercial-plan confirmation | Confirm API availability and design-partner demand | Enterprise affiliate/creator import |
+| PartnerStack | Planned after CSV | not-started | Customer-authorized API/export and webhook access; confirm current scopes when scheduled | No action now; secure design-partner authorization when this adapter is scheduled | Direct partner, deal, customer, reward and transaction migration; CSV remains fallback |
+| Rewardful | Planned after CSV | not-started | Customer-authorized API/export and webhook access; confirm current scopes when scheduled | No action now; secure design-partner authorization when this adapter is scheduled | Direct campaign, affiliate, link and commission migration; CSV remains fallback |
+| impact.com | Planned after CSV | not-started | Customer-authorized brand/partner API or export route; confirm current product terms when scheduled | No action now; secure design-partner authorization when this adapter is scheduled | Direct enterprise partner, program and transaction migration; CSV remains fallback |
+| CJ Affiliate | Planned after CSV | not-started | Customer-authorized advertiser API or export route; confirm current program terms when scheduled | No action now; secure design-partner authorization when this adapter is scheduled | Direct publisher, program, link, commission and transaction migration; CSV remains fallback |
 | FirstPromoter | CSV first | not-started | Export sample; API access only if justified | Obtain anonymised sample export | CSV mapping and native-adapter decision |
 | Tapfiliate | CSV first | not-started | Export sample; API access only if justified | Obtain anonymised sample export | CSV mapping and native-adapter decision |
 

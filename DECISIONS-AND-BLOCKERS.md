@@ -1,6 +1,6 @@
 # Aspen — decisions and blockers
 
-Updated 2026-08-24. Record only decisions that materially affect scope, architecture,
+Updated 2026-08-31. Record only decisions that materially affect scope, architecture,
 sequencing, safety or external authority. Feature delivery state belongs in
 `PRODUCT-FEATURE-LEDGER.md`.
 
@@ -16,6 +16,8 @@ sequencing, safety or external authority. Feature delivery state belongs in
 - Codex handles routine implementation and verification autonomously. Harish is asked only
   for material scope, external authority, review gates or genuinely blocking inputs.
 - Published Lovable-connected history is never rebased, amended or force-pushed.
+- The complete Stage C contract package was approved by Harish on 2026-08-31; bounded Wave
+  1 work may begin with `W1-1`, while provider and public-action gates remain unchanged.
 
 ## Approved mission-critical product pillars
 
@@ -48,6 +50,14 @@ the common channel, identity, attribution, money and action contracts still land
   every CAC/return shows fidelity and missing inputs.
 - **D5 automation engine:** ads rules, lifecycle journeys and decision queues share
   trigger → condition → wait → action.
+- **Conversational campaign orchestration:** a Wave 6 conversation compiles a versioned
+  brief, plan and private drafts over D1. It may propose registered actions but cannot
+  bypass confirmation. Provider push and campaign activation are separate actions; push
+  remains paused and activation is never automatic.
+- **Creative reasoning pipeline:** Ads Engine generation is a staged brief → evidence →
+  strategy → angle/hook matrix → candidate → validation → quality-ranking workflow, not a
+  generic one-call copy prompt. Grounding is a hard gate; rubric scores never pose as
+  predicted performance, and only mature/minimum-sample outcomes may inform later work.
 - Organisation scoping/RLS is part of the Wave 1 contract and migration, not deferred
   cleanup. Creator-visible data must be walled by brand relationship.
 - Native campaign adoption/writeback is an explicit audited state change. Current approved
@@ -57,7 +67,10 @@ the common channel, identity, attribution, money and action contracts still land
 
 - **Paid:** Google Ads, Meta Ads and LinkedIn Ads; Reddit feasibility next. YouTube uses
   Google Ads. X remains discovery/export-only.
-- **Affiliate:** PartnerStack and Rewardful; impact.com feasibility next.
+- **Affiliate:** Aspen-native recruitment, links, attribution, commissions and payouts are
+  the core product. Universal CSV/manual migration comes first; PartnerStack and Rewardful
+  are optional source adapters only when a design partner needs them, with impact.com a
+  later feasibility path. None is an Aspen runtime dependency.
 - **Creator:** universal CSV first, then GRIN; CreatorIQ/Aspire are demand-led feasibility.
 - **Retention:** HubSpot and Customer.io first, Klaviyo next, Braze later.
 

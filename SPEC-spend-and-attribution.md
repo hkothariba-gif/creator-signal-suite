@@ -1,5 +1,11 @@
 # Spec — unblock spend, return, and per-creator revenue
 
+> **Reconciled 2026-08-31:** the minor-unit, nullable-budget, daily-actual-spend and
+> null-vs-zero rules below remain authoritative. The older three-change boundary,
+> single-migration instruction and deferral of the campaign/hotlist ownership rewrite are
+> superseded by `MASTER-BUILD-PLAN.md` and `STAGE-C-WAVE-1-CONTRACTS.md`. Do not implement
+> this file in isolation.
+
 Three schema changes plus the code that reads them. Written against `main` at
 `c6a1992`. Everything here is additive; no existing column changes type in place.
 

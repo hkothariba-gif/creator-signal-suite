@@ -450,6 +450,12 @@ recommend-only mode. Support universal CSV and manual imports first so existing 
 creator and paid campaigns can be mapped into the common channel model before native
 connectors are available.
 
+Aspen's own affiliate program is the operating system and source of truth: partner
+recruitment/approval, native links, campaign attribution, commission/deal terms, payouts and
+reporting live in Aspen. PartnerStack, Rewardful and similar products are optional migration
+sources for a customer who already uses them; Aspen does not depend on them to run an
+affiliate program, and no account with them is required for the core build.
+
 **Design-partner checkpoint 1.** Everything here works on the creator and affiliate product
 that already exists, which makes this the first point Aspen is demonstrable end-to-end. Not a
 launch — launch is end of Wave 7 — but the right moment to put it in front of a few real B2B
@@ -473,6 +479,12 @@ feasibility. Imported campaigns begin as read-only mirrors. Budget recommendatio
 accepted by a human, but autonomous budget changes remain out of scope.
 
 Craft blocks for Google and Meta need source material Aspen doesn't have — see Part 8.
+
+Creative generation is a staged system, not a one-shot prompt: structured brief → evidence
+floor → strategy → angle/hook matrix → materially distinct candidates → deterministic
+claim/format checks → quality ranking → human selection. Scores describe groundedness and
+craft quality, never forecast CTR or revenue. Mature performance can inform a later
+hypothesis without overriding evidence rules or pretending correlation proves causation.
 
 ### Wave 4 · Creator portal, library, deals — L/XL, 5–7 weeks
 The portal (second auth role, RLS on every creator-visible table, invite acceptance, upload
@@ -511,6 +523,12 @@ shows the *criteria*, not just the recommendation. Decision log surfaced as a re
 history. Threshold-based continue/stop rules (G3). Slack as a **decision queue** first and a
 chat second: three digests a day, approvals as buttons (G1). Close the generation loop so
 version N+1 reads version N's results (G2).
+
+The first chat job is a conversational campaign builder: it turns a multi-turn discussion
+into a versioned brief, asks for missing launch-critical facts, prepares a plan and creative
+drafts, then proposes only named D1 actions. Conversation cannot itself publish, send,
+change spend or activate a campaign. Those steps retain their exact confirmation policy;
+provider pushes still create paused campaigns and activation remains separate.
 
 Thin *only* because Wave 1 built the vocabulary. Skip Wave 1's spec and this wave triples.
 

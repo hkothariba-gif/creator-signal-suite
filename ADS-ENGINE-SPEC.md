@@ -10,6 +10,12 @@ exports are not currently in the repository; this document must remain implement
 them unless they are restored. The cited commit is a historical baseline, so re-audit current
 code before implementation.
 
+Reconciled again 2026-08-31 with `STAGE-C-WAVE-1-CONTRACTS.md`. The T1–T5 evidence
+permissions, floor, format/craft rules, structured refusal, provenance and paused-push rule
+remain controlling Ads Engine behavior. Illustrative SQL and runtime flow must adopt Stage
+C's organisation/RLS/action contracts and its structured strategy → angle/hook matrix →
+validation → quality-ranking stages; do not implement this file in isolation.
+
 ## Decisions locked
 
 | Question | Answer |

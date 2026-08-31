@@ -1,6 +1,6 @@
 # Aspen — Codex execution plan
 
-Updated 2026-08-24. This turns `MASTER-BUILD-PLAN.md` into a build sequence. The master
+Updated 2026-08-31. This turns `MASTER-BUILD-PLAN.md` into a build sequence. The master
 plan owns product scope; this file owns order of operations, change boundaries and release
 gates.
 
@@ -79,22 +79,28 @@ and security acceptance recorded; the changed-file lint gate exists in CI.
 
 ## Stage C — freeze Wave 1 contracts
 
+Status: approved 2026-08-31. The controlling artifact is
+`STAGE-C-WAVE-1-CONTRACTS.md`.
+
 No migration starts until these artifacts are reviewed together:
 
 1. Translate the confirmed D4a contract into the L1–L4 fidelity ladder, customer-supplied
    cohort estimates and event-pipe metering without backend/provider-billing access.
 2. Write the complete D1 action vocabulary with inputs, results and
-   `silent` / `confirm` / `never-automatic` policy.
+   `silent` / `confirm` / `never-automatic` policy, including the structured brief and
+   registered-action boundary used later by the conversational campaign builder.
 3. Write the D2 event contract, identity promotion rules, idempotency keys, data retention
    and deletion behavior.
 4. Write the D3 attribution invariants: channel normalization, credit sums, conflict
    recording, maturity windows and per-funnel default models.
 5. Write the org-scoping/RLS matrix for every new and affected table.
 6. Reconcile `SPEC-spend-and-attribution.md` and `ADS-ENGINE-SPEC.md` with the master plan
-   so their superseded exclusions cannot be implemented accidentally.
+   so their superseded exclusions cannot be implemented accidentally; freeze the Ads
+   Engine's staged strategy, angle/hook, validation and evaluation contract without
+   beginning Wave 3 runtime work.
 
 Exit: approved contracts and a schema map with ownership, keys, indexes, retention and RLS
-for every table.
+for every table. The consolidated review artifact is `STAGE-C-WAVE-1-CONTRACTS.md`.
 
 ## Stage D — build Wave 1 in bounded PRs
 

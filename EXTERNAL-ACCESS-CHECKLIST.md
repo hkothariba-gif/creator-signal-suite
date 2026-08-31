@@ -21,10 +21,14 @@ Status values: `not-started` · `researching` · `applied` · `test-access` · `
 
 ## Affiliate
 
+Aspen is building and operating its own native affiliate program. The vendors below are
+optional import/migration sources for customers with existing programs, not dependencies and
+not accounts Harish needs for the core product. Universal CSV/manual import is first.
+
 | Platform | Priority | Status | Access needed | Harish's next action | Blocks |
 | --- | --- | --- | --- | --- | --- |
-| PartnerStack | Tier 1 | not-started | Production API credentials and webhook configuration | Obtain a test/partner account or design-partner authorization | Partner, deal, customer, reward and transaction import |
-| Rewardful | Tier 1 | not-started | Merchant API secret and webhook access | Obtain a test merchant account or design-partner authorization | Campaign, affiliate, link and commission import |
+| PartnerStack | Optional after CSV | not-needed | Production API credentials and webhook configuration | No action now; obtain design-partner authorization only if migration demand is proven | Optional partner, deal, customer, reward and transaction migration |
+| Rewardful | Optional after CSV | not-needed | Merchant API secret and webhook access | No action now; obtain design-partner authorization only if migration demand is proven | Optional campaign, affiliate, link and commission migration |
 | impact.com | Tier 2 / feasibility | not-started | Brand/partner API access and commercial-plan confirmation | Confirm API availability and design-partner demand | Enterprise affiliate/creator import |
 | FirstPromoter | CSV first | not-started | Export sample; API access only if justified | Obtain anonymised sample export | CSV mapping and native-adapter decision |
 | Tapfiliate | CSV first | not-started | Export sample; API access only if justified | Obtain anonymised sample export | CSV mapping and native-adapter decision |

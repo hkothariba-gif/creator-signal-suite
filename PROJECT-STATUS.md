@@ -1,20 +1,22 @@
 # Aspen — project status
 
-Updated 2026-08-31. Operational control panel only. Scope lives in
+Updated 2026-09-06. Operational control panel only. Scope lives in
 `MASTER-BUILD-PLAN.md`, order in `EXECUTION-PLAN.md`, and feature evidence in
 `PRODUCT-FEATURE-LEDGER.md`.
 
 ## NOW
 
-- **Stage C complete:** Harish approved the complete contract package on 2026-08-31.
-- Prepare bounded Wave 1 PR `W1-1` for ordered 4a–4i schema migrations, ownership backfills,
-  RLS, indexes and seed rows. Provider/runtime work remains out of this first PR.
+- **`W1-1` complete and ready to commit on `codex/w1-1-schema`:** a trusted live-schema
+  snapshot plus all eleven migrations replay from blank locally. The 55-table contract,
+  five-role RLS matrix, quarantine drill and checked-in generated types pass.
+- No live database has been changed. Provider calls and Wave 1 runtime/UI remain outside
+  this schema-only delivery.
 
 ## NEXT
 
-1. Map the approved C6 schema groups into ordered, independently diagnosable migrations.
-2. Implement the ownership backfill/quarantine and per-role RLS policies with tests.
-3. Apply migrations to a fresh database, regenerate types and reconcile the schema evidence.
+1. Review and commit `W1-1` without rewriting published history.
+2. Push the feature branch and open the normal review path when requested.
+3. Begin `W1-2` event ingress only after the W1-1 commit/review checkpoint.
 
 ## WAITING ON HARISH
 
@@ -27,7 +29,8 @@ Updated 2026-08-31. Operational control panel only. Scope lives in
 
 ## BLOCKED
 
-- No current `W1-1` engineering blocker.
+- No current blocker prevents committing W1-1. Applying its migrations to live Supabase is
+  a separate reviewed operation and must run the ownership preflight first.
 - Native paid import/reporting/writeback is externally gated by Google, Meta, LinkedIn and
   Reddit access; universal CSV/manual import is not.
 - Imported-campaign adoption rules must be approved before native writeback, not before
@@ -36,6 +39,16 @@ Updated 2026-08-31. Operational control panel only. Scope lives in
 
 ## RECENTLY COMPLETED
 
+- Captured the linked project's schema without data, replayed it with W1-1 from blank, reran
+  all security/quarantine checks and checked in the authoritative generated TypeScript map.
+- Replayed all eleven W1-1 migrations in Docker/Supabase, corrected the unsupported UUID
+  aggregate, passed the five-role RLS matrix and cross-org/append-only/import-safety checks,
+  and proved ambiguous ownership is quarantined and stops the rewrite.
+- Drafted the full `W1-1` schema set: 55 new organisation-owned business tables, 11 legacy
+  ownership targets, forced RLS, composite tenant keys, seeds, import read-only defaults,
+  minor-unit money and an append-only action ledger.
+- Added a non-destructive ownership quarantine and an executable final migration contract;
+  ambiguous legacy ownership stops the migration instead of being guessed.
 - Harish approved the complete Stage C action, event/identity, attribution, money/fidelity,
   organisation/RLS and schema package, including conversation and creative-generation scope.
 - The plan now states unambiguously that Aspen's native affiliate program is the core
@@ -57,9 +70,11 @@ Updated 2026-08-31. Operational control panel only. Scope lives in
 
 ## HEALTH
 
-- **Git:** approved Stage C documentation is committed locally on `main`; origin remains at
-  `66334c8` until an explicit push. Never rebase or force-push Lovable history.
+- **Git:** working on `codex/w1-1-schema` from approved Stage C commit `504e501`; W1-1 is not
+  committed or pushed yet. Never rebase or force-push Lovable history.
 - **Typecheck/build:** passing; existing framework deprecation/chunk warnings remain.
 - **Tests:** 3 files/5 tests passing for DataGate, shared dialog and authenticated app shell.
+- **Schema:** trusted-baseline replay, 11 migrations, 55 new tables, 11 legacy ownership
+  targets, five-role security, quarantine drill and generated types all pass.
 - **Security:** CSRF startup warning resolved; `npm audit` reports zero vulnerabilities.
 - **Lint:** changed-file CI gate is active; historical whole-repository backlog remains.
